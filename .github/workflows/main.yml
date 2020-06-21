@@ -26,5 +26,5 @@ jobs:
       run: |
         mkdir out
         cd out
-        cmake -DCMAKE_TOOLCHAIN_FILE="/opt/vcpkg/scripts/buildsystems/vcpkg.cmake" ../
+        ~/cmake/bin/cmake -DCMAKE_TOOLCHAIN_FILE="/opt/vcpkg/scripts/buildsystems/vcpkg.cmake" ../
         make
