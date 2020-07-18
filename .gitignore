@@ -33,3 +33,10 @@
 
 out/*
 .vs/*
+build/*
+.vscode/*
+
+.terraform
+*.tfstate*
+provision/hetzner/terraform/inventory
+*.retry

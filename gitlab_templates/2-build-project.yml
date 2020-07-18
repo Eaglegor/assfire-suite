@@ -1,0 +1,32 @@
+.build-project-tmpl:
+  stage: build_project
+  artifacts:
+    paths:
+      - out/*
+    expire_in: 1 hour
+  script:
+    - source scl_source enable devtoolset-8 || true
+    - mkdir out
+    - cd out
+    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DASSFIRE_DEBUG_MODE=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DASSFIRE_BUNDLE_INSTALL_MODE=True ../
+    - make install
+
+build-project-master:
+  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
+  extends: .build-project-tmpl
+  only:
+    refs:
+      - master
+      - tags
+  needs:
+    - build-image-meta
+
+build-project-branch:
+  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:$CI_COMMIT_REF_SLUG-tmp
+  extends: .build-project-tmpl
+  only:
+    refs:
+      - branches
+      - merge_requests
+  needs:
+    - build-tmp-image-meta

@@ -13,12 +13,17 @@ endif()
 
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG True)
 
-option(DEBUG_MODE "Enable debug mode" ON)
-if(DEBUG_MODE)
+option(ASSFIRE_DEBUG_MODE "Enable debug mode" ON)
+option(ASSFIRE_BUNDLE_INSTALL_MODE "Enable bundle mode for installation" OFF)
+option(ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS "Automatically copy all needed dynamic libraries to the installation location" OFF)
+if(ASSFIRE_DEBUG_MODE)
 	message(STATUS "Debug mode enabled")
-	add_definitions("-DDEBUG_MODE")
+	add_definitions("-DASSFIRE_DEBUG_MODE")
+	add_definitions("-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-add_subdirectory(routing)
+enable_testing()
+
+add_subdirectory(routes_provider)

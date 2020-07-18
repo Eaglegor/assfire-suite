@@ -1,0 +1,13 @@
+stages:
+  - build_meta_image
+  - build_project
+  - run_unit_tests
+  - run_integration_tests
+  - build_docker_images
+
+include: 
+- gitlab_templates/1-build-meta-ci-image.yml
+- gitlab_templates/2-build-project.yml
+- gitlab_templates/3-run-unit-tests.yml
+- gitlab_templates/4-run-integration-tests.yml
+- gitlab_templates/5-build-docker-images.yml
