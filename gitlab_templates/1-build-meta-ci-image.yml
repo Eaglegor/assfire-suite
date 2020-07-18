@@ -17,6 +17,9 @@ build-tmp-image-meta:
     refs:
       - branches
       - merge_requests
+  except:
+    refs:
+      -  master
   needs: []
 
 build-image-meta:

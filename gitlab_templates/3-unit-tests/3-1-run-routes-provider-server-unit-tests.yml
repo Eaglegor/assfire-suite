@@ -24,5 +24,8 @@ run-unit-tests-routes-provider-server-branch:
     refs:
       - branches
       - merge_requests
+  except:
+    refs:
+      -  master
   needs:
     - build-project-branch

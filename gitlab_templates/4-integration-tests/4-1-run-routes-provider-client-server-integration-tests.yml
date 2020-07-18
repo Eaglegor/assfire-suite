@@ -26,5 +26,8 @@ run-routes-provider-client-server-integration-tests-branch:
     refs:
       - branches
       - merge_requests
+  except:
+    refs:
+      -  master
   needs:
     - build-project-branch

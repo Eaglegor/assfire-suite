@@ -28,5 +28,8 @@ build-project-branch:
     refs:
       - branches
       - merge_requests
+  except:
+    refs:
+      -  master
   needs:
     - build-tmp-image-meta
