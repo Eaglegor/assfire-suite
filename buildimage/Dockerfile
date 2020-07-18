@@ -21,7 +21,6 @@ RUN /opt/vcpkg/vcpkg install grpc --triplet x64-linux && rm -rf /opt/vcpkg/downl
 RUN /opt/vcpkg/vcpkg install cpp-redis --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install cxxopts --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install spdlog --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install boost-uuid --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install catch2 --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install prometheus-cpp --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 
