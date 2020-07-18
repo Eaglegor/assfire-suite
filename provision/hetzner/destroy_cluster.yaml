@@ -1,0 +1,11 @@
+---
+- name: Destroy VMs using Terraform
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Run terraform
+      terraform:
+          project_path: "{{playbook_dir}}/terraform"
+          state: absent
+

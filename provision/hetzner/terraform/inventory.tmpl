@@ -1,0 +1,79 @@
+[fsn1-dev-assfire-masters]
+%{for index, server in fsn1-dev-assfire-masters ~}
+${server.name} ansible_host=${server.ipv4_address}
+%{endfor ~}
+
+[fsn1-dev-assfire-workers]
+%{for index, server in fsn1-dev-assfire-workers ~}
+${server.name} ansible_host=${server.ipv4_address}
+%{endfor ~}
+
+[hel1-dev-assfire-masters]
+%{for index, server in hel1-dev-assfire-masters ~}
+${server.name} ansible_host=${server.ipv4_address}
+%{endfor ~}
+
+[hel1-dev-assfire-workers]
+%{for index, server in hel1-dev-assfire-workers ~}
+${server.name} ansible_host=${server.ipv4_address}
+%{endfor ~}
+
+[nbg1-dev-assfire-masters]
+%{for index, server in nbg1-dev-assfire-masters ~}
+${server.name} ansible_host=${server.ipv4_address}
+%{endfor ~}
+
+[nbg1-dev-assfire-workers]
+%{for index, server in nbg1-dev-assfire-workers ~}
+${server.name} ansible_host=${server.ipv4_address}
+%{endfor ~}
+
+[kube-master:children]
+fsn1-dev-assfire-masters
+hel1-dev-assfire-masters
+nbg1-dev-assfire-masters
+
+[kube-node:children]
+fsn1-dev-assfire-workers
+hel1-dev-assfire-workers
+nbg1-dev-assfire-workers
+
+[fsn1:children]
+fsn1-dev-assfire-masters
+fsn1-dev-assfire-workers
+
+[hel1:children]
+hel1-dev-assfire-masters
+hel1-dev-assfire-workers
+
+[nbg1:children]
+nbg1-dev-assfire-masters
+nbg1-dev-assfire-workers
+
+[redis_masters:children]
+kube-node
+
+[redis_masters:vars]
+node_labels={'redis_role': 'master'}
+
+[etcd:children]
+kube-master
+
+[calico-rr]
+
+[k8s-cluster:children]
+kube-master
+kube-node
+calico-rr
+
+[k8s-cluster:vars]
+cluster-name=cluster.assfire.org
+ingress_nginx_enabled=True
+
+[all:vars]
+docker_dns_servers_strict=False
+
+[ingress]
+%{for index, server in floating_ips ~}
+${floating_ips[index].name} floating_ip=${floating_ips[index].ip_address}
+%{endfor ~}

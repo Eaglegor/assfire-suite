@@ -1,0 +1,3 @@
+include: 
+- gitlab_templates/4-integration-tests/4-1-run-routes-provider-client-server-integration-tests.yml
+- gitlab_templates/4-integration-tests/4-2-run-routes-provider-redis-cache-integration-tests.yml
