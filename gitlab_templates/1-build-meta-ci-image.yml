@@ -35,4 +35,5 @@ build-image-meta:
   only:
     refs:
       - master
+      - tags
   needs: []
