@@ -1,3 +1,6 @@
+[kubeconfig-fetch-node]
+fsn1-dev-assfire-master-1
+
 [fsn1-dev-assfire-masters]
 %{for index, server in fsn1-dev-assfire-masters ~}
 ${server.name} ansible_host=${server.ipv4_address}

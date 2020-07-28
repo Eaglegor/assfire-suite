@@ -1,0 +1,6 @@
+---
+- name: Destroy current cluster
+  import_playbook: destroy_cluster.yaml
+
+- name: Create new cluster
+  import_playbook: create_cluster.yaml

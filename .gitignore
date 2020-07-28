@@ -39,4 +39,5 @@ build/*
 .terraform
 *.tfstate*
 provision/hetzner/terraform/inventory
+provision/hetzner/kubespray
 *.retry

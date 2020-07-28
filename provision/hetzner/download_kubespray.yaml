@@ -1,0 +1,10 @@
+- name: Ensure kubespray is available
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Checkout kubespray
+      git:
+        repo: https://github.com/kubernetes-sigs/kubespray.git
+        dest: kubespray
+        version: v2.12.7
+        depth: 1

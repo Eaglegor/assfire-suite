@@ -47,7 +47,7 @@ resource "hcloud_floating_ip_assignment" "fsn1-assfire-master-1" {
 }
 
 resource "hcloud_server" "hel1-dev-assfire-master" {
-  count       = 1
+  count       = 0
   name        = "hel1-dev-assfire-master-${count.index + 1}"
   image       = "centos-7"
   server_type = "cx21"
@@ -56,7 +56,7 @@ resource "hcloud_server" "hel1-dev-assfire-master" {
 }
 
 resource "hcloud_server" "hel1-dev-assfire-worker" {
-  count       = 1
+  count       = 0
   name        = "hel1-dev-assfire-worker-${count.index + 1}"
   image       = "centos-7"
   server_type = "cx21"
@@ -66,7 +66,7 @@ resource "hcloud_server" "hel1-dev-assfire-worker" {
 
 
 resource "hcloud_server" "nbg1-dev-assfire-master" {
-  count       = 1
+  count       = 0
   name        = "nbg1-dev-assfire-master-${count.index + 1}"
   image       = "centos-7"
   server_type = "cx21"
@@ -75,7 +75,7 @@ resource "hcloud_server" "nbg1-dev-assfire-master" {
 }
 
 resource "hcloud_server" "nbg1-dev-assfire-worker" {
-  count       = 1
+  count       = 0
   name        = "nbg1-dev-assfire-worker-${count.index + 1}"
   image       = "centos-7"
   server_type = "cx21"
