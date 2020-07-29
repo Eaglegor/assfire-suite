@@ -1,13 +1,6 @@
 ---
-- name: Ensure openshift python module is present on local machine
-  gather_facts: no
-  hosts: localhost
-  connection: local
-  tasks:
-    - name: Install openshift module
-      pip:
-        name: openshift
-        state: present
+- name: Ensure kubeconfig is present on local machine
+  import_playbook: download_kubeconfig.yaml
 
 - name: Ensure namespaces are present
   gather_facts: no

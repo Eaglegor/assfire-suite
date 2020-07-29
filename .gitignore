@@ -40,4 +40,6 @@ build/*
 *.tfstate*
 provision/hetzner/terraform/inventory
 provision/hetzner/kubespray
+provision/hetzner/tf_package
+provision/hetzner/passfile
 *.retry

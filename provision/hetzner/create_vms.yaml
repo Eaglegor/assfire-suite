@@ -1,5 +1,5 @@
 ---
-- name: Destroy VMs using Terraform
+- name: Provision VMs using Terraform
   hosts: localhost
   connection: local
   gather_facts: no
@@ -18,6 +18,28 @@
     - name: Run terraform
       terraform:
           project_path: "{{playbook_dir}}/terraform"
-          state: absent
+          state: present
       environment:
           TF_VAR_hcloud_token: "{{hcloud_token}}"
+    - name: Refresh ansible inventory
+      meta: refresh_inventory
+
+- name: Wait until all nodes are up
+  hosts: k8s-cluster
+  gather_facts: no
+  tasks:
+      - name: Waiting until host is up
+        wait_for_connection:
+
+- name: Add floating IP configs to ingress nodes
+  hosts: ingress
+  gather_facts: no
+  tasks:
+    - name: Create configuration
+      template:
+        src: floating_ip.tmpl
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0:1
+    - name: Restart network
+      service:
+        name: network
+        state: restarted
