@@ -59,6 +59,19 @@ kube-node
 [redis_masters:vars]
 node_labels={'redis_role': 'master'}
 
+[redis_slaves:children]
+
+[redis_slaves:vars]
+node_labels={'redis_role': 'slave'}
+
+[redis_nodes:children]
+redis_masters
+redis_slaves
+
+[redis_nodes:vars]
+local_volume_provisioner_enabled=True
+local_volume_provisioner_storage_classes={'redis-storage':{'mount_dir':'/mnt/disks','host_dir':'/mnt/disks','fs_type':'ext4'}}
+
 [etcd:children]
 kube-master
 

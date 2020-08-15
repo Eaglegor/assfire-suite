@@ -2,7 +2,6 @@
 - name: Provision VMs using Terraform
   hosts: localhost
   connection: local
-  gather_facts: no
   vars:
     hcloud_token: !vault |
                   $ANSIBLE_VAULT;1.1;AES256
@@ -30,10 +29,9 @@
   tasks:
       - name: Waiting until host is up
         wait_for_connection:
-
+        
 - name: Add floating IP configs to ingress nodes
   hosts: ingress
-  gather_facts: no
   tasks:
     - name: Create configuration
       template:

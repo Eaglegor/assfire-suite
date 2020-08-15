@@ -29,6 +29,7 @@
         name: 
             - openshift
             - pexpect
+            - netaddr
         state: present
     - name: Ensure helm repo key is added to apt
       apt_key:
@@ -41,6 +42,24 @@
     - name: Ensure helm is installed
       apt:
         name: helm
+        state: present
+    - name: Ensure gnupg2 and apt-transport-https are installed
+      apt: 
+        name: 
+          - gnupg2
+          - apt-transport-https
+        state: present
+    - name: Ensure kubectl repo key is added to apt
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+    - name: Ensure kubectl repo is available in apt
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+    - name: Ensure kubectl is installed
+      apt:
+        name: kubectl
         state: present
 
 - name: Ensure project is configured
