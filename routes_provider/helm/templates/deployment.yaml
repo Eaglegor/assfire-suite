@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,16 +24,3 @@ spec:
             - "--redis-cache-enabled=true"
             - "--redis-host=assfire-geocache-redis-master"
             - "--metrics-enabled=true"
----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: assfire
-  name: assfire-router-service
-spec:
-  selector:
-    app: assfire-router-server
-  ports:
-    - protocol: TCP
-      port: 50051
-      targetPort: 50051

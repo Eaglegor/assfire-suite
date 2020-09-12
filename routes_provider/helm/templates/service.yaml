@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: assfire
+  name: assfire-router-service
+spec:
+  selector:
+    app: assfire-router-server
+  ports:
+    - protocol: TCP
+      port: 50051
+      targetPort: 50051
