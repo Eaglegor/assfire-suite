@@ -1,0 +1,5 @@
+timeout: 600
+cluster.nodes: 1
+cluster.replicas: 0
+redis.nodeSelector:
+  redis_role: master
