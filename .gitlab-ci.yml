@@ -4,6 +4,7 @@ stages:
   - run_unit_tests
   - run_integration_tests
   - build_docker_images
+  - deploy_services
 
 include: 
 - gitlab_templates/1-build-meta-ci-image.yml
@@ -11,3 +12,4 @@ include:
 - gitlab_templates/3-run-unit-tests.yml
 - gitlab_templates/4-run-integration-tests.yml
 - gitlab_templates/5-build-docker-images.yml
+- gitlab_templates/6-deploy-services.yml

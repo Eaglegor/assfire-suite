@@ -1,0 +1,6 @@
+deploy_services:
+  stage: deploy_services
+  when: manual
+  script:
+    - cd deploy
+    - ansible-playbook deploy-all-services.yaml
