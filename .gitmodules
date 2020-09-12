@@ -1,3 +1,0 @@
-[submodule "provision/hetzner/kubespray"]
-	path = provision/hetzner/kubespray
-	url = https://github.com/kubernetes-sigs/kubespray.git
