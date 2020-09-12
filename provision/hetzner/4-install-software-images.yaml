@@ -25,19 +25,19 @@
       register: vd0
     - name: Create /opt/pvc/vd0 file
       shell:
-        cmd: dd if=/dev/zero of=/opt/pvc/vd0 bs=1M count=1024
+        cmd: dd if=/dev/zero of=/opt/pvc/vd0 bs=1M count=4096
       when: not vd0.stat.exists
     - name: Create ext4 fs on /opt/pvc/vd0
       filesystem:
         fstype: ext4
         dev: /opt/pvc/vd0
-    - name: Make mount point for /mnt/disks/vd0
+    - name: Make mount point for /mnt/redis/vd0
       file:
-        path: /mnt/disks/vd0
+        path: /mnt/redis/vd0
         state: directory
-    - name: Mount /opt/pvc/vd0 to /mnt/disks
+    - name: Mount /opt/pvc/vd0 to /mnt/redis
       mount:
-        path: /mnt/disks/vd0
+        path: /mnt/redis/vd0
         src: /opt/pvc/vd0
         state: mounted
         fstype: ext4
@@ -61,7 +61,9 @@
             nodeSelector: {"redis_role":"master"}
             persistence:
                 storageClass: redis-storage
+                size: 2Gi
           slave:
             nodeSelector: {"redis_role":"slave"}
             persistence:
                 storageClass: redis-storage
+                size: 2Gi
