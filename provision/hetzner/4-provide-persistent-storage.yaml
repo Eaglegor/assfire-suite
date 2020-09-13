@@ -41,7 +41,7 @@
       register: vd1
     - name: Create /opt/pvc/vd1 file
       shell:
-        cmd: dd if=/dev/zero of=/opt/pvc/vd1 bs=1M count=4096
+        cmd: dd if=/dev/zero of=/opt/pvc/vd1 bs=1M count=4500
       when: not vd1.stat.exists
     - name: Create ext4 fs on /opt/pvc/vd1
       filesystem:

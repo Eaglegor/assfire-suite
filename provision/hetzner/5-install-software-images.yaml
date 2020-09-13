@@ -83,6 +83,7 @@
         release_state: present
         release_namespace: assfire
         release_values:
+          usePassword: false
           master:
             nodeSelector: { "redis_role": "master" }
             persistence:
@@ -112,30 +113,27 @@
           defaultRules:
             rules:
               alertmanager: false
-          prometheusSpec:
-            persistence:
-              enabled: true
-              storageClass: file-storage
-              size: 4Gi
-            node-selector:
-              prometheus_role: worker
-            storageSpec:
-              volumeClaimTemplate:
-                spec:
-                  storageClassName: file-storage
-                  resources:
-                    requests:
-                      storage: 4Gi
           alertmanager:
             enabled: false
-          additionalServiceMonitors:
-            - name: assfire-monitoring-services
-              namespaceSelector:
-                matchNames:
-                  - assfire
-              selector:
-                matchLabels:
-                  metrics: prometheus
-              endpoints:
-                - port: http-metrics
-                  interval: 15s
+          prometheus:
+            prometheusSpec:
+              nodeSelector:
+                prometheus_role: worker
+              storageSpec:
+                volumeClaimTemplate:
+                  spec:
+                    storageClassName: file-storage
+                    resources:
+                      requests:
+                        storage: 4Gi
+            additionalServiceMonitors:
+              - name: assfire-monitoring-services
+                namespaceSelector:
+                  matchNames:
+                    - assfire
+                selector:
+                  matchLabels:
+                    metrics: prometheus
+                endpoints:
+                  - port: http-metrics
+                    interval: 15s
