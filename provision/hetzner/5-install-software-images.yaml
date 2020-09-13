@@ -1,0 +1,141 @@
+---
+- name: Ensure namespaces are present
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  tasks:
+    - name: Create assfire namespace
+      community.kubernetes.k8s:
+        name: assfire
+        api_version: v1
+        kind: Namespace
+        state: present
+
+- name: Ensure nodes are labeled properly
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Add redis_role=master label to redis master nodes
+      shell: kubectl label nodes {{item}} redis_role=master --overwrite
+      with_items: "{{ groups['redis_masters'] }}"
+    - name: Add redis_role=slave label to redis slave nodes
+      shell: kubectl label nodes {{item}} redis_role=slave --overwrite
+      with_items: "{{ groups['redis_slaves'] }}"
+    - name: Add prometheus_role=worker label to prometheus worker nodes
+      shell: kubectl label nodes {{item}} prometheus_role=worker --overwrite
+      with_items: "{{ groups['prometheus_nodes'] }}"
+    - name: Add assfire_role=calculation-node label to assfire calculation nodes
+      shell: kubectl label nodes {{item}} assfire_role=calculation-node --overwrite
+      with_items: "{{ groups['assfire_calculation_nodes'] }}"
+
+- name: Ensure docker credentials are configured
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  vars:
+    dockerconfigjson: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      66646562643365353033383933656137613364376162656364396261386337316462323231353436
+      6537383939343231613062626361333932636264313030640a653837303637616362653563363466
+      37353736643565303761323430383837363163393865326634366365303635373536323935626639
+      6231663465366465300a346638346130326537373564393165303739653233633939653965356265
+      38613466356562346432313436366265616565613966616136666638643739303431313563333431
+      30346538316561303039383361383934356566613739373239663932386636316461643836313539
+      31643262303164633438326431653064333635623438666166353662643032343866613837363335
+      36303434393763613234663931363462653564616236303764396463636137626562666163636661
+      64383234393839326630393462396564643834613335316537323963643165653161333339383732
+      61393361343633323830653939616537363432306439336535646134396139643436306166316137
+      32346561376534636530323934656463313437333435623838663265646262633836646631303661
+      30633732336231613363633832643839643861643662343064666263313134646533376335306632
+      36623437613834363730376266303362646165376362343063366462663966316634643135306363
+      62336238306561383366636266646465613464353831633435313331306335366436613163333763
+      64383663633366373364393862356533316332366437376464386364366534613730626663386364
+      63643432666362666164303132333437393331613031613531653865623230633934323262313161
+      6139
+  tasks:
+    - name: Create gitlab registry secret
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: assfire-registry-key
+            namespace: assfire
+          data:
+            .dockerconfigjson: "{{dockerconfigjson}}"
+          type: kubernetes.io/dockerconfigjson
+
+- name: Ensure redis is deployed
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  tasks:
+    - name: Ensure redis installation exists
+      community.kubernetes.helm:
+        chart_ref: redis
+        chart_version: 10.7.16
+        chart_repo_url: "https://charts.bitnami.com/bitnami"
+        release_name: assfire-geocache
+        release_state: present
+        release_namespace: assfire
+        release_values:
+          master:
+            nodeSelector: { "redis_role": "master" }
+            persistence:
+              storageClass: file-storage
+              size: 2Gi
+          slave:
+            nodeSelector: { "redis_role": "slave" }
+            persistence:
+              storageClass: file-storage
+              size: 2Gi
+
+- name: Ensure prometheus is deployed
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  tasks:
+    - name: Ensure prometheus installation exists
+      community.kubernetes.helm:
+        chart_ref: kube-prometheus-stack
+        chart_version: 9.4.1
+        chart_repo_url: "https://prometheus-community.github.io/helm-charts"
+        release_name: assfire-monitoring
+        release_state: present
+        release_namespace: assfire
+        release_values:
+          defaultRules:
+            rules:
+              alertmanager: false
+          prometheusSpec:
+            persistence:
+              enabled: true
+              storageClass: file-storage
+              size: 4Gi
+            node-selector:
+              prometheus_role: worker
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: file-storage
+                  resources:
+                    requests:
+                      storage: 4Gi
+          alertmanager:
+            enabled: false
+          additionalServiceMonitors:
+            - name: assfire-monitoring-services
+              namespaceSelector:
+                matchNames:
+                  - assfire
+              selector:
+                matchLabels:
+                  metrics: prometheus
+              endpoints:
+                - port: http-metrics
+                  interval: 15s

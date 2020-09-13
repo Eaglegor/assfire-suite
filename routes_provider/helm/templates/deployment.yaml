@@ -2,25 +2,28 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: assfire
-  name: assfire-router-deployment
+  name: assfire-router
   labels:
-    app: assfire-router
+    assfire_app: assfire-router-server
 spec:
   replicas: {{.Values.assfire_router_replicas}}
   selector:
     matchLabels:
-      app: assfire-router-server
+      assfire_app: assfire-router-server
   template:
     metadata:
       labels:
-        app: assfire-router-server
+        assfire_app: assfire-router-server
     spec:
+      nodeSelector:
+        assfire_role: calculation-node
       containers:
         - name: assfire-router-server
-          image: assfire-router:{{.Values.assfire_router_tag}}
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router:{{.Values.assfire_router_tag}}
           ports:
             - containerPort: 50051
-          args:
-            - "--redis-cache-enabled=true"
-            - "--redis-host=assfire-geocache-redis-master"
-            - "--metrics-enabled=true"
+            - containerPort: 8081
+          command: ["/opt/assfire-router/bin/assfire-router"]
+          args: ["--redis-cache-enabled=true", "--redis-host=assfire-geocache-redis-master", "--metrics-enabled=true", "--log-level=debug"]
+      imagePullSecrets:
+        - name: assfire-registry-key

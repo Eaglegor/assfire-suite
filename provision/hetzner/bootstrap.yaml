@@ -9,7 +9,7 @@
       git:
         repo: https://github.com/kubernetes-sigs/kubespray.git
         dest: "{{playbook_dir}}/kubespray"
-        version: v2.12.7
+        version: v2.14.0
         depth: 1
     - name: Ensure pip is installed
       apt: 

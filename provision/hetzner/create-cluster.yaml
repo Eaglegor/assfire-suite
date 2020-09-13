@@ -8,5 +8,11 @@
 - name: Ensure kubeconfig is present on local machine
   import_playbook: 3-download-kubeconfig.yaml
 
+- name: Ensure persistent storage is available for services
+  import_playbook: 4-provide-persistent-storage.yaml
+
 - name: Ensure needed software is installed
-  import_playbook: 4-install-software-images.yaml
+  import_playbook: 5-install-software-images.yaml
+
+- name: Ensure certificates are installed
+  import_playbook: 6-install-certificates.yaml

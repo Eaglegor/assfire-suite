@@ -9,7 +9,7 @@ resource "local_file" "AnsibleInventory" {
       nbg1-dev-assfire-workers = hcloud_server.nbg1-dev-assfire-worker.*,
       floating_ips = [
         {
-          name       = "fsn1-dev-assfire-master-1",
+          name       = "fsn1-dev-assfire-worker-1",
           ip_address = "49.12.114.184"
         }
       ]
