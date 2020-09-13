@@ -1,0 +1,18 @@
+---
+- name: Ensure VMs are created
+  import_playbook: 1-create-vms.yaml
+
+- name: Ensure kubernetes is deployed
+  import_playbook: 2-deploy-kubernetes.yaml
+
+- name: Ensure kubeconfig is present on local machine
+  import_playbook: 3-download-kubeconfig.yaml
+
+- name: Ensure persistent storage is available for services
+  import_playbook: 4-provide-persistent-storage.yaml
+
+- name: Ensure needed software is installed
+  import_playbook: 5-install-software-images.yaml
+
+- name: Ensure certificates are installed
+  import_playbook: 6-install-certificates.yaml

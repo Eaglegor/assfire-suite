@@ -17,7 +17,8 @@ namespace assfire
 			const std::vector<Location>& locations,
 			const RouteRequestSettings& settings,
 			const std::string& backend_host,
-			int backend_port
+			int backend_port,
+			bool use_ssl = false
 		);
 
 		virtual ~DirectRequestBackend();

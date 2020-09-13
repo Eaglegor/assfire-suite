@@ -4,9 +4,9 @@
 
 using namespace assfire;
 
-DirectRequestBackend::DirectRequestBackend(const std::vector<Location>& locations, const RouteRequestSettings& settings, const std::string& backend_host, int backend_port):
+DirectRequestBackend::DirectRequestBackend(const std::vector<Location>& locations, const RouteRequestSettings& settings, const std::string& backend_host, int backend_port, bool use_ssl):
 	locations(locations),
-	client(std::make_unique<GrpcClient>(backend_host, backend_port, settings))
+	client(std::make_unique<GrpcClient>(backend_host, backend_port, settings, use_ssl))
 {
 }
 

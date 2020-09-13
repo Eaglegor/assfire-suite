@@ -1,3 +1,6 @@
+[kubeconfig-fetch-node]
+fsn1-dev-assfire-master-1
+
 [fsn1-dev-assfire-masters]
 %{for index, server in fsn1-dev-assfire-masters ~}
 ${server.name} ansible_host=${server.ipv4_address}
@@ -50,12 +53,6 @@ hel1-dev-assfire-workers
 nbg1-dev-assfire-masters
 nbg1-dev-assfire-workers
 
-[redis_masters:children]
-kube-node
-
-[redis_masters:vars]
-node_labels={'redis_role': 'master'}
-
 [etcd:children]
 kube-master
 
@@ -69,6 +66,8 @@ calico-rr
 [k8s-cluster:vars]
 cluster-name=cluster.assfire.org
 ingress_nginx_enabled=True
+local_volume_provisioner_enabled=True
+local_volume_provisioner_storage_classes={'file-storage':{'mount_dir':'/mnt/file','host_dir':'/mnt/file','fs_type':'ext4'},'ssd-storage':{'mount_dir':'/mnt/ssd','host_dir':'/mnt/ssd','fs_type':'ext4'}}
 
 [all:vars]
 docker_dns_servers_strict=False
@@ -77,3 +76,28 @@ docker_dns_servers_strict=False
 %{for index, server in floating_ips ~}
 ${floating_ips[index].name} floating_ip=${floating_ips[index].ip_address}
 %{endfor ~}
+
+[redis_masters]
+fsn1-dev-assfire-worker-1
+
+[redis_slaves]
+fsn1-dev-assfire-worker-2
+
+[redis_nodes:children]
+redis_masters
+redis_slaves
+
+[prometheus_nodes]
+fsn1-dev-assfire-worker-1
+
+[grafana_nodes]
+fsn1-dev-assfire-worker-1
+
+[assfire_calculation_nodes:children]
+fsn1-dev-assfire-workers
+hel1-dev-assfire-workers
+nbg1-dev-assfire-workers
+
+[storage_nodes:children]
+redis_nodes
+prometheus_nodes

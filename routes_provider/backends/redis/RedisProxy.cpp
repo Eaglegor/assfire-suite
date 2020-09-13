@@ -41,15 +41,22 @@ RouteInfo RedisProxy::getRoute(SingleRouteRequest request, const Router& backend
 	RouteInfo route;
 	
 	cpp_redis::reply reply = freply.get();
-	if (!reply.is_string())
+	if (!reply.is_string() || reply.is_error())
 	{
+	    if(reply.is_error()) {
+	        SPDLOG_ERROR("[{}]: Error while retrieving redis route: {}", request_id, reply.error());
+	    }
 		metrics_context.addRoutesCacheMisses(1);
 		SPDLOG_DEBUG("[{}]: Route not found in cache: ({},{})->({},{}). Requesting backend service", request_id,
 			request.from().latitude(), request.from().longitude(),
 			request.to().latitude(), request.to().longitude());
 
 		route = backend.getRoute(request, request_id);
-		redis_client->set(key, route.SerializeAsString());
+		redis_client->set(key, route.SerializeAsString(), [request_id](const cpp_redis::reply& rpl) {
+		    if(rpl.is_error()) {
+		        SPDLOG_ERROR("[{}]: Error while saving route to redis: {}", request_id, rpl.error());
+		    }
+		});
 		redis_client->commit();
 
 		SPDLOG_DEBUG("[{}]: Putting route to the cache ({},{})->({},{}) = (dist: {}, time: {})", request_id,
