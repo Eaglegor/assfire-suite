@@ -2,13 +2,13 @@
 #include "backends/random/RandomRouter.hpp"
 
 using namespace assfire;
-using namespace assfire::routing::proto;
+using namespace assfire::routing::proto::v1;
 
 TEST_CASE("Random router - get single route")
 {
 	RandomRouter router;
 
-	SingleRouteRequest request;
+	GetSingleRouteRequest request;
 
 	request.mutable_from()->set_latitude(0);
 	request.mutable_from()->set_longitude(0);
@@ -16,11 +16,13 @@ TEST_CASE("Random router - get single route")
 	request.mutable_to()->set_latitude(100);
 	request.mutable_to()->set_longitude(100);
 
-	request.mutable_options()->mutable_euclidean_routing_options()->set_velocity(16.6);
-	request.mutable_options()->mutable_coordinates_format()->mutable_fixed_point_int()->set_precision(0);
+    request.mutable_options()->set_routing_type(routing::proto::v1::RoutingOptions::RANDOM);
+    request.mutable_options()->mutable_coordinates_format()->set_type(routing::proto::v1::CoordinateFormat::FIXED_POINT_INT);
+    request.mutable_options()->set_velocity(16.6);
+    request.mutable_options()->mutable_coordinates_format()->set_precision(0);
 
-	RouteInfo route_info1 = router.getRoute(request, 1);
-	RouteInfo route_info2 = router.getRoute(request, 2);
+	RouteInfo route_info1 = router.getRoute(request, 1).route_info();
+	RouteInfo route_info2 = router.getRoute(request, 2).route_info();
 
 	REQUIRE(route_info1.distance() != Approx(route_info2.distance()));
 	REQUIRE(route_info1.duration() != route_info2.duration());
@@ -30,7 +32,7 @@ TEST_CASE("Random router - get routes batch")
 {
 	RandomRouter router;
 
-	ManyToManyRoutesRequest request;
+	GetRoutesBatchRequest request;
 
 	Location* loc0 = request.add_origins();
 	loc0->set_latitude(0);
@@ -47,13 +49,21 @@ TEST_CASE("Random router - get routes batch")
 	request.add_destinations()->CopyFrom(*loc1);
 	request.add_destinations()->CopyFrom(*loc2);
 
-	request.mutable_options()->mutable_euclidean_routing_options()->set_velocity(16.6);
-	request.mutable_options()->mutable_coordinates_format()->mutable_fixed_point_int()->set_precision(0);
+    request.mutable_options()->set_routing_type(routing::proto::v1::RoutingOptions::RANDOM);
+    request.mutable_options()->mutable_coordinates_format()->set_type(routing::proto::v1::CoordinateFormat::FIXED_POINT_INT);
+    request.mutable_options()->set_velocity(16.6);
+    request.mutable_options()->mutable_coordinates_format()->set_precision(0);
 
 	std::vector<RouteInfo> results1;
+	GetRoutesBatchResponse response1 = router.getRoutesBatch(request, 1);
+    for(const RouteInfo& info : response1.route_infos()) {
+        results1.push_back(info);
+    }
 	std::vector<RouteInfo> results2;
-	router.getRoutesBatch(request, [&results1](RouteInfo ri) {results1.push_back(ri); }, 1);
-	router.getRoutesBatch(request, [&results2](RouteInfo ri) {results2.push_back(ri); }, 1);
+    GetRoutesBatchResponse response2 = router.getRoutesBatch(request, 2);
+    for(const RouteInfo& info : response2.route_infos()) {
+        results2.push_back(info);
+    }
 
 	REQUIRE(results1.size() == 6);
 	REQUIRE(results2.size() == 6);

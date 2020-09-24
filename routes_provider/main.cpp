@@ -1,4 +1,4 @@
-#include <routing.pb.h>
+#include <assfire/routing/v1/routing.pb.h>
 #include "RoutingService.hpp"
 #include <grpc++/server_builder.h>
 #include <cxxopts.hpp>
@@ -9,7 +9,7 @@
 #endif
 
 using namespace assfire;
-using namespace assfire::routing::proto;
+using namespace assfire::routing::proto::v1;
 using namespace grpc;
 
 namespace

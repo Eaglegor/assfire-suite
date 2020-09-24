@@ -5,7 +5,7 @@
 #include <chrono>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
-#include <routing.pb.h>
+#include <assfire/routing/v1/routing.pb.h>
 
 namespace assfire {
 	class RoutingMetricsCollector
@@ -44,8 +44,11 @@ namespace assfire {
 		
 		void addEuclideanCalculatedRoutes(int count, RequestMode mode) const;
 		void addRandomCalculatedRoutes(int count, RequestMode mode) const;
+        void addCrowflightCalculatedRoutes(int count, RequestMode mode) const;
 
 		std::shared_ptr<RAIIStopwatch> euclideanRoutesStopwatch(int count, RequestMode mode) const;
+        std::shared_ptr<RAIIStopwatch> randomRoutesStopwatch(int count, RequestMode mode) const;
+        std::shared_ptr<RAIIStopwatch> crowflightRoutesStopwatch(int count, RequestMode mode) const;
 
 		void addRoutesCacheRequests(int count, RequestMode mode) const;
 		void addRoutesCacheHits(int count) const;
@@ -69,10 +72,18 @@ namespace assfire {
 		prometheus::Family<prometheus::Counter>* calculated_routes_count_family;
 		prometheus::Counter* calculated_routes_count_euclidean;
 		prometheus::Counter* calculated_routes_count_random;
+        prometheus::Counter* calculated_routes_count_crowflight;
 
 		prometheus::Family<prometheus::Summary>* routes_calculation_time_family;
 		prometheus::Summary* routes_calculation_time_euclidean_single_mode;
 		prometheus::Summary* routes_calculation_time_euclidean_batch_mode;
+        prometheus::Summary* routes_calculation_time_euclidean_streaming_batch_mode;
+        prometheus::Summary* routes_calculation_time_random_single_mode;
+        prometheus::Summary* routes_calculation_time_random_batch_mode;
+        prometheus::Summary* routes_calculation_time_random_streaming_batch_mode;
+        prometheus::Summary* routes_calculation_time_crowflight_single_mode;
+        prometheus::Summary* routes_calculation_time_crowflight_batch_mode;
+        prometheus::Summary* routes_calculation_time_crowflight_streaming_batch_mode;
 		
 		prometheus::Family<prometheus::Counter>* routes_cache_requests_count_family;
 		prometheus::Counter* routes_cache_requests_count;

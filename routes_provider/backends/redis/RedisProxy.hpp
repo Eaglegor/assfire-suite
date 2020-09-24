@@ -16,11 +16,15 @@ namespace assfire
 	{
 	public:
 		RedisProxy(const std::string& host, std::size_t port, RoutingMetricsCollector metrics_context = RoutingMetricsCollector());
-		virtual ~RedisProxy();
-		virtual routing::proto::RouteInfo getRoute(routing::proto::SingleRouteRequest, const Router&, long) const override;
-		virtual void getRoutesBatch(routing::proto::ManyToManyRoutesRequest, std::function<void(routing::proto::RouteInfo)>, const Router&, long) const override;
+		~RedisProxy();
+
+        routing::proto::v1::GetSingleRouteResponse getRoute(routing::proto::v1::GetSingleRouteRequest, const Router& backend, long) const override;
+        routing::proto::v1::GetRoutesBatchResponse getRoutesBatch(routing::proto::v1::GetRoutesBatchRequest, const Router& backend, long) const override;
+        void getRoutesBatch(routing::proto::v1::GetRoutesBatchRequest, Router::RoutesBatchConsumer, const Router& backend, long) const override;
 
 	private:
+        routing::proto::v1::GetRoutesBatchResponse calculateBatchUsingSingleRoutes(routing::proto::v1::GetRoutesBatchRequest request, const Router& backend, long request_id) const;
+
 		std::unique_ptr<cpp_redis::client> redis_client;
 		RoutingMetricsCollector metrics_context;
 	};
