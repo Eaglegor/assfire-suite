@@ -42,6 +42,7 @@ RoutingMetricsCollector::RoutingMetricsCollector(std::shared_ptr<prometheus::Exp
 		.Register(*registry);
 	calculated_routes_count_euclidean = &calculated_routes_count_family->Add({ {"backend", "euclidean"} });
 	calculated_routes_count_random = &calculated_routes_count_family->Add({ {"backend", "random"} });
+    calculated_routes_count_crowflight = &calculated_routes_count_family->Add({ {"backend", "crowflight"} });
 
 	routes_calculation_time_family = &prometheus::BuildSummary()
 		.Name("assfire_router_routes_calculation_time")
@@ -49,6 +50,15 @@ RoutingMetricsCollector::RoutingMetricsCollector(std::shared_ptr<prometheus::Exp
 		.Register(*registry);
 	routes_calculation_time_euclidean_single_mode = &routes_calculation_time_family->Add({ {"backend", "euclidean"}, {"mode", "single"} }, common_quantiles);
 	routes_calculation_time_euclidean_batch_mode = &routes_calculation_time_family->Add({ {"backend", "euclidean"}, {"mode", "batch"} }, common_quantiles);
+    routes_calculation_time_euclidean_streaming_batch_mode = &routes_calculation_time_family->Add({ {"backend", "euclidean"}, {"mode", "streaming_batch"} }, common_quantiles);
+
+    routes_calculation_time_random_single_mode = &routes_calculation_time_family->Add({ {"backend", "random"}, {"mode", "single"} }, common_quantiles);
+    routes_calculation_time_random_batch_mode = &routes_calculation_time_family->Add({ {"backend", "random"}, {"mode", "batch"} }, common_quantiles);
+    routes_calculation_time_random_streaming_batch_mode = &routes_calculation_time_family->Add({ {"backend", "random"}, {"mode", "streaming_batch"} }, common_quantiles);
+
+    routes_calculation_time_crowflight_single_mode = &routes_calculation_time_family->Add({ {"backend", "crowflight"}, {"mode", "single"} }, common_quantiles);
+    routes_calculation_time_crowflight_batch_mode = &routes_calculation_time_family->Add({ {"backend", "crowflight"}, {"mode", "batch"} }, common_quantiles);
+    routes_calculation_time_crowflight_streaming_batch_mode = &routes_calculation_time_family->Add({ {"backend", "crowflight"}, {"mode", "streaming_batch"} }, common_quantiles);
 
 	routes_cache_requests_count_family = &prometheus::BuildCounter()
 		.Name("assfire_router_routes_cache_requests_count")
@@ -129,6 +139,14 @@ void RoutingMetricsCollector::addRandomCalculatedRoutes(int count, RequestMode m
 	calculated_routes_count_random->Increment(count);
 }
 
+void RoutingMetricsCollector::addCrowflightCalculatedRoutes(int count, RequestMode mode) const
+{
+    if (!exposer) return;
+
+    calculated_routes_count_random->Increment(count);
+}
+
+
 std::shared_ptr<RoutingMetricsCollector::RAIIStopwatch> RoutingMetricsCollector::euclideanRoutesStopwatch(int count, RequestMode mode) const
 {
 	if (!exposer) return std::make_shared<RoutingMetricsCollector::RAIIStopwatch>();
@@ -140,13 +158,62 @@ std::shared_ptr<RoutingMetricsCollector::RAIIStopwatch> RoutingMetricsCollector:
 			routes_calculation_time_euclidean_single_mode->Observe(ns);
 			break;
 		case RequestMode::BATCH:
+            routes_calculation_time_euclidean_batch_mode->Observe(ns);
+            break;
 		case RequestMode::STREAMING_BATCH:
-			routes_calculation_time_euclidean_batch_mode->Observe(ns);
+			routes_calculation_time_euclidean_streaming_batch_mode->Observe(ns);
+			break;
 		default:
 			break;
 		}
 		SPDLOG_TRACE("Euclidean routes calculation time: {} ns", ns);
 		});
+}
+
+std::shared_ptr<RoutingMetricsCollector::RAIIStopwatch> RoutingMetricsCollector::randomRoutesStopwatch(int count, RequestMode mode) const
+{
+    if (!exposer) return std::make_shared<RoutingMetricsCollector::RAIIStopwatch>();
+
+    return std::make_shared<RoutingMetricsCollector::RAIIStopwatch>([this, mode](long ns) {
+        switch (mode)
+        {
+            case RequestMode::SINGLE:
+                routes_calculation_time_random_single_mode->Observe(ns);
+                break;
+            case RequestMode::BATCH:
+                routes_calculation_time_random_batch_mode->Observe(ns);
+                break;
+            case RequestMode::STREAMING_BATCH:
+                routes_calculation_time_random_streaming_batch_mode->Observe(ns);
+                break;
+            default:
+                break;
+        }
+        SPDLOG_TRACE("Random routes calculation time: {} ns", ns);
+    });
+}
+
+std::shared_ptr<RoutingMetricsCollector::RAIIStopwatch> RoutingMetricsCollector::crowflightRoutesStopwatch(int count, RequestMode mode) const
+{
+    if (!exposer) return std::make_shared<RoutingMetricsCollector::RAIIStopwatch>();
+
+    return std::make_shared<RoutingMetricsCollector::RAIIStopwatch>([this, mode](long ns) {
+        switch (mode)
+        {
+            case RequestMode::SINGLE:
+                routes_calculation_time_crowflight_single_mode->Observe(ns);
+                break;
+            case RequestMode::BATCH:
+                routes_calculation_time_crowflight_batch_mode->Observe(ns);
+                break;
+            case RequestMode::STREAMING_BATCH:
+                routes_calculation_time_crowflight_streaming_batch_mode->Observe(ns);
+                break;
+            default:
+                break;
+        }
+        SPDLOG_TRACE("Crowflight routes calculation time: {} ns", ns);
+    });
 }
 
 void RoutingMetricsCollector::addRoutesCacheRequests(int count, RoutingMetricsCollector::RequestMode mode) const
@@ -179,4 +246,3 @@ std::shared_ptr<RoutingMetricsCollector::RAIIStopwatch> assfire::RoutingMetricsC
 			SPDLOG_TRACE("Cached route retrieval time: {} ns", ns);
 	});
 }
-

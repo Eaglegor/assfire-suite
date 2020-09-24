@@ -4,10 +4,10 @@
 #include <spdlog/spdlog.h>
 
 using namespace assfire;
-using namespace assfire::routing::proto;
+using namespace assfire::routing::proto::v1;
 
 namespace {
-	bool operator==(const assfire::routing::proto::Location& lhs, const assfire::routing::proto::Location& rhs)	{
+	bool operator==(const assfire::routing::proto::v1::Location& lhs, const assfire::routing::proto::v1::Location& rhs)	{
 		return lhs.latitude() == rhs.latitude() && lhs.longitude() == rhs.longitude();
 	}
 }
@@ -19,39 +19,44 @@ RandomRouter::RandomRouter(RoutingMetricsCollector metrics_context):
 {
 }
 
-RouteInfo RandomRouter::getRoute(SingleRouteRequest request, long request_id) const
+GetSingleRouteResponse RandomRouter::getRoute(GetSingleRouteRequest request, long request_id) const
 {
-	RouteInfo result;
+    auto stopwatch = metrics_context.randomRoutesStopwatch(1, RoutingMetricsCollector::RequestMode::SINGLE);
 
-	result.mutable_origin()->CopyFrom(request.from());
-	result.mutable_destination()->CopyFrom(request.to());
+    RouteInfo result;
 
-	if (request.from() == request.to()) {
-		result.set_distance(0);
-		result.set_duration(0);
-	}
+    result.mutable_origin()->CopyFrom(request.from());
+    result.mutable_destination()->CopyFrom(request.to());
 
-	result.set_distance(distr(gen));
-	result.set_duration(result.distance() / 16.6);
+    if (request.from() == request.to()) {
+        result.set_distance(0);
+        result.set_duration(0);
+    }
 
-	SPDLOG_TRACE("[{}]: Random route calculated ({},{})->({},{}) = (dist: {}, time: {})", request_id,
-		request.from().latitude(), request.from().longitude(),
-		request.to().latitude(), request.to().longitude(),
-		result.distance(), result.duration());
+    result.set_distance(distr(gen));
+    result.set_duration(std::ceil(result.distance() / request.options().velocity()));
 
-	metrics_context.addRandomCalculatedRoutes(1, RoutingMetricsCollector::RequestMode::SINGLE);
-	return result;
+    SPDLOG_TRACE("[{}]: Random route calculated ({},{})->({},{}) = (dist: {}, time: {})", request_id,
+                 request.from().latitude(), request.from().longitude(),
+                 request.to().latitude(), request.to().longitude(),
+                 result.distance(), result.duration());
+
+    metrics_context.addRandomCalculatedRoutes(1, RoutingMetricsCollector::RequestMode::SINGLE);
+
+    GetSingleRouteResponse response;
+    response.mutable_route_info()->CopyFrom(result);
+    return response;
 }
 
-void RandomRouter::getRoutesBatch(ManyToManyRoutesRequest request, std::function<void(RouteInfo)> callback, long request_id) const
+GetRoutesBatchResponse RandomRouter::getRoutesBatch(GetRoutesBatchRequest request, long request_id) const
 {
-	for (const Location& origin : request.origins()) {
-		for (const Location& destination : request.destinations()) {
-			SingleRouteRequest single_request;
-			single_request.mutable_from()->CopyFrom(origin);
-			single_request.mutable_to()->CopyFrom(destination);
-			single_request.mutable_options()->CopyFrom(request.options());
-			callback(getRoute(single_request, request_id));
-		}
-	}
+    auto stopwatch = metrics_context.randomRoutesStopwatch(request.origins_size() * request.destinations_size(), RoutingMetricsCollector::RequestMode::BATCH);
+    return calculateBatchUsingSingleRoutes(request, request_id);
 }
+
+void RandomRouter::getRoutesBatch(GetRoutesBatchRequest request, RoutesBatchConsumer consumer, long request_id) const
+{
+    auto stopwatch = metrics_context.randomRoutesStopwatch(request.origins_size() * request.destinations_size(), RoutingMetricsCollector::RequestMode::STREAMING_BATCH);
+    consumer(calculateBatchUsingSingleRoutes(request, request_id));
+}
+

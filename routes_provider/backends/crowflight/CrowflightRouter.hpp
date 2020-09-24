@@ -3,9 +3,9 @@
 
 namespace assfire
 {
-	class EuclideanRouter: public Router {
+	class CrowflightRouter: public Router {
 	public:
-		EuclideanRouter(RoutingMetricsCollector metrics_context = RoutingMetricsCollector());
+        CrowflightRouter(RoutingMetricsCollector metrics_context = RoutingMetricsCollector());
 
         routing::proto::v1::GetSingleRouteResponse getRoute(routing::proto::v1::GetSingleRouteRequest, long) const override;
         routing::proto::v1::GetRoutesBatchResponse getRoutesBatch(routing::proto::v1::GetRoutesBatchRequest, long) const override;

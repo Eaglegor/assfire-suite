@@ -25,3 +25,13 @@ RUN /opt/vcpkg/vcpkg install catch2 --triplet x64-linux && rm -rf /opt/vcpkg/dow
 RUN /opt/vcpkg/vcpkg install prometheus-cpp --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 
 ENV VCPKG_ROOT /opt/vcpkg
+
+RUN apk add --no-cache go
+RUN apk add --no-cache git
+RUN go get -v \
+    github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
+    github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
+    github.com/golang/protobuf/protoc-gen-go
+
+ENV GOPATH /root/go
+ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin

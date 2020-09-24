@@ -8,7 +8,9 @@ namespace assfire
 	{
 	public:
 		virtual ~RouterProxy() {}
-		virtual routing::proto::RouteInfo getRoute(routing::proto::SingleRouteRequest, const Router&, long) const = 0;
-		virtual void getRoutesBatch(routing::proto::ManyToManyRoutesRequest, std::function<void(routing::proto::RouteInfo)>, const Router&, long) const = 0;
+
+        virtual routing::proto::v1::GetSingleRouteResponse getRoute(routing::proto::v1::GetSingleRouteRequest, const Router& backend, long) const = 0;
+        virtual routing::proto::v1::GetRoutesBatchResponse getRoutesBatch(routing::proto::v1::GetRoutesBatchRequest, const Router& backend, long) const = 0;
+        virtual void getRoutesBatch(routing::proto::v1::GetRoutesBatchRequest, Router::RoutesBatchConsumer, const Router& backend, long) const = 0;
 	};
 }

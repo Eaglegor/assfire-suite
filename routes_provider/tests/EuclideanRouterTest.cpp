@@ -2,13 +2,13 @@
 #include "backends/euclidean/EuclideanRouter.hpp"
 
 using namespace assfire;
-using namespace assfire::routing::proto;
+using namespace assfire::routing::proto::v1;
 
 TEST_CASE("Euclidean router - get single route")
 {
 	EuclideanRouter router;
 
-	SingleRouteRequest request;
+	GetSingleRouteRequest request;
 
 	request.mutable_from()->set_latitude(0);
 	request.mutable_from()->set_longitude(0);
@@ -16,13 +16,16 @@ TEST_CASE("Euclidean router - get single route")
 	request.mutable_to()->set_latitude(100);
 	request.mutable_to()->set_longitude(100);
 
-	request.mutable_options()->mutable_euclidean_routing_options()->set_velocity(16.6);
-	request.mutable_options()->mutable_coordinates_format()->mutable_fixed_point_int()->set_precision(0);
+	request.mutable_options()->set_routing_type(routing::proto::v1::RoutingOptions::EUCLIDEAN);
+	request.mutable_options()->set_velocity(16.6);
 
-	RouteInfo route_info = router.getRoute(request, 1);
+    request.mutable_options()->mutable_coordinates_format()->set_type(routing::proto::v1::CoordinateFormat::FIXED_POINT_INT);
+    request.mutable_options()->mutable_coordinates_format()->set_precision(0);
+
+	RouteInfo route_info = router.getRoute(request, 1).route_info();
 
 	REQUIRE(route_info.distance() == Approx(std::hypot(100, 100)));
-	REQUIRE(route_info.duration() == static_cast<int>(std::hypot(100, 100) / 16.6));
+	REQUIRE(route_info.duration() == static_cast<int>(std::ceil(std::hypot(100, 100) / 16.6)));
 
 }
 
@@ -30,7 +33,7 @@ TEST_CASE("Euclidean router - get routes batch")
 {
 	EuclideanRouter router;
 
-	ManyToManyRoutesRequest request;
+	GetRoutesBatchRequest request;
 
 	Location* loc0 = request.add_origins();
 	loc0->set_latitude(0);
@@ -47,11 +50,17 @@ TEST_CASE("Euclidean router - get routes batch")
 	request.add_destinations()->CopyFrom(*loc1);
 	request.add_destinations()->CopyFrom(*loc2);
 
-	request.mutable_options()->mutable_euclidean_routing_options()->set_velocity(16.6);
-	request.mutable_options()->mutable_coordinates_format()->mutable_fixed_point_int()->set_precision(0);
+    request.mutable_options()->set_routing_type(routing::proto::v1::RoutingOptions::EUCLIDEAN);
+	request.mutable_options()->set_velocity(16.6);
+
+    request.mutable_options()->mutable_coordinates_format()->set_type(routing::proto::v1::CoordinateFormat::FIXED_POINT_INT);
+    request.mutable_options()->mutable_coordinates_format()->set_precision(0);
 
 	std::vector<RouteInfo> results;
-	router.getRoutesBatch(request, [&results](RouteInfo ri) {results.push_back(ri); }, 1);
+	GetRoutesBatchResponse response = router.getRoutesBatch(request, 1);
+	for(const RouteInfo& info : response.route_infos()) {
+	    results.push_back(info);
+	}
 
 	REQUIRE(results.size() == 6);
 
@@ -66,7 +75,7 @@ TEST_CASE("Euclidean router - get routes batch")
 
 	auto adjustToSpeed = [](double distance)
 	{
-		return static_cast<int>(distance / 16.6);
+		return static_cast<int>(std::ceil(distance / 16.6));
 	};
 
 	long durations[3][2] = {
