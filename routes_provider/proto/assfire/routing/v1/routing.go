@@ -4,8 +4,8 @@ import (
   "context"
   "flag"
   "net/http"
+  "log"
 
-  "github.com/golang/glog"
   "github.com/grpc-ecosystem/grpc-gateway/runtime"
   "google.golang.org/grpc"
 
@@ -20,13 +20,15 @@ var (
 )
 
 func run() error {
+  log.Print("Starting gRPC proxy")
+
   ctx := context.Background()
   ctx, cancel := context.WithCancel(ctx)
   defer cancel()
 
   // Register gRPC server endpoint
   // Note: Make sure the gRPC server is running properly and accessible
-  mux := runtime.NewServeMux()
+  mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: true, EmitDefaults: true}))
   opts := []grpc.DialOption{grpc.WithInsecure()}
   err := gw.RegisterRoutesProviderHandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
   if err != nil {
@@ -39,9 +41,9 @@ func run() error {
 
 func main() {
   flag.Parse()
-  defer glog.Flush()
+  //defer log.Flush()
 
   if err := run(); err != nil {
-    glog.Fatal(err)
+    log.Fatal(err)
   }
 }

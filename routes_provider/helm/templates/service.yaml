@@ -19,3 +19,6 @@ spec:
     - name: http-proxy
       port: 8082
       targetPort: 8082
+    - name: maptest
+      port: 8083
+      targetPort: 8083

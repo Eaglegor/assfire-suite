@@ -30,5 +30,9 @@ spec:
           ports:
             - containerPort: 8082
           command: [ "/opt/assfire-router/bin/assfire-router-reverse-proxy" ]
+        - name: assfire-router-server-maptest
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-maptest:{{.Values.assfire_router_tag}}
+          ports:
+            - containerPort: 8083
       imagePullSecrets:
         - name: assfire-registry-key

@@ -28,6 +28,7 @@ message RoutingOptions {
 	CoordinateFormat coordinates_format = 2;
 	double velocity = 3;
 	bool force_update = 4;
+	bool retrieve_waypoints = 5;
 }
 
 message ManyToManyRoutesRequest {
@@ -41,6 +42,7 @@ message RouteInfo {
 	Location destination = 2;
 	int32 duration = 3;
 	float distance = 4;
+	repeated Location waypoints = 5;
 }
 
 message GetSingleRouteRequest {

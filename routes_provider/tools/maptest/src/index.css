@@ -1,0 +1,58 @@
+body, html {
+    height: 100%;
+    margin: 0px;
+}
+
+h1,
+h2,
+p {
+    font-family: sans-serif;
+    text-align: center;
+}
+
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.container {
+    display: flex;
+}
+
+.assfire-ui {
+    display: grid;
+    grid-template-columns: 60% auto;
+    grid-template-rows: 50% 50%;
+    width: 100%;
+    height: 100vh;
+}
+
+.assfire-map {
+    grid-column: 1;
+    grid-row: 1 / 3;
+
+    background: burlywood;
+}
+
+.assfire-request-controls {
+    grid-column: 2;
+    grid-row: 1;
+    background: cornflowerblue;
+}
+
+.assfire-stats {
+    grid-column: 2;
+    grid-row: 2;
+    background: indianred;
+}
+
+.assfire-response {
+    margin: 10px;
+}
+
+.assfire-controls {
+    margin: 10px;
+    display: grid;
+    grid-template-columns: 20% 80%;
+}

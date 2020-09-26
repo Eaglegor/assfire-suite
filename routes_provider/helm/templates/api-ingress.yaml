@@ -5,7 +5,7 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-  name: assfire-router-service-http-ingress
+  name: assfire-router-service-api-ingress
   namespace: assfire
 spec:
   rules:
