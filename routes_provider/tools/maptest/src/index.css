@@ -39,12 +39,14 @@ p {
     grid-column: 2;
     grid-row: 1;
     background: cornflowerblue;
+    overflow: auto;
 }
 
 .assfire-stats {
     grid-column: 2;
     grid-row: 2;
     background: indianred;
+    overflow: auto;
 }
 
 .assfire-response {
@@ -54,5 +56,5 @@ p {
 .assfire-controls {
     margin: 10px;
     display: grid;
-    grid-template-columns: 20% 80%;
+    grid-template-columns: 150px auto;
 }
