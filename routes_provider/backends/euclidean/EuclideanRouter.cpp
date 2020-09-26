@@ -39,6 +39,10 @@ GetSingleRouteResponse EuclideanRouter::getRoute(GetSingleRouteRequest request, 
 
     result.set_distance(std::hypot(std::fabs(to_lat - from_lat), std::fabs(to_lon - from_lon)));
     result.set_duration(std::ceil(result.distance() / request.options().velocity()));
+    if(request.options().retrieve_waypoints()) {
+        result.add_waypoints()->CopyFrom(request.from());
+        result.add_waypoints()->CopyFrom(request.to());
+    }
 
     SPDLOG_TRACE("[{}]: Euclidean route calculated ({},{})->({},{}) = (dist: {}, time: {})", request_id,
                  request.from().latitude(), request.from().longitude(),

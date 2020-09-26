@@ -3,6 +3,7 @@ stages:
   - build_project
   - run_unit_tests
   - run_integration_tests
+  - build_tools
   - build_docker_images
   - deploy_services
 
@@ -11,5 +12,6 @@ include:
 - gitlab_templates/2-build-project.yml
 - gitlab_templates/3-run-unit-tests.yml
 - gitlab_templates/4-run-integration-tests.yml
-- gitlab_templates/5-build-docker-images.yml
-- gitlab_templates/6-deploy-services.yml
+- gitlab_templates/5-build-tools.yml
+- gitlab_templates/6-build-docker-images.yml
+- gitlab_templates/7-deploy-services.yml

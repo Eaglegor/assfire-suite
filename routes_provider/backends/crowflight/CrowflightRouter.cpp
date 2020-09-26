@@ -19,7 +19,7 @@ CrowflightRouter::CrowflightRouter(RoutingMetricsCollector metrics_context):
 }
 
 namespace {
-    constexpr double EARTH_RADIUS = 6399.0;
+    constexpr double EARTH_RADIUS = 6399000.0;
     constexpr double PI = 3.14159265359;
 
     double calculateCrowflightDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -62,6 +62,11 @@ GetSingleRouteResponse CrowflightRouter::getRoute(GetSingleRouteRequest request,
 
     result.set_distance(calculateCrowflightDistance(from_lat, from_lon, to_lat, to_lon));
     result.set_duration(std::ceil(result.distance() / request.options().velocity()));
+
+    if(request.options().retrieve_waypoints()) {
+        result.add_waypoints()->CopyFrom(request.from());
+        result.add_waypoints()->CopyFrom(request.to());
+    }
 
     SPDLOG_TRACE("[{}]: Crowflight route calculated ({},{})->({},{}) = (dist: {}, time: {})", request_id,
                  request.from().latitude(), request.from().longitude(),

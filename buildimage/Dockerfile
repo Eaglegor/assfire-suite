@@ -35,3 +35,6 @@ RUN go get -v \
 
 ENV GOPATH /root/go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
+
+RUN apk add --no-cache npm
+RUN npm install -g react-scripts
