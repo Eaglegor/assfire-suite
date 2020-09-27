@@ -15,8 +15,6 @@ publish-master-image:
   services:
     - docker:dind
   stage: build_meta_image
-  dependencies:
-    build-image-meta
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $BUILD_IMAGE_NAME
@@ -25,5 +23,7 @@ publish-master-image:
   only:
     refs:
       - master
+  dependencies:
+    - build-image-meta
   needs:
     - build-image-meta
