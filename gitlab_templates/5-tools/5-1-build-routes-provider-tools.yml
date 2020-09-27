@@ -1,33 +1,14 @@
-.build-routes-provider-maptest-tool:
-  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
+build-routes-provider-maptest-tool:
+  image: $BUILD_IMAGE_NAME
+  stage: build_tools
   artifacts:
     paths:
-      - routes_provider/tools/maptest/build/*
-  stage: build_tools
+    - routes_provider/tools/maptest/build/*
   script:
     - cd routes_provider/tools/maptest
     - npm install
     - npm run build
-
-build-routes-provider-maptest-tool-master:
-  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
-  extends: .build-routes-provider-maptest-tool
-  only:
-    refs:
-      - master
-      - tags
+  dependencies:
+    - build-image-meta
   needs:
     - build-image-meta
-
-build-routes-provider-maptest-tool-branch:
-  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:$CI_COMMIT_REF_SLUG-tmp
-  extends: .build-routes-provider-maptest-tool
-  only:
-    refs:
-      - branches
-      - merge_requests
-  except:
-    refs:
-      - master
-  needs:
-    - build-tmp-image-meta

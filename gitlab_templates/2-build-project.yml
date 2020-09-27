@@ -1,7 +1,8 @@
-.build-project-tmpl:
+build-project:
   stage: build_project
+  image: $BUILD_IMAGE_NAME
   variables:
-    APPLICATION_VERSION: "UNDEFINED"
+    APPLICATION_VERSION: $CI_COMMIT_TAG
   artifacts:
     paths:
       - out/*
@@ -10,32 +11,9 @@
     - source scl_source enable devtoolset-8 || true
     - mkdir out
     - cd out
-    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DASSFIRE_APPLICATION_RELEASE_VERSION=${APPLICATION_VERSION} -DASSFIRE_DEBUG_MODE=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DASSFIRE_BUNDLE_INSTALL_MODE=True -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True ../
+    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION -DASSFIRE_DEBUG_MODE=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DASSFIRE_BUNDLE_INSTALL_MODE=True -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True ../
     - make install
-
-build-project-master:
-  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
-  extends: .build-project-tmpl
-  variables:
-    APPLICATION_VERSION: ${CI_COMMIT_REF_NAME}
-  only:
-    refs:
-      - master
-      - tags
+  dependencies:
+    - build-image-meta
   needs:
     - build-image-meta
-
-build-project-branch:
-  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:$CI_COMMIT_REF_SLUG-tmp
-  extends: .build-project-tmpl
-  variables:
-    APPLICATION_VERSION: "UNDEFINED"
-  only:
-    refs:
-      - branches
-      - merge_requests
-  except:
-    refs:
-      - master
-  needs:
-    - build-tmp-image-meta

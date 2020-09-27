@@ -7,6 +7,11 @@ stages:
   - build_docker_images
   - build_helm_charts
 
+variables:
+  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
+  BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:$CI_COMMIT_SHORT_SHA
+  DOCKER_BUILDKIT: 1
+
 include: 
 - gitlab_templates/1-build-meta-ci-image.yml
 - gitlab_templates/2-build-project.yml

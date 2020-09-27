@@ -1,31 +1,9 @@
-.run-unit-tests-routes-provider-server-base:
-    variables:
-        CTEST_ARGS: -R unit-routing-server
-    extends: .run-unit-tests
-
-run-unit-tests-routes-provider-server-master:
-  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
-  extends: .run-unit-tests-routes-provider-server-base
-  dependencies: 
-    - build-project-master
-  only:
-    refs:
-      - master
-      - tags
+run-unit-tests-routes-provider-server-base:
+  image: $BUILD_IMAGE_NAME
+  variables:
+    CTEST_ARGS: -R unit-routing-server
+  extends: .run-unit-tests
+  dependencies:
+    - build-project
   needs:
-    - build-project-master
-
-run-unit-tests-routes-provider-server-branch:
-  image: $CI_REGISTRY/assfire/assfire-suite/buildimage:$CI_COMMIT_REF_SLUG-tmp
-  extends: .run-unit-tests-routes-provider-server-base
-  dependencies: 
-    - build-project-branch
-  only:
-    refs:
-      - branches
-      - merge_requests
-  except:
-    refs:
-      -  master
-  needs:
-    - build-project-branch
+    - build-project
