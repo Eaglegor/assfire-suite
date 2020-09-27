@@ -12,5 +12,5 @@ deploy-assfire-release:
     - echo "Deploying Assfire Router"
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart pull $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
-    - helm export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
+    - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
     - helm upgrade -i assfire-router -n assfire ./assfire-router
