@@ -82,5 +82,7 @@
     - name: Upload kubeconfig from local machine
       copy:
         src: "~/.kube/config"
-        dest: "/root/.kube/"
+        dest: "/home/gitlab-runner/.kube/"
+        owner: gitlab-runner
+        mode: 400
 
