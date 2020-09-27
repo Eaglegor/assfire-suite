@@ -8,7 +8,7 @@ build-routes-provider-server-release-helm-chart:
   script:
     - cd out/routes_provider/helm_charts/helm/
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:APPLICATION_VERSION
+    - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
   dependencies:
     - build-project
     - publish-routes-provider-images
