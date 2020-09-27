@@ -9,6 +9,7 @@ stages:
   - publish_docker_images
   - build_helm_charts
   - cleanup_ci_images
+  - deploy_release
 
 variables:
   MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
