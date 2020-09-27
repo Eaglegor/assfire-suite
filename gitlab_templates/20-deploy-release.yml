@@ -2,6 +2,8 @@ deploy-assfire-release:
   only:
     - tags
   when: manual
+  variables:
+    HELM_EXPERIMENTAL_OCI: 1
   tags:
     - assfire-deployment-node
   stage:
