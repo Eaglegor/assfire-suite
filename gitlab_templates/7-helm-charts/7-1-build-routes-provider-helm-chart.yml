@@ -1,5 +1,5 @@
 build-routes-provider-server-release-helm-chart:
-  image: docker:stable
+  image: $BUILD_IMAGE_NAME
   variables:
     HELM_EXPERIMENTAL_OCI: 1
   stage: build_helm_charts
