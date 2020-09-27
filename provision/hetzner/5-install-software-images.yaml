@@ -5,6 +5,18 @@
   collections:
     - community.kubernetes
   tasks:
+    - name: Create redis namespace
+      community.kubernetes.k8s:
+        name: redis
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Create prometheus namespace
+      community.kubernetes.k8s:
+        name: prometheus
+        api_version: v1
+        kind: Namespace
+        state: present
     - name: Create assfire namespace
       community.kubernetes.k8s:
         name: assfire
@@ -81,19 +93,13 @@
         chart_repo_url: "https://charts.bitnami.com/bitnami"
         release_name: assfire-geocache
         release_state: present
-        release_namespace: assfire
+        release_namespace: redis
         release_values:
           usePassword: false
           master:
             nodeSelector: { "redis_role": "master" }
-            persistence:
-              storageClass: file-storage
-              size: 2Gi
           slave:
             nodeSelector: { "redis_role": "slave" }
-            persistence:
-              storageClass: file-storage
-              size: 2Gi
 
 - name: Ensure prometheus is deployed
   hosts: localhost
@@ -106,9 +112,9 @@
         chart_ref: kube-prometheus-stack
         chart_version: 9.4.1
         chart_repo_url: "https://prometheus-community.github.io/helm-charts"
-        release_name: assfire-monitoring
+        release_name: prometheus
         release_state: present
-        release_namespace: assfire
+        release_namespace: prometheus
         release_values:
           defaultRules:
             rules:
@@ -122,10 +128,10 @@
               storageSpec:
                 volumeClaimTemplate:
                   spec:
-                    storageClassName: file-storage
+                    storageClassName: hcloud-volumes
                     resources:
                       requests:
-                        storage: 4Gi
+                        storage: 10Gi
             additionalServiceMonitors:
               - name: assfire-monitoring-services
                 namespaceSelector:

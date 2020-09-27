@@ -1,9 +1,0 @@
-.run-unit-tests:
-  variables:
-    CTEST_ARGS: 
-  stage: run_unit_tests
-  script:
-    - cd out
-    - ctest $CTEST_ARGS
-
-include: gitlab_templates/3-unit-tests/3-1-run-routes-provider-server-unit-tests.yml

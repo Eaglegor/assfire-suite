@@ -1,0 +1,1 @@
+include: gitlab_templates/40-build-docker-images/docker-images-assfire-router.yml

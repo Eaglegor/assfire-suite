@@ -1,0 +1,1 @@
+include: gitlab_templates/50-build-helm-charts/helm-charts-assfire-router.yml

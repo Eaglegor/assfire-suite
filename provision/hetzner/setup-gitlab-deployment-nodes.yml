@@ -1,0 +1,88 @@
+- name: Setup gitlab runner
+  hosts: all
+  vars:
+    GITLAB_TOKEN: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      61396336363537656166363932333565626465323063306331616265353935343135376562663761
+      3564353132643432343236333531666661373939356332380a336235393735316634393233343765
+      31653962306136373263353166623161623739646466346131623561623637613335393231393437
+      3462623862303464660a386633383739303536623361303731303831366334373134663839303635
+      31376464656235636536383062663864613033376464396537376230656538316264
+  tasks:
+    - name: Setup gitlab repo (Ubuntu/Debian)
+      shell:
+        cmd: curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh | sudo bash
+      when: ansible_distribution  == 'Debian' or ansible_distribution == 'Ubuntu'
+    - name: Setup gitlab repo (CentOS/RHEL)
+      shell:
+        cmd: curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh | sudo bash
+      when: ansible_distribution  == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+    - name: Install gitlab runner (Ubuntu/Debian)
+      environment:
+        GITLAB_RUNNER_DISABLE_SKEL: true
+      apt:
+        name: gitlab-runner
+        state: present
+      when: ansible_distribution  == 'Debian' or ansible_distribution == 'Ubuntu'
+    - name: Install gitlab runner (CentOS/RHEL)
+      environment:
+        GITLAB_RUNNER_DISABLE_SKEL: true
+      yum:
+        name: gitlab-runner
+        state: present
+      when: ansible_distribution  == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+    - name: Unregistering old runners
+      shell:
+        cmd: gitlab-runner unregister --all-runners
+    - name: Register gitlab runner in project
+      shell:
+        cmd: gitlab-runner register --tag-list assfire-deployment-node -n -u https://gitlab.com -r "{{GITLAB_TOKEN}}" --executor shell
+    - name: Start gitlab runner
+      service:
+        name: gitlab-runner
+        state: restarted
+
+- name: Install software
+  hosts: all
+  tasks:
+    - name: Ensure helm repo key is added to apt
+      apt_key:
+        url: https://helm.baltorepo.com/organization/signing.asc
+        state: present
+    - name: Ensure helm repo is available in apt
+      apt_repository:
+        repo: deb https://baltocdn.com/helm/stable/debian/ all main
+        state: present
+    - name: Ensure helm is installed
+      apt:
+        name: helm
+        state: present
+    - name: Ensure gnupg2 and apt-transport-https are installed
+      apt:
+        name:
+          - gnupg2
+          - apt-transport-https
+        state: present
+    - name: Ensure kubectl repo key is added to apt
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+    - name: Ensure kubectl repo is available in apt
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+    - name: Ensure kubectl is installed
+      apt:
+        name: kubectl
+        state: present
+
+- name: Upload kubeconfig
+  hosts: all
+  tasks:
+    - name: Upload kubeconfig from local machine
+      copy:
+        src: "~/.kube/config"
+        dest: "/home/gitlab-runner/.kube/"
+        owner: gitlab-runner
+        mode: 400
+

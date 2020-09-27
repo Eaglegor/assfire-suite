@@ -1,17 +1,24 @@
 stages:
-  - build_meta_image
+  - build_ci_image
   - build_project
-  - run_unit_tests
-  - run_integration_tests
   - build_tools
+  - test
   - build_docker_images
-  - deploy_services
+  - publish_docker_images
+  - build_helm_charts
+  - deploy_release
+
+variables:
+  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
+  TEMP_IMAGE_TAG_NAME: ci-$CI_COMMIT_SHORT_SHA
+  BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_SHORT_SHA
+  DOCKER_BUILDKIT: 1
+  APPLICATION_VERSION: $CI_COMMIT_REF_NAME
 
 include: 
-- gitlab_templates/1-build-meta-ci-image.yml
-- gitlab_templates/2-build-project.yml
-- gitlab_templates/3-run-unit-tests.yml
-- gitlab_templates/4-run-integration-tests.yml
-- gitlab_templates/5-build-tools.yml
-- gitlab_templates/6-build-docker-images.yml
-- gitlab_templates/7-deploy-services.yml
+- gitlab_templates/10-build-ci-image.yml
+- gitlab_templates/20-build-project.yml
+- gitlab_templates/30-run-tests.yml
+- gitlab_templates/40-build-docker-images.yml
+- gitlab_templates/50-build-helm-charts.yml
+- gitlab_templates/60-deploy-release.yml
