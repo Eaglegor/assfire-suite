@@ -6,12 +6,15 @@ stages:
   - run_integration_tests
   - build_tools
   - build_docker_images
+  - publish_docker_images
   - build_helm_charts
 
 variables:
   MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
-  BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:$CI_COMMIT_SHORT_SHA
+  TEMP_IMAGE_TAG_NAME: ci-$CI_COMMIT_SHORT_SHA
+  BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:$TEMP_IMAGE_TAG_NAME
   DOCKER_BUILDKIT: 1
+  APPLICATION_VERSION: $CI_COMMIT_REF_NAME
 
 include: 
 - gitlab_templates/1-build-meta-ci-image.yml

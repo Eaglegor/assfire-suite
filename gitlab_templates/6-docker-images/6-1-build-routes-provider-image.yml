@@ -7,12 +7,12 @@ build-routes-provider-server-image:
   stage: build_docker_images
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build out/install/assfire-router/ -f routes_provider/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$BUILD_IMAGE_NAME
-    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$BUILD_IMAGE_NAME
+    - docker build out/install/assfire-router/ -f routes_provider/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
   dependencies:
-    - build-routes-provider-maptest-tool
+    - build-project
   needs:
-    - build-routes-provider-maptest-tool
+    - build-project
 
 build-routes-provider-maptest-image:
   image: docker:stable
@@ -24,9 +24,32 @@ build-routes-provider-maptest-image:
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cd routes_provider/tools/maptest
-    - docker build . -t $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$BUILD_IMAGE_NAME
-    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$BUILD_IMAGE_NAME
+    - docker build . -t $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
   dependencies:
     - build-routes-provider-maptest-tool
   needs:
     - build-routes-provider-maptest-tool
+
+publish-routes-provider-images:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: publish_docker_images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
+    - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
+    - docker tag $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME $CI_REGISTRY/assfire/assfire-suite/assfire-router:$APPLICATION_VERSION
+    - docker tag $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$APPLICATION_VERSION
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$APPLICATION_VERSION
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$APPLICATION_VERSION
+  only:
+    refs:
+      - tags
+  dependencies:
+    - build-routes-provider-server-image
+    - build-routes-provider-maptest-image
+  needs:
+    - build-routes-provider-server-image
+    - build-routes-provider-maptest-image

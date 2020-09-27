@@ -1,8 +1,6 @@
 build-project:
   stage: build_project
   image: $BUILD_IMAGE_NAME
-  variables:
-    APPLICATION_VERSION: $CI_COMMIT_TAG
   artifacts:
     paths:
       - out/*
