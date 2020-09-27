@@ -1,0 +1,1 @@
+include: gitlab_templates/7-helm-charts/7-1-build-routes-provider-helm-chart.yml

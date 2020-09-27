@@ -59,6 +59,12 @@ target_link_libraries(routes_provider_server_engine
 target_include_directories(routes_provider_server_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(assfire-router PRIVATE routes_provider_server_engine)
 
+include(helm_utils)
+prepare_helm_chart(
+		CHART_ROOT helm
+		VERSION ${ASSFIRE_APPLICATION_RELEASE_VERSION}
+)
+
 if (ASSFIRE_BUNDLE_INSTALL_MODE)
     set(ROUTES_PROVIDER_SERVER_BUNDLE_PREFIX "assfire-router")
 endif ()

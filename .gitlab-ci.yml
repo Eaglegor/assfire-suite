@@ -5,7 +5,7 @@ stages:
   - run_integration_tests
   - build_tools
   - build_docker_images
-  - deploy_services
+  - build_helm_charts
 
 include: 
 - gitlab_templates/1-build-meta-ci-image.yml
@@ -14,4 +14,4 @@ include:
 - gitlab_templates/4-run-integration-tests.yml
 - gitlab_templates/5-build-tools.yml
 - gitlab_templates/6-build-docker-images.yml
-- gitlab_templates/7-deploy-services.yml
+- gitlab_templates/7-build-helm-charts.yml

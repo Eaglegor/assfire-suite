@@ -1,0 +1,13 @@
+build-routes-provider-server-release-helm-chart:
+  image: docker:stable
+  variables:
+    HELM_EXPERIMENTAL_OCI: 1
+  stage: build_helm_charts
+  only:
+    - tags
+  script:
+    - cd out/routes_provider/helm_charts/helm/
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:${APPLICATION_VERSION}
+  needs:
+    - build-routes-provider-server-image-master

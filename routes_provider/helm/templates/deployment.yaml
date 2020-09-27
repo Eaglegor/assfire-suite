@@ -19,19 +19,19 @@ spec:
         assfire_role: calculation-node
       containers:
         - name: assfire-router-server
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-router:{{.Values.assfire_router_tag}}
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:
             - containerPort: 50051
             - containerPort: 8081
           command: ["/opt/assfire-router/bin/assfire-router"]
           args: ["--redis-cache-enabled=true", "--redis-host=assfire-geocache-redis-master", "--metrics-enabled=true", "--log-level=debug"]
         - name: assfire-router-server-reverse-proxy
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-router:{{.Values.assfire_router_tag}}
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:
             - containerPort: 8082
           command: [ "/opt/assfire-router/bin/assfire-router-reverse-proxy" ]
         - name: assfire-router-server-maptest
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-maptest:{{.Values.assfire_router_tag}}
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-maptest:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:
             - containerPort: 8083
       imagePullSecrets:
