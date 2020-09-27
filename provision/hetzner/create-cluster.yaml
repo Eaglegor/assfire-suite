@@ -8,8 +8,8 @@
 - name: Ensure kubeconfig is present on local machine
   import_playbook: 3-download-kubeconfig.yaml
 
-- name: Ensure persistent storage is available for services
-  import_playbook: 4-provide-persistent-storage.yaml
+- name: Integrate hetzner cloud services
+  import_playbook: 4-integrate-hetzner-cloud.yaml
 
 - name: Ensure needed software is installed
   import_playbook: 5-install-software-images.yaml

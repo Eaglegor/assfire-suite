@@ -1,0 +1,111 @@
+- name: Ensure Hetzner Cloud secrets are present
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  vars:
+    hcloud_token: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      65613434396166323135356561656438396135396164313262393634393039616430333364666663
+      3765333633353564303665643734393863363639343462630a663237646336636432383566663833
+      37383266316430616232353636323539336461343562316236663133323435323633303861623266
+      6565356663633037640a336535343931623064323161666632643330313331373130646332386563
+      65356239623738386233323931383265383836343936653938643138616134646363633161306530
+      66633933363866366666393133626339333138383234636236363162346235316165663737626333
+      66643166313963383535396264373464643535306138393531623636303937663237386336626566
+      33323934376434613033
+    floating_ip: "49.12.114.184"
+  tasks:
+    - name: Ensure hcloud secret is present
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: hcloud
+            namespace: kube-system
+          stringData:
+            token: "{{hcloud_token}}"
+            network: "assfire-private-network"
+    - name: Ensure hcloud-csi secret is present
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: hcloud-csi
+            namespace: kube-system
+          stringData:
+            token: "{{hcloud_token}}"
+    - name: Ensure Hetzner Cloud controller manager is deployed
+      shell:
+        cmd: kubectl apply -f https://raw.githubusercontent.com/hetznercloud/hcloud-cloud-controller-manager/v1.7.0/deploy/v1.7.0-networks.yaml
+    - name: Ensure Hetzner Cloud Container Storage Interface is deployed
+      shell:
+        cmd: kubectl apply -f "{{item}}"
+      with_items:
+        - https://raw.githubusercontent.com/kubernetes/csi-api/release-1.14/pkg/crd/manifests/csidriver.yaml
+        - https://raw.githubusercontent.com/kubernetes/csi-api/release-1.14/pkg/crd/manifests/csinodeinfo.yaml
+        - https://raw.githubusercontent.com/hetznercloud/csi-driver/master/deploy/kubernetes/hcloud-csi.yml
+    - name: Ensure metallb namespace is present
+      community.kubernetes.k8s:
+        name: metallb
+        kind: Namespace
+        api_version: v1
+        state: present
+    - name: Ensure MetalLB is installed
+      community.kubernetes.helm:
+        chart_ref: metallb
+        chart_version: 0.1.24
+        chart_repo_url: "https://charts.bitnami.com/bitnami"
+        release_name: metallb
+        release_state: present
+        release_namespace: metallb
+    - name: Ensure MetalLB is configured
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          api_version: v1
+          kind: ConfigMap
+          metadata:
+            name: metallb-config
+            namespace: metallb
+          data:
+            config: |
+              address-pools:
+              - name: default
+                protocol: layer2
+                addresses:
+                  - {{floating_ip}}/32
+    - name: Ensure floating ip failover controller namespace is present
+      community.kubernetes.k8s:
+        state: present
+        name: hcloud-fip-controller
+        api_version: v1
+        kind: Namespace
+    - name: Ensure floating ip failover controller is deployed
+      community.kubernetes.helm:
+        chart_ref: hcloud-fip-controller
+        chart_repo_url: "https://cbeneke.github.com/helm-charts"
+        release_name: hcloud-fip-controller
+        release_state: present
+        release_namespace: hcloud-fip-controller
+        release_values:
+          configInline:
+            hcloud_floating_ips:
+              - "{{floating_ip}}"
+            lease_duration: 30
+            lease_name: production
+            log_level: info
+    - name: Ensure floating ip failover controller secret is deployed
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          kind: Secret
+          metadata:
+            name: hcloud-fip-controller-env
+            namespace: hcloud-fip-controller
+          stringData:
+            HCLOUD_API_TOKEN: "{{hcloud_token}}"

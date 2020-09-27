@@ -29,9 +29,11 @@
   tasks:
       - name: Waiting until host is up
         wait_for_connection:
-        
-- name: Add floating IP configs to ingress nodes
-  hosts: ingress
+
+- name: Add floating IP configs to all worker nodes
+  hosts: kube-node
+  vars:
+    floating_ip: 49.12.114.184
   tasks:
     - name: Create configuration
       template:

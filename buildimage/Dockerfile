@@ -38,3 +38,6 @@ ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 
 RUN apk add --no-cache npm
 RUN npm install -g react-scripts
+
+RUN apk add --no-cache openssl
+RUN curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash

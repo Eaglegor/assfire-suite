@@ -1,0 +1,36 @@
+test-unit-assfire-router:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out
+    - ctest -R unit-routing-server
+  dependencies:
+    - build-project
+  needs:
+    - build-project
+
+test-int-assfire-router:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out
+    - ./install/assfire-router/bin/assfire-router --bind-address=0.0.0.0:50051 &
+    - ctest -R integration-routes-provider-client-server
+  dependencies:
+    - build-project
+  needs:
+    - build-project
+
+test-int-assfire-router-cache:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  services:
+    - redis:6.0.5
+  script:
+    - cd out
+    - ./install/assfire-router/bin/assfire-router --bind-address=0.0.0.0:50051 --redis-cache-enabled --redis-host redis &
+    - ctest -R integration-routes-provider-redis-cache
+  dependencies:
+    - build-project
+  needs:
+    - build-project
