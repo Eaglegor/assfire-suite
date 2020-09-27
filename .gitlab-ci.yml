@@ -1,5 +1,6 @@
 stages:
   - build_meta_image
+  - publish_master_image
   - build_project
   - run_unit_tests
   - run_integration_tests

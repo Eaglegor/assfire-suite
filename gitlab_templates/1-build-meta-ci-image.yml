@@ -14,7 +14,7 @@ publish-master-image:
   image: docker:stable
   services:
     - docker:dind
-  stage: build_meta_image
+  stage: publish_master_image
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $BUILD_IMAGE_NAME
