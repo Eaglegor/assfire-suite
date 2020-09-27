@@ -8,6 +8,7 @@ stages:
   - build_docker_images
   - publish_docker_images
   - build_helm_charts
+  - cleanup_ci_images
 
 variables:
   MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
@@ -24,3 +25,4 @@ include:
 - gitlab_templates/5-build-tools.yml
 - gitlab_templates/6-build-docker-images.yml
 - gitlab_templates/7-build-helm-charts.yml
+- gitlab_templates/100-cleanup-ci-images.yml
