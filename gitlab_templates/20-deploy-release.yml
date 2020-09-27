@@ -3,7 +3,7 @@ deploy-assfire-release:
     - tags
   when: manual
   tags:
-    assfire-deloy-node
+    - assfire-deployment-node
   stage:
     deploy_release
   script:
