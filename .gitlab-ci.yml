@@ -25,4 +25,4 @@ include:
 - gitlab_templates/5-build-tools.yml
 - gitlab_templates/6-build-docker-images.yml
 - gitlab_templates/7-build-helm-charts.yml
-- gitlab_templates/100-cleanup-ci-images.yml
+

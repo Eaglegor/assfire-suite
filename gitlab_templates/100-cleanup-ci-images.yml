@@ -1,6 +1,0 @@
-cleanup-ci-images:
-  stage: cleanup_ci_images
-  image: $BUILD_IMAGE_NAME
-  when: always
-  script:
-    - echo "Automatic images cleanup is not yet implemented"
