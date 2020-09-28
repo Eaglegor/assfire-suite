@@ -18,7 +18,17 @@ build:
     - source scl_source enable devtoolset-8 || true
     - mkdir out
     - cd out
-    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION -DASSFIRE_DEBUG_MODE=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DASSFIRE_BUNDLE_INSTALL_MODE=True -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True ../ --target assfire-router
+    - --target assfire-router
+    - cmake
+        --target assfire-router
+        -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+        -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
+        -DASSFIRE_DEBUG_MODE=OFF
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_INSTALL_PREFIX=$(pwd)/install
+        -DASSFIRE_BUNDLE_INSTALL_MODE=True
+        -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True
+        ../
     - make install
 
 build-maptest:
