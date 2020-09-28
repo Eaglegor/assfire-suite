@@ -1,2 +1,0 @@
-- name: Ensure assfire-router-server is deployed
-  import_playbook: deploy-assfire-router-server.yaml

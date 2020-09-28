@@ -36,4 +36,4 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 enable_testing()
 
-add_subdirectory(assfire-router)
+add_subdirectory(apps)

@@ -1,10 +1,10 @@
 stages:
   - build
   - test
-  - build-docker-images
-  - publish-docker-images
-  - build-helm-charts
-  - deploy-release
+  - build docker images
+  - publish docker images
+  - build helm charts
+  - deploy release
 
 variables:
   CMAKE_OPTIONS: |
@@ -90,7 +90,7 @@ build-docker-server:
     - docker:dind
   variables:
     IMAGE_TAG_NAME: latest
-  stage: build-docker-images
+  stage: build docker images
   script:
     - cd out
     - cmake --build . --target install
@@ -109,7 +109,7 @@ publish-docker-server:
   image: docker:stable
   services:
     - docker:dind
-  stage: publish-docker-images
+  stage: publish docker images
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
@@ -127,7 +127,7 @@ build-docker-maptest:
     - docker:dind
   variables:
     IMAGE_TAG_NAME: latest
-  stage: build-docker-images
+  stage: build docker images
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cd assfire-router/tools/maptest
@@ -145,7 +145,7 @@ publish-docker-maptest:
   image: docker:stable
   services:
     - docker:dind
-  stage: publish-docker-images
+  stage: publish docker images
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
@@ -161,7 +161,7 @@ build-helm-chart:
   image: $BUILD_IMAGE_NAME
   variables:
     HELM_EXPERIMENTAL_OCI: 1
-  stage: build-helm-charts
+  stage: build helm charts
   only:
     - tags
   script:
@@ -185,7 +185,7 @@ deploy-release:
   tags:
     - assfire-deployment-node
   stage:
-    deploy-release
+    deploy release
   script:
     - echo "Deploying Assfire Router"
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY

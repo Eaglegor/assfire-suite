@@ -38,10 +38,10 @@ build/*
 
 .terraform
 *.tfstate*
-provision/hetzner/terraform/inventory
-provision/hetzner/kubespray
-provision/hetzner/tf_package
-provision/hetzner/passfile
+cluster/hetzner/terraform/inventory
+cluster/hetzner/kubespray
+cluster/hetzner/tf_package
+cluster/hetzner/passfile
 *.retry
 
 # Created by https://www.toptal.com/developers/gitignore/api/clion+all
