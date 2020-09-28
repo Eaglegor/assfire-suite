@@ -1,6 +1,6 @@
 add_executable(assfire-router main.cpp)
 
-add_library(routes_provider_server_engine
+add_library(assfire-router-engine
 		RoutingService.cpp
 		backends/euclidean/EuclideanRouter.cpp
 		backends/random/RandomRouter.cpp
@@ -21,11 +21,11 @@ vcpkg_find_cpp_redis()
 find_package(civetweb CONFIG REQUIRED) # Required by prometheus
 find_package(prometheus-cpp CONFIG REQUIRED)
 
-target_link_libraries(routes_provider_server_engine
+target_link_libraries(assfire-router-engine
         PRIVATE cpp_redis::cpp_redis cxxopts::cxxopts spdlog::spdlog prometheus-cpp::core prometheus-cpp::pull
-        PUBLIC routes_provider_protobuf_binding)
-target_include_directories(routes_provider_server_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(assfire-router PRIVATE routes_provider_server_engine)
+        PUBLIC assfire-router-proto-binding)
+target_include_directories(assfire-router-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(assfire-router PRIVATE assfire-router-engine)
 
 include(helm_utils)
 prepare_helm_chart(
@@ -33,7 +33,7 @@ prepare_helm_chart(
 		VERSION ${ASSFIRE_APPLICATION_RELEASE_VERSION}
 )
 
-install(TARGETS assfire-router RUNTIME DESTINATION ${ROUTES_PROVIDER_SERVER_INSTALL_PREFIX})
+install(TARGETS assfire-router RUNTIME DESTINATION ${ASSFIRE_ROUTER_INSTALL_PREFIX}/bin)
 
 if (ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS)
     file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/install_deps.cmake
@@ -43,7 +43,7 @@ if (ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS)
     			UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
     			EXECUTABLES $<TARGET_FILE:assfire-router>)
     
-    			file(INSTALL FOLLOW_SYMLINK_CHAIN DESTINATION \"${CMAKE_INSTALL_PREFIX}/${ROUTES_PROVIDER_SERVER_INSTALL_PREFIX}\" TYPE EXECUTABLE FILES \${resolved_deps})
+    			file(INSTALL FOLLOW_SYMLINK_CHAIN DESTINATION \"${CMAKE_INSTALL_PREFIX}/${ASSFIRE_ROUTER_INSTALL_PREFIX}/bin\" TYPE EXECUTABLE FILES \${resolved_deps})
     	")
     install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/install_deps.cmake)
 endif ()

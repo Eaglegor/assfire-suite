@@ -14,6 +14,8 @@ variables:
     -DCMAKE_INSTALL_PREFIX=$CI_PROJECT_DIR/out/install
     -DASSFIRE_BUNDLE_INSTALL_MODE=True
     -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True
+    -DASSFIRE_APPS_BUILD_ALL=OFF
+    -DASSFIRE_APPS_BUILD_ASSFIRE_ROUTER=ON
 
 .configure:
   before_script:
@@ -32,8 +34,6 @@ build:
     expire_in: 1 hour
   script:
     - cd out
-    - cmake --build . --target assfire-router
-    - cmake --build . --target assfire-router-reverse-proxy
     - cmake --build . --target install
 
 build-maptest:

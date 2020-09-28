@@ -26,6 +26,9 @@ option(ASSFIRE_BUNDLE_INSTALL_MODE "Enable bundle mode for installation" OFF)
 option(ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS "Automatically copy all needed dynamic libraries to the installation location" OFF)
 option(ASSFIRE_GENERATE_GRPC_REVERSE_PROXIES "Generate reverse HTTP proxy services for gRPC (go modules setup is needed)" OFF)
 
+option(ASSFIRE_APPS_BUILD_ALL "Build all applications" ON)
+option(ASSFIRE_APPS_BUILD_ASSFIRE_ROUTER "Build Assfire Router" OFF)
+
 if(ASSFIRE_DEBUG_MODE)
 	message(STATUS "Debug mode enabled")
 	add_definitions("-DASSFIRE_DEBUG_MODE")

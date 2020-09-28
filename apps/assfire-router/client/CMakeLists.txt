@@ -23,7 +23,7 @@ set_target_properties(assfire_router_client PROPERTIES PUBLIC_HEADER "${ASSFIRE_
 
 find_package(spdlog CONFIG REQUIRED)
 
-target_link_libraries(assfire_router_client PRIVATE routes_provider_protobuf_binding spdlog::spdlog)
+target_link_libraries(assfire_router_client PRIVATE assfire-router-proto-binding spdlog::spdlog)
 target_include_directories(assfire_router_client INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ASSFIRE_BUNDLE_INSTALL_MODE)
@@ -32,8 +32,8 @@ endif()
 
 set(ROUTES_PROVIDER_CLIENT_INSTALL_PREFIX ${ROUTES_PROVIDER_CLIENT_BUNDLE_PREFIX}/bin)
 install(TARGETS assfire_router_client 
-        RUNTIME DESTINATION ${ROUTES_PROVIDER_CLIENT_INSTALL_PREFIX}
-        PUBLIC_HEADER DESTINATION ${ROUTES_PROVIDER_CLIENT_BUNDLE_PREFIX}/include)
+        RUNTIME DESTINATION ${ASSFIRE_ROUTER_INSTALL_PREFIX}/bin
+        PUBLIC_HEADER DESTINATION ${ASSFIRE_ROUTER_INSTALL_PREFIX}/include)
         
 if(ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS)
     file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/install_deps.cmake
@@ -43,7 +43,7 @@ if(ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS)
     			UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
     			EXECUTABLES $<TARGET_FILE:assfire_router_client>)
     
-    			file(INSTALL FOLLOW_SYMLINK_CHAIN DESTINATION \"${CMAKE_INSTALL_PREFIX}/${ROUTES_PROVIDER_CLIENT_INSTALL_PREFIX}\" TYPE EXECUTABLE FILES \${resolved_deps})
+    			file(INSTALL FOLLOW_SYMLINK_CHAIN DESTINATION \"${ASSFIRE_ROUTER_INSTALL_PREFIX}/bin\" TYPE EXECUTABLE FILES \${resolved_deps})
     	")
     install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/install_deps.cmake)
 endif()
