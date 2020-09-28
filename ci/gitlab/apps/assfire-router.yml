@@ -18,9 +18,9 @@ variables:
 
 .configure:
   before_script:
-    - source scl_source enable devtoolset-8 || true
     - mkdir out
     - cd out
+    - echo $CMAKE_OPTIONS
     - cmake $CMAKE_OPTIONS ../
 
 build:
@@ -34,6 +34,7 @@ build:
   script:
     - cmake --build . --target assfire-router
     - cmake --build . --target assfire-router-reverse-proxy
+    - cmake --build . --target install
 
 build-maptest:
   image: $BUILD_IMAGE_NAME
@@ -92,8 +93,6 @@ build-docker-server:
     IMAGE_TAG_NAME: latest
   stage: build docker images
   script:
-    - cd out
-    - cmake --build . --target install
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build install/assfire-router/ -f apps/assfire-router/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
     - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
