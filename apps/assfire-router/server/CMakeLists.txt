@@ -1,6 +1,6 @@
 add_executable(${ASSFIRE_ROUTER_APP_NAME} main.cpp)
 
-add_library(${ASSFIRE_ROUTER_APP_NAME}-engine
+add_library(${ASSFIRE_ROUTER_ENGINE_NAME}
 		RoutingService.cpp
 		backends/euclidean/EuclideanRouter.cpp
 		backends/random/RandomRouter.cpp
@@ -21,11 +21,11 @@ vcpkg_find_cpp_redis()
 find_package(civetweb CONFIG REQUIRED) # Required by prometheus
 find_package(prometheus-cpp CONFIG REQUIRED)
 
-target_link_libraries(${ASSFIRE_ROUTER_APP_NAME}-engine
+target_link_libraries(${ASSFIRE_ROUTER_ENGINE_NAME}
         PRIVATE cpp_redis::cpp_redis cxxopts::cxxopts spdlog::spdlog prometheus-cpp::core prometheus-cpp::pull
-        PUBLIC ${ASSFIRE_ROUTER_APP_NAME}-proto-binding)
-target_include_directories(${ASSFIRE_ROUTER_APP_NAME}-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${ASSFIRE_ROUTER_APP_NAME} PRIVATE ${ASSFIRE_ROUTER_APP_NAME}-engine)
+        PUBLIC ${ASSFIRE_ROUTER_PROTO_BINDING_NAME})
+target_include_directories(${ASSFIRE_ROUTER_ENGINE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(${ASSFIRE_ROUTER_APP_NAME} PRIVATE ${ASSFIRE_ROUTER_ENGINE_NAME})
 
 install(TARGETS ${ASSFIRE_ROUTER_APP_NAME} RUNTIME DESTINATION ${ASSFIRE_ROUTER_INSTALL_PREFIX}/bin)
 

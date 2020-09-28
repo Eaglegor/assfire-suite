@@ -29,6 +29,11 @@ option(ASSFIRE_GENERATE_GRPC_REVERSE_PROXIES "Generate reverse HTTP proxy servic
 option(ASSFIRE_APPS_BUILD_ALL "Build all applications" ON)
 option(ASSFIRE_APPS_BUILD_ASSFIRE_ROUTER "Build Assfire Router" OFF)
 
+set(ASSFIRE_APP_CLIENT_SUFFIX client)
+set(ASSFIRE_APP_PROTO_BINDING_SUFFIX proto-binding)
+set(ASSFIRE_APP_REVERSE_PROXY_SUFFIX reverse-proxy)
+set(ASSFIRE_APP_ENGINE_SUFFIX engine)
+
 if(ASSFIRE_DEBUG_MODE)
 	message(STATUS "Debug mode enabled")
 	add_definitions("-DASSFIRE_DEBUG_MODE")

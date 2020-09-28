@@ -1,4 +1,5 @@
-set(ASSFIRE_ROUTER_APP_NAME assfire-router)
+include(name_utils)
+define_common_names(ASSFIRE_ROUTER assfire-router)
 
 if (ASSFIRE_BUNDLE_INSTALL_MODE)
     set(ASSFIRE_ROUTER_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/${ASSFIRE_ROUTER_APP_NAME})
