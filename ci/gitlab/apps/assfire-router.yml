@@ -35,6 +35,7 @@ build:
   script:
     - cd out
     - cmake --build . --target install
+    - cmake --build . --target package
 
 build-maptest:
   image: $BUILD_IMAGE_NAME

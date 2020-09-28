@@ -25,6 +25,7 @@ option(ASSFIRE_DEBUG_MODE "Enable debug mode" ON)
 option(ASSFIRE_BUNDLE_INSTALL_MODE "Enable bundle mode for installation" OFF)
 option(ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS "Automatically copy all needed dynamic libraries to the installation location" OFF)
 option(ASSFIRE_GENERATE_GRPC_REVERSE_PROXIES "Generate reverse HTTP proxy services for gRPC (go modules setup is needed)" OFF)
+option(ASSFIRE_PACKAGE_BUILD_RPM "Build RPM packages" OFF)
 
 option(ASSFIRE_APPS_BUILD_ALL "Build all applications" ON)
 option(ASSFIRE_APPS_BUILD_ASSFIRE_ROUTER "Build Assfire Router" OFF)
@@ -43,5 +44,12 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 enable_testing()
+
+if(ASSFIRE_PACKAGE_BUILD_RPM)
+	set(CPACK_PACKAGE_VERSION ${ASSFIRE_APPLICATION_RELEASE_VERSION})
+	set(CPACK_PACKAGE_CONTACT "Nikolay Gorbachenko <eaglegor@gmail.com>")
+	set(CPACK_PACKAGE_VENDOR "Nikolay Gorbachenko <eaglegor@gmail.com>")
+	set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+endif()
 
 add_subdirectory(apps)
