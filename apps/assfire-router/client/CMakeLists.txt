@@ -13,26 +13,22 @@ list(APPEND ASSFIRE_ROUTER_CLIENT_PUBLIC_HEADERS
     assfire_router/settings/FixedPointIntCoordinatesFormat.hpp
 )
 
-add_library(assfire_router_client
+add_library(${ASSFIRE_ROUTER_APP_NAME}-client
     "assfire_router/backends/DirectRequestBackend.cpp"
     "assfire_router/grpc_client/GrpcClient.cpp"
     ${ASSFIRE_ROUTER_CLIENT_PUBLIC_HEADERS}
 )
 
-set_target_properties(assfire_router_client PROPERTIES PUBLIC_HEADER "${ASSFIRE_ROUTER_CLIENT_PUBLIC_HEADERS}")
+set_target_properties(${ASSFIRE_ROUTER_APP_NAME}-client PROPERTIES PUBLIC_HEADER "${ASSFIRE_ROUTER_CLIENT_PUBLIC_HEADERS}")
 
 find_package(spdlog CONFIG REQUIRED)
 
-target_link_libraries(assfire_router_client PRIVATE assfire-router-proto-binding spdlog::spdlog)
-target_include_directories(assfire_router_client INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${ASSFIRE_ROUTER_APP_NAME}-client PRIVATE ${ASSFIRE_ROUTER_APP_NAME}-proto-binding spdlog::spdlog)
+target_include_directories(${ASSFIRE_ROUTER_APP_NAME}-client INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(ASSFIRE_BUNDLE_INSTALL_MODE)
-	set(ROUTES_PROVIDER_CLIENT_BUNDLE_PREFIX "assfire_router_client")
-endif()
-
-set(ROUTES_PROVIDER_CLIENT_INSTALL_PREFIX ${ROUTES_PROVIDER_CLIENT_BUNDLE_PREFIX}/bin)
-install(TARGETS assfire_router_client 
+install(TARGETS ${ASSFIRE_ROUTER_APP_NAME}-client
         RUNTIME DESTINATION ${ASSFIRE_ROUTER_INSTALL_PREFIX}/bin
+		LIBRARY DESTINATION ${ASSFIRE_ROUTER_INSTALL_PREFIX}/lib
         PUBLIC_HEADER DESTINATION ${ASSFIRE_ROUTER_INSTALL_PREFIX}/include)
         
 if(ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS)
