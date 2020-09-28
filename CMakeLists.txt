@@ -47,6 +47,7 @@ enable_testing()
 
 if(ASSFIRE_PACKAGE_BUILD_RPM)
 	message(STATUS "RPM builds enabled")
+	set(CPACK_GENERATOR "RPM")
 	set(CPACK_PACKAGE_VERSION ${ASSFIRE_APPLICATION_RELEASE_VERSION})
 	set(CPACK_PACKAGE_CONTACT "Nikolay Gorbachenko <eaglegor@gmail.com>")
 	set(CPACK_PACKAGE_VENDOR "Nikolay Gorbachenko <eaglegor@gmail.com>")
