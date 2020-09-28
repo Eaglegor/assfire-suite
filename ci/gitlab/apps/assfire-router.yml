@@ -20,6 +20,7 @@ variables:
     - mkdir out
     - cd out
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
+    - cd ..
 
 build:
   extends: .configure
@@ -30,6 +31,7 @@ build:
       - out/*
     expire_in: 1 hour
   script:
+    - cd out
     - cmake --build . --target assfire-router
     - cmake --build . --target assfire-router-reverse-proxy
     - cmake --build . --target install
