@@ -1,13 +1,6 @@
 stages:
   - build_ci_image
   - build_applications
-  - build_project
-  - build_tools
-  - test
-  - build_docker_images
-  - publish_docker_images
-  - build_helm_charts
-  - deploy_release
 
 variables:
   MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
