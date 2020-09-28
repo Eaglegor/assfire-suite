@@ -164,7 +164,7 @@ build-helm-chart:
   only:
     - tags
   script:
-    - cd out/apps/assfire-router/helm_charts/helm/
+    - cd out/apps/assfire-router/helm/helm_charts/assfire-router/
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart save . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
     - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
