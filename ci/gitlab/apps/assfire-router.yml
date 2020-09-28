@@ -1,38 +1,44 @@
 stages:
-  - build_project
-  - build_tools
+  - build
   - test
-  - build_docker_images
-  - publish_docker_images
-  - build_helm_charts
-  - deploy_release
+  - build-docker-images
+  - publish-docker-images
+  - build-helm-charts
+  - deploy-release
+
+variables:
+  CMAKE_OPTIONS: |
+    -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+    -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
+    -DASSFIRE_DEBUG_MODE=OFF
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=$(pwd)/install
+    -DASSFIRE_BUNDLE_INSTALL_MODE=True
+    -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True
+
+.configure:
+  before_script:
+    - source scl_source enable devtoolset-8 || true
+    - mkdir out
+    - cd out
+    - cmake $CMAKE_OPTIONS ../
 
 build:
-  stage: build_project
+  extends: .configure
+  stage: build
   image: $BUILD_IMAGE_NAME
   artifacts:
     paths:
       - out/*
     expire_in: 1 hour
   script:
-    - source scl_source enable devtoolset-8 || true
-    - mkdir out
-    - cd out
-    - cmake
-        --target assfire-router
-        -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-        -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
-        -DASSFIRE_DEBUG_MODE=OFF
-        -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_INSTALL_PREFIX=$(pwd)/install
-        -DASSFIRE_BUNDLE_INSTALL_MODE=True
-        -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True
-        ../
-    - make install
+    - cmake --build . --target assfire-router
+    - cmake --build . --target assfire-router-reverse-proxy
 
 build-maptest:
   image: $BUILD_IMAGE_NAME
-  stage: build_tools
+  stage: build
+  extends: .configure
   artifacts:
     paths:
       - assfire-router/tools/maptest/build/*
@@ -88,8 +94,10 @@ build-docker-server:
     IMAGE_TAG_NAME: latest
   stage: build_docker_images
   script:
+    - cd out
+    - cmake --build . --target install
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build out/install/assfire-router/ -f assfire-router/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
+    - docker build install/assfire-router/ -f assfire-router/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
     - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
   dependencies:
     - build
