@@ -18,7 +18,6 @@ build:
     - source scl_source enable devtoolset-8 || true
     - mkdir out
     - cd out
-    - --target assfire-router
     - cmake
         --target assfire-router
         -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
