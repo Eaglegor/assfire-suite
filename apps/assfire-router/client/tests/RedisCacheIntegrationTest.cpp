@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <assfire_router/client.hpp>
+#include <assfire-router/client.hpp>
 #include <vector>
 
 using namespace assfire;

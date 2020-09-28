@@ -1,21 +1,21 @@
 list(APPEND ASSFIRE_ROUTER_CLIENT_PUBLIC_HEADERS
-    assfire_router/client.hpp
-    assfire_router/DistanceMatrix.hpp
-    assfire_router/DistanceMatrixBackend.hpp
-    assfire_router/Location.hpp
-    assfire_router/RouteInfo.hpp
-    assfire_router/RoutingClient.hpp
-    assfire_router/backends/DirectRequestBackend.hpp
-    assfire_router/grpc_client/GrpcClient.hpp
-    assfire_router/settings/EuclideanSettings.hpp
-    assfire_router/settings/RandomSettings.hpp
-    assfire_router/settings/RouteRequestSettings.hpp
-    assfire_router/settings/FixedPointIntCoordinatesFormat.hpp
+		assfire-router/client.hpp
+		assfire-router/DistanceMatrix.hpp
+		assfire-router/DistanceMatrixBackend.hpp
+		assfire-router/Location.hpp
+		assfire-router/RouteInfo.hpp
+		assfire-router/RoutingClient.hpp
+		assfire-router/backends/DirectRequestBackend.hpp
+		assfire-router/grpc_client/GrpcClient.hpp
+		assfire-router/settings/EuclideanSettings.hpp
+		assfire-router/settings/RandomSettings.hpp
+		assfire-router/settings/RouteRequestSettings.hpp
+		assfire-router/settings/FixedPointIntCoordinatesFormat.hpp
 )
 
 add_library(${ASSFIRE_ROUTER_CLIENT_NAME}
-    "assfire_router/backends/DirectRequestBackend.cpp"
-    "assfire_router/grpc_client/GrpcClient.cpp"
+    "assfire-router/backends/DirectRequestBackend.cpp"
+    "assfire-router/grpc_client/GrpcClient.cpp"
     ${ASSFIRE_ROUTER_CLIENT_PUBLIC_HEADERS}
 )
 
