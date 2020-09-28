@@ -8,7 +8,6 @@ stages:
 
 variables:
   CMAKE_OPTIONS: |
-    -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
     -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
     -DASSFIRE_DEBUG_MODE=OFF
     -DCMAKE_BUILD_TYPE=Release
@@ -20,8 +19,7 @@ variables:
   before_script:
     - mkdir out
     - cd out
-    - echo $CMAKE_OPTIONS
-    - cmake $CMAKE_OPTIONS ../
+    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
 
 build:
   extends: .configure
