@@ -17,7 +17,7 @@ build-assfire-router:
     - build-ci-image
 
 ---
-#TEST
+#BUILD TOOLS
 build-tools-assfire-router-maptest:
   image: $BUILD_IMAGE_NAME
   stage: build_tools
@@ -34,6 +34,8 @@ build-tools-assfire-router-maptest:
     - build-ci-image
     - build-assfire-router
 
+---
+#TEST
 test-unit-assfire-router:
   image: $BUILD_IMAGE_NAME
   stage: test

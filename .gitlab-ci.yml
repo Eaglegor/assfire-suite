@@ -1,5 +1,6 @@
 stages:
   - build_ci_image
+  - build_applications
   - build_project
   - build_tools
   - test
@@ -44,5 +45,6 @@ publish-master-ci-image:
     - build-ci-image
 
 assfire-router:
+  stage: build_applications
   trigger:
     include: ci/gitlab/apps/assfire-router.yml
