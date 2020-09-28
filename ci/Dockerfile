@@ -42,4 +42,4 @@ RUN npm install -g react-scripts
 RUN apk add --no-cache openssl
 RUN curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-RUN apk add --no-cache rpmbuild
+RUN apk add --no-cache rpm
