@@ -1,2 +1,0 @@
-include:
-  - gitlab_templates/30-run-tests/tests-assfire-router.yml

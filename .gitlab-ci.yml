@@ -15,10 +15,34 @@ variables:
   DOCKER_BUILDKIT: 1
   APPLICATION_VERSION: $CI_COMMIT_REF_NAME
 
-include: 
-- gitlab_templates/10-build-ci-image.yml
-- gitlab_templates/20-build-project.yml
-- gitlab_templates/30-run-tests.yml
-- gitlab_templates/40-build-docker-images.yml
-- gitlab_templates/50-build-helm-charts.yml
-- gitlab_templates/60-deploy-release.yml
+build-ci-image:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: build_ci_image
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cd buildimage
+    - docker build . -t $BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker push $BUILD_IMAGE_NAME
+  needs: []
+
+publish-master-ci-image:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: publish_docker_images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $BUILD_IMAGE_NAME
+    - docker tag $BUILD_IMAGE_NAME $MASTER_BUILD_IMAGE_NAME
+    - docker push $MASTER_BUILD_IMAGE_NAME
+  only:
+    refs:
+      - master
+  needs:
+    - build-ci-image
+
+assfire-router:
+  trigger:
+    include: ci/gitlab/apps/assfire-router.yml
