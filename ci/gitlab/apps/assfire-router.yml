@@ -7,8 +7,6 @@ stages:
   - build_helm_charts
   - deploy_release
 
----
-#BUILD
 build-assfire-router:
   stage: build_project
   image: $BUILD_IMAGE_NAME
@@ -23,8 +21,6 @@ build-assfire-router:
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION -DASSFIRE_DEBUG_MODE=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DASSFIRE_BUNDLE_INSTALL_MODE=True -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True ../
     - make install
 
----
-#BUILD TOOLS
 build-tools-assfire-router-maptest:
   image: $BUILD_IMAGE_NAME
   stage: build_tools
@@ -38,8 +34,6 @@ build-tools-assfire-router-maptest:
   needs:
     - build-assfire-router
 
----
-#TEST
 test-unit-assfire-router:
   image: $BUILD_IMAGE_NAME
   stage: test
@@ -77,8 +71,6 @@ test-int-assfire-router-cache:
   needs:
     - build-assfire-router
 
----
-#BUILD DOCKER IMAGES
 build-docker-assfire-router-server:
   image: docker:stable
   services:
@@ -150,8 +142,6 @@ publish-docker-assfire-router-maptest:
   needs:
     - build-docker-assfire-router-maptest
 
----
-#BUILD HELM CHARTS
 build-helm-chart-assfire-router:
   image: $BUILD_IMAGE_NAME
   variables:
@@ -171,8 +161,6 @@ build-helm-chart-assfire-router:
     - build-docker-assfire-router-server
     - build-docker-assfire-router-maptest
 
----
-#DEPLOY RELEASE
 deploy-release-assfire-router:
   only:
     - tags
