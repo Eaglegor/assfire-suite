@@ -1,6 +1,6 @@
 stages:
-  - build CI image
-  - publish master CI image
+  - build ci image
+  - publish master ci image
   - build applications
 
 variables:
@@ -14,7 +14,7 @@ build-ci-image:
   image: docker:stable
   services:
     - docker:dind
-  stage: build CI image
+  stage: build ci image
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cd ci
@@ -26,7 +26,7 @@ publish-master-ci-image:
   image: docker:stable
   services:
     - docker:dind
-  stage: publish master CI image
+  stage: publish master ci image
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $BUILD_IMAGE_NAME
@@ -38,8 +38,5 @@ publish-master-ci-image:
   needs:
     - build-ci-image
 
-assfire-router:
-  stage: build applications
-  trigger:
-    include: ci/gitlab/apps/assfire-router.yml
-    strategy: depend
+include:
+  - ci/gitlab/apps.yml
