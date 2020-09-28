@@ -1,5 +1,5 @@
 assfire-router:
   stage: build applications
   trigger:
-    include: apps/assfire-router.yml
+    include: ci/gitlab/apps/assfire-router.yml
     strategy: depend
