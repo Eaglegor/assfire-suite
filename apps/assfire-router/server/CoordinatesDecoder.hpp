@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cmath>
 
-#include <assfire/routing/v1/routing.pb.h>
+#include "assfire/routing/v1/routing.pb.h"
 
 namespace assfire {
     class CoordinatesDecoder

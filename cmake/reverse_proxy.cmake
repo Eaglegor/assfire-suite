@@ -1,10 +1,11 @@
 function(GenerateGrpcReverseProxy)
     set(_options "")
-    set(_singleargs TARGET SERVICE_DEFINITION PROTO_DEFINITION GO_ENTRY_POINT GO_MOD GO_MODULE_ROOT INSTALL_PREFIX)
+    set(_singleargs OUTPUT_DIR TARGET_NAME SERVICE_DEFINITION PROTO_DEFINITION GO_ENTRY_POINT GO_MOD GO_MODULE_ROOT INSTALL_PREFIX)
     set(_multi_args "")
     cmake_parse_arguments(GenerateGrpcReverseProxy "${_options}" "${_singleargs}" "${_multi_args}" "${ARGN}")
 
-    set(_TARGET ${GenerateGrpcReverseProxy_TARGET})
+    set(_OUTPUT_DIR ${GenerateGrpcReverseProxy_OUTPUT_DIR})
+    set(_TARGET_NAME ${GenerateGrpcReverseProxy_TARGET_NAME})
     set(_PROTO_DEFINITION ${GenerateGrpcReverseProxy_PROTO_DEFINITION})
     set(_SERVICE_DEFINITION ${GenerateGrpcReverseProxy_SERVICE_DEFINITION})
     set(_GO_ENTRY_POINT ${GenerateGrpcReverseProxy_GO_ENTRY_POINT})
@@ -13,7 +14,7 @@ function(GenerateGrpcReverseProxy)
     set(_INSTALL_PREFIX ${GenerateGrpcReverseProxy_INSTALL_PREFIX})
 
     message(STATUS "[gRPC gateway] Generating rules for gRPC reverse proxy generation")
-    message(STATUS "[gRPC gateway] Target: ${_TARGET}")
+    message(STATUS "[gRPC gateway] Target name: ${_TARGET_NAME}")
     message(STATUS "[gRPC gateway] Proto definition: ${_PROTO_DEFINITION}")
     message(STATUS "[gRPC gateway] Service definition: ${_SERVICE_DEFINITION}")
     message(STATUS "[gRPC gateway] Go entrypoint implementation: ${_GO_ENTRY_POINT}")
@@ -39,7 +40,7 @@ function(GenerateGrpcReverseProxy)
             COMMAND protobuf::protoc
             ARGS
             -I .
-            --go_out ${CMAKE_CURRENT_BINARY_DIR}
+            --go_out ${_OUTPUT_DIR}
             --go_opt paths=source_relative
             --go_opt plugins=grpc
             ${_PROTO_DEFINITION}
@@ -53,7 +54,7 @@ function(GenerateGrpcReverseProxy)
             COMMAND protobuf::protoc
             ARGS
                 -I .
-                --grpc-gateway_out ${CMAKE_CURRENT_BINARY_DIR}
+                --grpc-gateway_out ${_OUTPUT_DIR}
                 --grpc-gateway_opt logtostderr=true
                 --grpc-gateway_opt paths=source_relative
                 --grpc-gateway_opt grpc_api_configuration=${_SERVICE_DEFINITION}
@@ -68,7 +69,7 @@ function(GenerateGrpcReverseProxy)
             COMMAND protobuf::protoc
             ARGS
             -I .
-            --swagger_out ${CMAKE_CURRENT_BINARY_DIR}
+            --swagger_out ${_OUTPUT_DIR}
             --swagger_opt logtostderr=true
             --swagger_opt grpc_api_configuration=${_SERVICE_DEFINITION}
             ${_PROTO_DEFINITION}
@@ -83,12 +84,12 @@ function(GenerateGrpcReverseProxy)
     configure_file(${_GO_MOD} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_MOD_NAME} COPYONLY)
 
     if(WIN32)
-        set(_GO_OUTPUT_NAME ${_TARGET}-reverse-proxy.exe)
+        set(_GO_OUTPUT_NAME ${_TARGET_NAME}.exe)
     else()
-        set(_GO_OUTPUT_NAME ${_TARGET}-reverse-proxy)
+        set(_GO_OUTPUT_NAME ${_TARGET_NAME})
     endif()
 
-    add_custom_target(${_TARGET}-reverse-proxy-internal ALL
+    add_custom_target(${_TARGET_NAME} ALL
             COMMAND go build -o ${_GO_OUTPUT_NAME}
             WORKING_DIRECTORY ${_GO_MODULE_ROOT}
             DEPENDS ${_FULL_OUTPUT_FILENAME} ${_FULL_SWAGGER_OUTPUT_FILENAME} ${_FULL_GO_OUTPUT_FILENAME})
