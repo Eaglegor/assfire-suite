@@ -29,7 +29,7 @@ if (${PROJECT_PREFIX}_GENERATE_GRPC_REVERSE_PROXIES)
     GenerateGrpcReverseProxy(
             OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/go
             TARGET_NAME ${${PROJECT_PREFIX}_ROUTER_REVERSE_PROXY_NAME}
-            COMPONENT_NAME ${${PROJECT_PREFIX}_ROUTER_REVERSE_PROXY_SHORT_NAME}
+            COMPONENT_NAME ${${PROJECT_PREFIX}_ROUTER_SHORT_REVERSE_PROXY_NAME}
             SERVICE_DEFINITION assfire/routing/v1/routing.yaml
             PROTO_DEFINITION assfire/routing/v1/routing.proto
             GO_ENTRY_POINT assfire/routing/v1/routing.go

@@ -1,6 +1,11 @@
 FROM amd64/alpine:3.12.0
 
-COPY . /opt/assfire-router/
-RUN apk add --no-cache bash libstdc++
+RUN apk add --no-cache bash libstdc++ rpm
 
-ENTRYPOINT /opt/assfire-router/bin/assfire-router
+COPY assfire-$CI_COMMIT_REF_NAME-Linux-router.rpm /root/
+RUN rpm -i --nodeps assfire-$CI_COMMIT_REF_NAME-Linux-router.rpm
+
+COPY assfire-$CI_COMMIT_REF_NAME-Linux-router-reverse-proxy.rpm /root/
+RUN rpm -i --nodeps assfire-$CI_COMMIT_REF_NAME-Linux-router-reverse-proxy.rpm
+
+ENTRYPOINT assfire-router
