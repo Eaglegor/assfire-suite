@@ -12,7 +12,7 @@ variables:
     -DASSFIRE_DEBUG_MODE=OFF
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_PREFIX=$CI_PROJECT_DIR/out/install
-    -DASSFIRE_BUNDLE_INSTALL_MODE=True
+    -DASSFIRE_BUNDLE_INSTALL_MODE=ON
     -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True
     -DASSFIRE_APPS_BUILD_ALL=OFF
     -DASSFIRE_APPS_BUILD_ASSFIRE_ROUTER=ON
@@ -35,8 +35,7 @@ build:
     expire_in: 1 hour
   script:
     - cd out
-    - cmake --build . --target install
-    - cmake --build . --target package
+    - make package -j
 
 build-maptest:
   image: $BUILD_IMAGE_NAME
