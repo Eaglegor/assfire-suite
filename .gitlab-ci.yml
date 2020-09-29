@@ -39,4 +39,4 @@ publish-master-ci-image:
     - build-ci-image
 
 include:
-  - ci/gitlab/apps.yml
+  - apps.yml
