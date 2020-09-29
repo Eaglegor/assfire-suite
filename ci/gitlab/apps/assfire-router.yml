@@ -61,8 +61,8 @@ test-unit:
 .install-router
   before_script:
     - cd out
-    - rpm -i --nodeps assfire-${CI_COMMIT_REF_NAME}-Linux-router.rpm
-    - rpm -i --nodeps assfire-${CI_COMMIT_REF_NAME}-Linux-router-reverse-proxy.rpm
+    - rpm -i --nodeps assfire-${APPLICATION_VERSION}-Linux-router.rpm
+    - rpm -i --nodeps assfire-${APPLICATION_VERSION}-Linux-router-reverse-proxy.rpm
 
 test-int:
   image: $BUILD_IMAGE_NAME
