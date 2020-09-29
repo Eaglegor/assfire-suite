@@ -44,4 +44,9 @@ if (ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS)
     install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/install_deps.cmake)
 endif ()
 
+if(ASSFIRE_PACKAGE_BUILD_RPM)
+	cpack_add_component(${ASSFIRE_ROUTER_APP_NAME}
+			DISPLAY_NAME "Assfire Router")
+endif()
+
 add_subdirectory(tests)
