@@ -58,7 +58,7 @@ test-unit:
   needs:
     - build
 
-.install-router
+.install-router:
   before_script:
     - cd out
     - rpm -i --nodeps assfire-${APPLICATION_VERSION}-Linux-router.rpm
