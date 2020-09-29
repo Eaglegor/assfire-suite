@@ -1,5 +1,7 @@
 FROM amd64/alpine:3.12.0
 
+ARG APPLICATION_VERSION
+
 RUN apk add --no-cache bash libstdc++ rpm
 
 COPY ./assfire-${APPLICATION_VERSION}-Linux-router.rpm /root/
