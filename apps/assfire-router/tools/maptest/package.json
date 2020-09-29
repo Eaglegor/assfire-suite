@@ -1,6 +1,6 @@
 {
   "name": "maptest",
-  "version": "0.1.0",
+  "version": "@ASSFIRE_APPLICATION_RELEASE_VERSION_SEMVER_ENFORCED@",
   "private": true,
   "homepage": "./",
   "dependencies": {
