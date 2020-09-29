@@ -1,0 +1,207 @@
+stages:
+  - build
+  - test
+  - build docker images
+  - publish docker images
+  - build helm charts
+  - deploy release
+
+variables:
+  CMAKE_OPTIONS: |
+    -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
+    -DASSFIRE_DEBUG_MODE=OFF
+    -DCMAKE_BUILD_TYPE=Release
+    -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=True
+    -DASSFIRE_APPS_BUILD_ALL=OFF
+    -DASSFIRE_APPS_BUILD_ASSFIRE_ROUTER=ON
+    -DASSFIRE_PACKAGE_BUILD_RPM=ON
+
+.configure:
+  before_script:
+    - mkdir out
+    - cd out
+    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
+    - cd ..
+
+build:
+  extends: .configure
+  stage: build
+  image: $BUILD_IMAGE_NAME
+  artifacts:
+    paths:
+      - out/*
+    expire_in: 1 hour
+  script:
+    - cd out
+    - make install package -j
+
+build-maptest:
+  image: $BUILD_IMAGE_NAME
+  stage: build
+  extends: .configure
+  artifacts:
+    paths:
+      - apps/assfire-router/tools/maptest/build/*
+  script:
+    - cd apps/assfire-router/tools/maptest
+    - npm install
+    - npm run build
+
+test-unit:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out
+    - ctest -R unit-routing-server
+  dependencies:
+    - build
+  needs:
+    - build
+
+.install-router:
+  before_script:
+    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-router.rpm
+    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-router-reverse-proxy.rpm
+
+test-int:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  extends: .install-router
+  script:
+    - cd out
+    - assfire-router --bind-address=0.0.0.0:50051 &
+    - ctest -R integration-routes-provider-client-server
+  dependencies:
+    - build
+  needs:
+    - build
+
+test-int-cache:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  extends: .install-router
+  services:
+    - redis:6.0.5
+  script:
+    - cd out
+    - assfire-router --bind-address=0.0.0.0:50051 --redis-cache-enabled --redis-host redis &
+    - ctest -R integration-routes-provider-redis-cache
+  dependencies:
+    - build
+  needs:
+    - build
+
+build-docker-server:
+  image: docker:stable
+  services:
+    - docker:dind
+  variables:
+    IMAGE_TAG_NAME: latest
+  stage: build docker images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build out --build-arg APPLICATION_VERSION=${APPLICATION_VERSION} -f apps/assfire-router/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
+  dependencies:
+    - build
+  needs:
+    - build
+    - test-unit
+    - test-int
+    - test-int-cache
+
+publish-docker-server:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: publish docker images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
+    - docker tag $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME $CI_REGISTRY/assfire/assfire-suite/assfire-router:$APPLICATION_VERSION
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$APPLICATION_VERSION
+  only:
+    refs:
+      - tags
+  needs:
+    - build-docker-server
+
+build-docker-maptest:
+  image: docker:stable
+  services:
+    - docker:dind
+  variables:
+    IMAGE_TAG_NAME: latest
+  stage: build docker images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cd apps/assfire-router/tools/maptest
+    - docker build . -t $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
+  dependencies:
+    - build-maptest
+  needs:
+    - build-maptest
+    - test-unit
+    - test-int
+    - test-int-cache
+
+publish-docker-maptest:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: publish docker images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
+    - docker tag $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$APPLICATION_VERSION
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$APPLICATION_VERSION
+  only:
+    refs:
+      - tags
+  needs:
+    - build-docker-maptest
+
+build-helm-chart:
+  image: $BUILD_IMAGE_NAME
+  variables:
+    HELM_EXPERIMENTAL_OCI: 1
+  stage: build helm charts
+  only:
+    - tags
+  script:
+    - cd out/apps/assfire-router/helm/helm_charts/assfire-router/
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart save . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
+    - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
+  dependencies:
+    - build
+  needs:
+    - build
+    - build-docker-server
+    - build-docker-maptest
+
+deploy-release:
+  only:
+    - tags
+  when: manual
+  variables:
+    HELM_EXPERIMENTAL_OCI: 1
+  tags:
+    - assfire-deployment-node
+  stage:
+    deploy release
+  script:
+    - echo "Deploying Assfire Router"
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart pull $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
+    - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:$APPLICATION_VERSION
+    - helm upgrade -i assfire-router -n assfire ./assfire-router
+  dependencies:
+    - publish-docker-server
+    - publish-docker-maptest
+    - build-helm-chart
+  needs:
+    - publish-docker-server
+    - publish-docker-maptest
+    - build-helm-chart

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: assfire
+  name: assfire-router
+  labels:
+    assfire_app: assfire-router-server
+spec:
+  replicas: {{.Values.assfire_router_replicas}}
+  selector:
+    matchLabels:
+      assfire_app: assfire-router-server
+  template:
+    metadata:
+      labels:
+        assfire_app: assfire-router-server
+    spec:
+      nodeSelector:
+        assfire_role: calculation-node
+      containers:
+        - name: assfire-router-server
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 50051
+            - containerPort: 8081
+          command: ["assfire-router"]
+          args: ["--redis-cache-enabled=true", "--redis-host=assfire-geocache-redis-master.redis.svc.cluster.local", "--metrics-enabled=true", "--log-level=debug"]
+        - name: assfire-router-server-reverse-proxy
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 8082
+          command: [ "assfire-router-reverse-proxy" ]
+        - name: assfire-router-server-maptest
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-maptest:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 8083
+      imagePullSecrets:
+        - name: assfire-registry-key
