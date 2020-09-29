@@ -41,9 +41,11 @@ build-maptest:
   extends: .configure
   artifacts:
     paths:
-      - apps/assfire-router/tools/maptest/build/*
+      - out/apps/assfire-router/tools/react/maptest/build/*
+      - out/apps/assfire-router/tools/react/maptest/Dockerfile
+      - out/apps/assfire-router/tools/react/maptest/nginx.conf
   script:
-    - cd apps/assfire-router/tools/maptest
+    - cd out/apps/assfire-router/tools/react/maptest
     - npm install
     - npm run build
 
@@ -91,6 +93,13 @@ test-int-cache:
   needs:
     - build
 
+lint-helm-chart:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out/apps/assfire-router/helm/helm_charts/assfire-router/
+    - helm lint .
+
 build-docker-server:
   image: docker:stable
   services:
@@ -135,7 +144,7 @@ build-docker-maptest:
   stage: build docker images
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - cd apps/assfire-router/tools/maptest
+    - cd out/apps/assfire-router/tools/react/maptest
     - docker build . -t $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
     - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router-maptest:$TEMP_IMAGE_TAG_NAME
   dependencies:
