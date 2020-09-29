@@ -1,11 +1,11 @@
 list(APPEND ${PROJECT_PREFIX}_ROUTER_CLIENT_PUBLIC_HEADERS
 		assfire-router/client.hpp
 		assfire-router/DistanceMatrix.hpp
-		assfire-router/DistanceMatrixBackend.hpp
+		assfire-router/DistanceMatrixStrategy.hpp
 		assfire-router/Location.hpp
 		assfire-router/RouteInfo.hpp
 		assfire-router/RoutingClient.hpp
-		assfire-router/backends/DirectRequestBackend.hpp
+		assfire-router/strategies/DirectRequestStrategy.hpp
 		assfire-router/grpc_client/GrpcClient.hpp
 		assfire-router/settings/EuclideanSettings.hpp
 		assfire-router/settings/RandomSettings.hpp
@@ -14,7 +14,7 @@ list(APPEND ${PROJECT_PREFIX}_ROUTER_CLIENT_PUBLIC_HEADERS
 )
 
 add_library(${${PROJECT_PREFIX}_ROUTER_CLIENT_NAME}
-    "assfire-router/backends/DirectRequestBackend.cpp"
+    "assfire-router/strategies/DirectRequestStrategy.cpp"
     "assfire-router/grpc_client/GrpcClient.cpp"
     ${${PROJECT_PREFIX}_ROUTER_CLIENT_PUBLIC_HEADERS}
 )

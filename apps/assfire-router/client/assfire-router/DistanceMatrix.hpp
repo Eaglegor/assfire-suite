@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "DistanceMatrixBackend.hpp"
+#include "DistanceMatrixStrategy.hpp"
 #include "RouteInfo.hpp"
 
 namespace assfire
@@ -11,8 +11,8 @@ namespace assfire
 	class DistanceMatrix
 	{
 	public:
-		DistanceMatrix(std::unique_ptr<DistanceMatrixBackend>&& backend):
-			backend(std::forward<std::unique_ptr<DistanceMatrixBackend>>(backend))
+		DistanceMatrix(std::unique_ptr<DistanceMatrixStrategy>&& strategy):
+                strategy(std::forward<std::unique_ptr<DistanceMatrixStrategy>>(strategy))
 		{}
 
 		/**
@@ -25,7 +25,7 @@ namespace assfire
 		 */
 		RouteInfo getRoute(const Location& origin, const Location& destination) const
 		{
-			return backend->getRoute(origin, destination);
+			return strategy->getRoute(origin, destination);
 		}
 
 		/**
@@ -38,7 +38,7 @@ namespace assfire
 		 */
 		RouteInfo getRoute(long origin_id, const Location& destination) const
 		{
-			return backend->getRoute(origin_id, destination);
+			return strategy->getRoute(origin_id, destination);
 		}
 
 		/**
@@ -51,7 +51,7 @@ namespace assfire
 		 */
 		RouteInfo getRoute(const Location& origin, long destination_id) const
 		{
-			return backend->getRoute(origin, destination_id);
+			return strategy->getRoute(origin, destination_id);
 		}
 
 		/**
@@ -62,7 +62,7 @@ namespace assfire
 		 */
 		RouteInfo getRoute(long origin_id, long destination_id) const
 		{
-			return backend->getRoute(origin_id, destination_id);
+			return strategy->getRoute(origin_id, destination_id);
 		}
 
 		/**
@@ -76,10 +76,10 @@ namespace assfire
 		 */
 		long getId(const Location& location) const
 		{
-			return backend->getId(location);
+			return strategy->getId(location);
 		}
 
 	private:
-		std::unique_ptr<DistanceMatrixBackend> backend;
+		std::unique_ptr<DistanceMatrixStrategy> strategy;
 	};
 }
