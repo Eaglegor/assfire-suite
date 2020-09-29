@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{.Values.replicas}}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: map-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-map-pvc
+      nodeSelector:
+        osrm_role: worker
+        osrm_region: {{.Values.osrm_region}}
+      containers:
+        - name: osrm-backend
+          image: osrm/osrm-backend:{{.Chart.AppVersion}}
+          ports:
+            - containerPort: 5000
+          command: [ "osrm-routed" ]
+          args: [ "--algorithm", "mld", "/data/map.osrm" ]
+          volumeMounts:
+            - mountPath: "/data"
+              name: map-data
+      initContainers:
+        - name: osm-map-downloader
+          image: busybox:latest
+          command: [ "/bin/sh" ]
+          args:
+            - "-c"
+            - |
+              if test -f "/data/map.osrm"; then
+                echo "OSRM map file found"
+              else
+                wget {{.Values.map_url}} -O /data/map.osm.pbf
+              fi
+          volumeMounts:
+            - mountPath: "/data"
+              name: map-data
+        - name: osrm-map-extractor
+          image: osrm/osrm-backend:{{.Chart.AppVersion}}
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              if test -f "/data/map.osrm"; then
+                echo "OSRM map file found"
+              else
+                osrm-extract -p "{{.Values.profile}}" /data/map.osm.pbf
+                osrm-partition /data/map.osrm
+                osrm-customize /data/map.osrm
+              fi
+          volumeMounts:
+            - mountPath: "/data"
+              name: map-data

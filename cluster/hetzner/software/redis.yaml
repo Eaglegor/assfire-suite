@@ -1,0 +1,44 @@
+- name: Ensure redis namespaces are present
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  tasks:
+    - name: Create redis namespace
+      community.kubernetes.k8s:
+        name: redis
+        api_version: v1
+        kind: Namespace
+        state: present
+
+- name: Ensure Redis nodes are labeled properly
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Add redis_role=master label to redis master nodes
+      shell: kubectl label nodes {{item}} redis_role=master --overwrite
+      with_items: "{{ groups['redis_masters'] }}"
+    - name: Add redis_role=slave label to redis slave nodes
+      shell: kubectl label nodes {{item}} redis_role=slave --overwrite
+      with_items: "{{ groups['redis_slaves'] }}"
+
+- name: Ensure redis is deployed
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  tasks:
+    - name: Ensure redis installation exists
+      community.kubernetes.helm:
+        chart_ref: redis
+        chart_version: 10.7.16
+        chart_repo_url: "https://charts.bitnami.com/bitnami"
+        release_name: assfire-geocache
+        release_state: present
+        release_namespace: redis
+        release_values:
+          usePassword: false
+          master:
+            nodeSelector: { "redis_role": "master" }
+          slave:
+            nodeSelector: { "redis_role": "slave" }

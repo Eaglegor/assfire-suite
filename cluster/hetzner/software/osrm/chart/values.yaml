@@ -1,0 +1,6 @@
+map_url: https://download.geofabrik.de/russia/crimean-fed-district-latest.osm.pbf
+osrm_region: crimean
+profile: /opt/car.lua
+storage_claim: 10Gi
+service_port: 5000
+storage_class_name: hcloud-volumes

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: osrm
+      protocol: TCP
+      port: {{.Values.service_port}}
+      targetPort: 5000

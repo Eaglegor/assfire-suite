@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-map-pvc
+  labels:
+    app:  {{ .Release.Name }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{.Values.storage_claim}}
+  storageClassName: {{.Values.storage_class_name}}
