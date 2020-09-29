@@ -1,12 +1,7 @@
 stages:
-  - build_ci_image
-  - build_project
-  - build_tools
-  - test
-  - build_docker_images
-  - publish_docker_images
-  - build_helm_charts
-  - deploy_release
+  - build ci image
+  - publish master ci image
+  - build applications
 
 variables:
   MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
@@ -15,10 +10,33 @@ variables:
   DOCKER_BUILDKIT: 1
   APPLICATION_VERSION: $CI_COMMIT_REF_NAME
 
-include: 
-- gitlab_templates/10-build-ci-image.yml
-- gitlab_templates/20-build-project.yml
-- gitlab_templates/30-run-tests.yml
-- gitlab_templates/40-build-docker-images.yml
-- gitlab_templates/50-build-helm-charts.yml
-- gitlab_templates/60-deploy-release.yml
+build-ci-image:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: build ci image
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cd ci
+    - docker build . -t $BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker push $BUILD_IMAGE_NAME
+  needs: []
+
+publish-master-ci-image:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: publish master ci image
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $BUILD_IMAGE_NAME
+    - docker tag $BUILD_IMAGE_NAME $MASTER_BUILD_IMAGE_NAME
+    - docker push $MASTER_BUILD_IMAGE_NAME
+  only:
+    refs:
+      - master
+  needs:
+    - build-ci-image
+
+include:
+  - apps.yml
