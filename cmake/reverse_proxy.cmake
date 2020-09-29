@@ -1,11 +1,12 @@
 function(GenerateGrpcReverseProxy)
     set(_options "")
-    set(_singleargs OUTPUT_DIR TARGET_NAME SERVICE_DEFINITION PROTO_DEFINITION GO_ENTRY_POINT GO_MOD GO_MODULE_ROOT INSTALL_PREFIX)
+    set(_singleargs OUTPUT_DIR TARGET_NAME COMPONENT_NAME SERVICE_DEFINITION PROTO_DEFINITION GO_ENTRY_POINT GO_MOD GO_MODULE_ROOT INSTALL_PREFIX)
     set(_multi_args "")
     cmake_parse_arguments(GenerateGrpcReverseProxy "${_options}" "${_singleargs}" "${_multi_args}" "${ARGN}")
 
     set(_OUTPUT_DIR ${GenerateGrpcReverseProxy_OUTPUT_DIR})
     set(_TARGET_NAME ${GenerateGrpcReverseProxy_TARGET_NAME})
+    set(_COMPONENT_NAME ${GenerateGrpcReverseProxy_COMPONENT_NAME})
     set(_PROTO_DEFINITION ${GenerateGrpcReverseProxy_PROTO_DEFINITION})
     set(_SERVICE_DEFINITION ${GenerateGrpcReverseProxy_SERVICE_DEFINITION})
     set(_GO_ENTRY_POINT ${GenerateGrpcReverseProxy_GO_ENTRY_POINT})
@@ -93,5 +94,5 @@ function(GenerateGrpcReverseProxy)
             COMMAND go build -o ${_GO_OUTPUT_NAME}
             WORKING_DIRECTORY ${_GO_MODULE_ROOT}
             DEPENDS ${_FULL_OUTPUT_FILENAME} ${_FULL_SWAGGER_OUTPUT_FILENAME} ${_FULL_GO_OUTPUT_FILENAME})
-    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_OUTPUT_NAME} COMPONENT ${ASSFIRE_ROUTER_CLIENT_NAME} DESTINATION ${_INSTALL_PREFIX})
+    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_OUTPUT_NAME} COMPONENT ${_COMPONENT_NAME} DESTINATION ${_INSTALL_PREFIX})
 endfunction()
