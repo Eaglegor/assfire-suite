@@ -52,7 +52,8 @@ int main(int argc, char** argv)
 		("metrics-enabled", "Prometheus metrics enabled", cxxopts::value<bool>()->default_value("false"))
 		("metrics-exposer-bind-address", "Prometheus exposer binding address", cxxopts::value<std::string>()->default_value("0.0.0.0:8081"))
 		("metrics-exposer-uri", "Prometheus exposer URI", cxxopts::value<std::string>()->default_value("/metrics"))
-		("metrics-exposer-threads-count", "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"));
+		("metrics-exposer-threads-count", "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"))
+        ("osrm-endpoint", "OSRM server host (where /route starts from)", cxxopts::value<std::string>()->default_value("http://router.project-osrm.org"));
 
 	auto result = options.parse(argc, argv);
 
@@ -75,6 +76,8 @@ int main(int argc, char** argv)
 	std::string metrics_exposer_uri = result["metrics-exposer-uri"].as<std::string>();
 	std::size_t metrics_exposer_threads_count = result["metrics-exposer-threads-count"].as<std::size_t>();
 
+	std::string osrm_endpoint = result["osrm-endpoint"].as<std::string>();
+
 	SPDLOG_INFO("Creating routing service with options: \n\
 				bind-address={}, \n\
 				redis-cache-enabled={}, \n\
@@ -83,7 +86,8 @@ int main(int argc, char** argv)
 				metrics-enabled={}, \n\
 				metrics-exposer-bind-address={} \n\
 				metrics-exposer-uri={} \n\
-				metrics-exposer-threads-count={}",
+				metrics-exposer-threads-count={} \n\
+	            osrm-endpoint={}",
 		bind_address,
 		enable_redis_cache, 
 		redis_host, 
@@ -91,7 +95,8 @@ int main(int argc, char** argv)
 		metrics_enabled,
 		metrics_exposer_bind_address,
 		metrics_exposer_uri,
-		metrics_exposer_threads_count);
+		metrics_exposer_threads_count,
+		osrm_endpoint);
 
 	assfire::RoutingService service(enable_redis_cache, redis_host, redis_port, 
 		metrics_enabled ? 
@@ -99,7 +104,8 @@ int main(int argc, char** argv)
 			metrics_exposer_bind_address, 
 			metrics_exposer_uri, 
 			metrics_exposer_threads_count)) 
-		: RoutingMetricsCollector()
+		: RoutingMetricsCollector(),
+		osrm_endpoint
 	);
 
 	ServerBuilder serverBuilder;

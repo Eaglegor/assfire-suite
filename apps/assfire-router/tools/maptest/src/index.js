@@ -61,10 +61,10 @@ class RequestControls extends Component {
 
     buildRequest(state) {
         return state.endpoint + "?" + new URLSearchParams({
-            "from.latitude": state.from_latitude,
-            "from.longitude": state.from_longitude,
-            "to.latitude": state.to_latitude,
-            "to.longitude": state.to_longitude,
+            "origin.lat": state.from_latitude,
+            "origin.lon": state.from_longitude,
+            "destination.lat": state.to_latitude,
+            "destination.to": state.to_longitude,
             "options.velocity": state.velocity,
             "options.coordinates_format.precision": state.coordinates_format_precision,
             "options.routing_type": state.routing_type,
@@ -133,13 +133,13 @@ class AssfireRouterTestUI extends Component {
         waypoints: []
     };
 
-    convertCoodinate(coord, request) {
+    convertCoordinate(coord, request) {
         return coord / 1e6;
     }
 
     parseWaypoints(waypoints, request) {
         if(waypoints == null) return [];
-        return waypoints.map((wp) => [this.convertCoodinate(wp.latitude, request), this.convertCoodinate(wp.longitude, request)])
+        return waypoints.map((wp) => [this.convertCoordinate(wp.latitude, request), this.convertCoordinate(wp.longitude, request)])
     }
 
     sendRequest(requestString, request) {

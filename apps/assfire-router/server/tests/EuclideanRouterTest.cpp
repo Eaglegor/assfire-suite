@@ -10,11 +10,11 @@ TEST_CASE("Euclidean router - get single route")
 
 	GetSingleRouteRequest request;
 
-	request.mutable_from()->set_latitude(0);
-	request.mutable_from()->set_longitude(0);
+	request.mutable_origin()->set_lat(0);
+	request.mutable_destination()->set_lon(0);
 
-	request.mutable_to()->set_latitude(100);
-	request.mutable_to()->set_longitude(100);
+	request.mutable_origin()->set_lat(100);
+	request.mutable_destination()->set_lon(100);
 
 	request.mutable_options()->set_routing_type(routing::proto::v1::RoutingOptions::EUCLIDEAN);
 	request.mutable_options()->set_velocity(16.6);
@@ -36,16 +36,16 @@ TEST_CASE("Euclidean router - get routes batch")
 	GetRoutesBatchRequest request;
 
 	Location* loc0 = request.add_origins();
-	loc0->set_latitude(0);
-	loc0->set_longitude(0);
+	loc0->set_lat(0);
+	loc0->set_lon(0);
 
 	Location* loc1 = request.add_origins();
-	loc1->set_latitude(100);
-	loc1->set_longitude(100);
+	loc1->set_lat(100);
+	loc1->set_lon(100);
 
 	Location* loc2 = request.add_origins();
-	loc2->set_latitude(-100);
-	loc2->set_longitude(-100);
+	loc2->set_lat(-100);
+	loc2->set_lon(-100);
 
 	request.add_destinations()->CopyFrom(*loc1);
 	request.add_destinations()->CopyFrom(*loc2);
@@ -87,7 +87,7 @@ TEST_CASE("Euclidean router - get routes batch")
 	auto getOriginId = [&](const Location& loc)	{
 		for (int i = 0; i < request.origins().size(); ++i) {
 			const Location& l = request.origins(i);
-			if (l.latitude() == loc.latitude() && l.longitude() == loc.longitude()) return i;
+			if (l.lat() == loc.lat() && l.lon() == loc.lon()) return i;
 		}
 		REQUIRE(false);
 	};
@@ -95,7 +95,7 @@ TEST_CASE("Euclidean router - get routes batch")
 	auto getDestinationId = [&](const Location& loc) {
 		for (int i = 0; i < request.destinations().size(); ++i) {
 			const Location& l = request.destinations(i);
-			if (l.latitude() == loc.latitude() && l.longitude() == loc.longitude()) return i;
+			if (l.lat() == loc.lat() && l.lon() == loc.lon()) return i;
 		}
 		REQUIRE(false);
 	};

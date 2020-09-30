@@ -43,3 +43,5 @@ RUN apk add --no-cache openssl
 RUN curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
 RUN apk add --no-cache rpm
+
+RUN /opt/vcpkg/vcpkg install cpprestsdk --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees

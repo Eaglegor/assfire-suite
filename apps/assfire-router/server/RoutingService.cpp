@@ -8,12 +8,13 @@ using namespace assfire;
 using namespace assfire::routing::proto::v1;
 
 RoutingService::RoutingService(bool use_redis, const std::string &redis_host, std::size_t redis_port,
-                               const RoutingMetricsCollector &metrics_context) :
+                               const RoutingMetricsCollector &metrics_context, const std::string& osrm_endpoint) :
         metrics_context(metrics_context),
         request_id_counter(0),
         euclidean_router(metrics_context),
         random_router(metrics_context),
-        crowflight_router(metrics_context)
+        crowflight_router(metrics_context),
+        osrm_router(osrm_endpoint, metrics_context)
 {
     if (use_redis) {
         SPDLOG_INFO("Creating redis proxy...");
@@ -122,6 +123,9 @@ const Router &assfire::RoutingService::selectRouter(const RoutingOptions &option
         case RoutingOptions::CROWFLIGHT:
             SPDLOG_DEBUG("Selecting crowflight router for request {}", request_id);
             return crowflight_router;
+        case RoutingOptions::OSRM:
+            SPDLOG_DEBUG("Selecting OSRM router for request {}", request_id);
+            return osrm_router;
         default:
             SPDLOG_ERROR("Supported router not found for request {}", request_id);
             throw std::invalid_argument("Requested router is unsupported");
