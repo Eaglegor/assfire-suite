@@ -29,6 +29,7 @@ message RoutingOptions {
     enum Geometry {
       SIMPLIFIED = 0;
       FULL = 1;
+      STRAIGHT_LINE = 2;
     }
 
     Geometry geometry = 1;
