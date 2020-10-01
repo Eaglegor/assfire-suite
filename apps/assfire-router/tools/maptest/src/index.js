@@ -104,6 +104,7 @@ class RequestControls extends Component {
                         <option>CROWFLIGHT</option>
                         <option>EUCLIDEAN</option>
                         <option>RANDOM</option>
+                        <option>OSRM</option>
                     </select>
                     <label>coordinates.format: </label>
                     <select name="coordinates_format" value={this.state.coordinates_format}
