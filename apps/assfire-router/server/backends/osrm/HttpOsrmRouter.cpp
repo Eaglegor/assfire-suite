@@ -15,6 +15,8 @@ using namespace web::http;
 using namespace web::http::client;
 
 namespace {
+#ifdef WIN32
+
     std::string convert(const utility::string_t &from)
     {
         return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().to_bytes(from);
@@ -24,6 +26,13 @@ namespace {
     {
         return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().from_bytes(from);
     }
+
+#else
+    std::string convert(const std::string& from)
+    {
+        return from;
+    }
+#endif
 }
 
 HttpOsrmRouter::HttpOsrmRouter(const std::string &osrm_endpoint, const RoutingMetricsCollector &metrics_context) :
