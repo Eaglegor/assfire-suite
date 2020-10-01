@@ -28,10 +28,10 @@ GetSingleRouteResponse RedisProxy::getRoute(GetSingleRouteRequest request, const
     metrics_context.routesCacheStopwatch(1, RoutingMetricsCollector::RequestMode::SINGLE);
     metrics_context.addRoutesCacheRequests(1, RoutingMetricsCollector::RequestMode::SINGLE);
     SPDLOG_DEBUG("[{}]: Requested route: ({},{})->({},{})", request_id,
-                 request.from().latitude(), request.from().longitude(),
-                 request.to().latitude(), request.to().longitude());
+                 request.origin().lat(), request.origin().lon(),
+                 request.destination().lat(), request.destination().lon());
 
-    std::string key = buildRouteKey(request.from(), request.to(), request.options());
+    std::string key = buildRouteKey(request.origin(), request.destination(), request.options());
     std::future<cpp_redis::reply> freply = redis_client->get(key);
     redis_client->sync_commit();
 
@@ -45,10 +45,15 @@ GetSingleRouteResponse RedisProxy::getRoute(GetSingleRouteRequest request, const
         if (!request.options().force_update()) {
             metrics_context.addRoutesCacheMisses(1);
             SPDLOG_DEBUG("[{}]: Route not found in cache: ({},{})->({},{}). Requesting backend service", request_id,
-                         request.from().latitude(), request.from().longitude(),
-                         request.to().latitude(), request.to().longitude());
+                         request.origin().lat(), request.origin().lon(),
+                         request.destination().lat(), request.destination().lon());
         }
-        route = backend.getRoute(request, request_id).route_info();
+        GetSingleRouteResponse routeResponse = backend.getRoute(request, request_id);
+        if(routeResponse.status().code() != ResponseStatus::OK) {
+            SPDLOG_ERROR("[{}]: Backend returned response with error: {}", routeResponse.status().message());
+            return routeResponse;
+        }
+        route = routeResponse.route_info();
         redis_client->set(key, route.SerializeAsString(), [request_id](const cpp_redis::reply &rpl) {
             if (rpl.is_error()) {
                 SPDLOG_ERROR("[{}]: Error while saving route to redis: {}", request_id, rpl.error());
@@ -57,15 +62,15 @@ GetSingleRouteResponse RedisProxy::getRoute(GetSingleRouteRequest request, const
         redis_client->commit();
 
         SPDLOG_DEBUG("[{}]: Putting route to the cache ({},{})->({},{}) = (dist: {}, time: {})", request_id,
-                     request.from().latitude(), request.from().longitude(),
-                     request.to().latitude(), request.to().longitude(),
+                     request.origin().lat(), request.origin().lon(),
+                     request.destination().lat(), request.destination().lon(),
                      route.distance(), route.duration());
     } else {
         metrics_context.addRoutesCacheHits(1);
         route.ParseFromString(reply.as_string());
         SPDLOG_DEBUG("[{}]: Route found in cache ({},{})->({},{}) = (dist: {}, time: {})", request_id,
-                     request.from().latitude(), request.from().longitude(),
-                     request.to().latitude(), request.to().longitude(),
+                     request.origin().lat(), request.origin().lon(),
+                     request.destination().lat(), request.destination().lon(),
                      route.distance(), route.duration());
     }
 
@@ -100,8 +105,8 @@ RedisProxy::calculateBatchUsingSingleRoutes(GetRoutesBatchRequest request, const
     for (const Location &origin : request.origins()) {
         for (const Location &destination : request.destinations()) {
             GetSingleRouteRequest single_request;
-            single_request.mutable_from()->CopyFrom(origin);
-            single_request.mutable_to()->CopyFrom(destination);
+            single_request.mutable_origin()->CopyFrom(origin);
+            single_request.mutable_destination()->CopyFrom(destination);
             single_request.mutable_options()->CopyFrom(request.options());
             response.add_route_infos()->CopyFrom(getRoute(single_request, backend, request_id));
         }

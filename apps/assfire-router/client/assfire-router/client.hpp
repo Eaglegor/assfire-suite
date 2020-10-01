@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RoutingClient.hpp"
-#include "backends/DirectRequestBackend.hpp"
+#include "strategies/DirectRequestStrategy.hpp"
 
 #include "settings/RouteRequestSettings.hpp"
 

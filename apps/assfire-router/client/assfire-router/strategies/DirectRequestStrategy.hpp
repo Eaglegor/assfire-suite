@@ -3,17 +3,17 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "../DistanceMatrixBackend.hpp"
+#include "../DistanceMatrixStrategy.hpp"
 #include "../settings/RouteRequestSettings.hpp"
 
 namespace assfire
 {
 	class GrpcClient;
 
-	class DirectRequestBackend : public DistanceMatrixBackend
+	class DirectRequestStrategy : public DistanceMatrixStrategy
 	{
 	public:
-		DirectRequestBackend(
+		DirectRequestStrategy(
 			const std::vector<Location>& locations,
 			const RouteRequestSettings& settings,
 			const std::string& backend_host,
@@ -21,7 +21,7 @@ namespace assfire
 			bool use_ssl = false
 		);
 
-		virtual ~DirectRequestBackend();
+		virtual ~DirectRequestStrategy();
 
 		virtual RouteInfo getRoute(const Location& origin, const Location& destination) const override;
 		virtual RouteInfo getRoute(long origin_id, const Location& destination) const override;

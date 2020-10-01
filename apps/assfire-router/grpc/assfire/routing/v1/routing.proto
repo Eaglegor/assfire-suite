@@ -4,69 +4,87 @@ package assfire.routing.proto.v1;
 option go_package = "assfire.org/routing/v1";
 
 message Location {
-	int32 latitude = 1;
-	int32 longitude = 2;
+  int32 lat = 1;
+  int32 lon = 2;
 }
 
 message CoordinateFormat {
-	enum CoordinateFormatType {
-		FIXED_POINT_INT = 0;
-	}
+  enum CoordinateFormatType {
+    FIXED_POINT_INT = 0;
+  }
 
-	CoordinateFormatType type = 1;
-	int32 precision = 2;
+  CoordinateFormatType type = 1;
+  int32 precision = 2;
 }
 
 message RoutingOptions {
-	enum RoutingType {
-		EUCLIDEAN = 0;
-		RANDOM = 1;
-		CROWFLIGHT = 2;
-	}
+  enum RoutingType {
+    EUCLIDEAN = 0;
+    RANDOM = 1;
+    CROWFLIGHT = 2;
+    OSRM = 3;
+  }
 
-	RoutingType routing_type = 1;
-	CoordinateFormat coordinates_format = 2;
-	double velocity = 3;
-	bool force_update = 4;
-	bool retrieve_waypoints = 5;
-}
+  message Osrm {
+    enum Geometry {
+      SIMPLIFIED = 0;
+      FULL = 1;
+      STRAIGHT_LINE = 2;
+    }
 
-message ManyToManyRoutesRequest {
-	repeated Location origins = 1;
-	repeated Location destinations = 2;
-	RoutingOptions options = 3;
+    Geometry geometry = 1;
+  }
+
+  RoutingType routing_type = 1;
+  CoordinateFormat coordinates_format = 2;
+  double velocity = 3;
+  bool force_update = 4;
+  bool retrieve_waypoints = 5;
+
+  Osrm osrm = 6;
 }
 
 message RouteInfo {
-	Location origin = 1;
-	Location destination = 2;
-	int32 duration = 3;
-	float distance = 4;
-	repeated Location waypoints = 5;
+  Location origin = 1;
+  Location destination = 2;
+  int32 duration = 3;
+  float distance = 4;
+  repeated Location waypoints = 5;
 }
 
 message GetSingleRouteRequest {
-	Location from = 1;
-	Location to = 2;
-	RoutingOptions options = 3;
+  Location origin = 1;
+  Location destination = 2;
+  RoutingOptions options = 3;
+}
+
+message ResponseStatus {
+  enum Code {
+    OK = 0;
+    ERROR = 1;
+  }
+  Code code = 1;
+  string message = 2;
 }
 
 message GetSingleRouteResponse {
-	RouteInfo route_info = 1;
+  RouteInfo route_info = 1;
+  ResponseStatus status = 2;
 }
 
 message GetRoutesBatchRequest {
-	repeated Location origins = 1;
-	repeated Location destinations = 2;
-	RoutingOptions options = 3;
+  repeated Location origins = 1;
+  repeated Location destinations = 2;
+  RoutingOptions options = 3;
 }
 
 message GetRoutesBatchResponse {
-	repeated RouteInfo route_infos = 1;
+  repeated RouteInfo route_infos = 1;
+  ResponseStatus status = 2;
 }
 
 service RoutesProvider {
-	rpc GetSingleRoute(GetSingleRouteRequest) returns (GetSingleRouteResponse){}
-	rpc GetRoutesBatch(GetRoutesBatchRequest) returns (stream GetRoutesBatchResponse) {}
-	rpc GetStreamingRoutesBatch(stream GetRoutesBatchRequest) returns (stream GetRoutesBatchResponse) {}
+  rpc GetSingleRoute(GetSingleRouteRequest) returns (GetSingleRouteResponse){}
+  rpc GetRoutesBatch(GetRoutesBatchRequest) returns (stream GetRoutesBatchResponse) {}
+  rpc GetStreamingRoutesBatch(stream GetRoutesBatchRequest) returns (stream GetRoutesBatchResponse) {}
 }
