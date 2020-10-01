@@ -7,4 +7,5 @@ configure_react_project(
             maptest/Dockerfile
             maptest/nginx.conf
             maptest/package.json
+            maptest/package-lock.json
 )

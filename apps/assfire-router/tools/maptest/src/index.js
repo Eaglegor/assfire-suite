@@ -149,7 +149,7 @@ class AssfireRouterTestUI extends Component {
 
     parseWaypoints(waypoints, request) {
         if (waypoints == null) return [];
-        return waypoints.map((wp) => [this.convertCoordinate(wp.latitude, request), this.convertCoordinate(wp.longitude, request)])
+        return waypoints.map((wp) => [this.convertCoordinate(wp.lat, request), this.convertCoordinate(wp.lon, request)])
     }
 
     sendRequest(requestString, request) {

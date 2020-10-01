@@ -24,6 +24,12 @@ target_include_directories(${ASSFIRE_ROUTER_PROTO_BINDING_NAME} PUBLIC ${CMAKE_C
 
 target_link_libraries(${ASSFIRE_ROUTER_PROTO_BINDING_NAME} PUBLIC gRPC::grpc++ protobuf::libprotobuf)
 
+if(ASSFIRE_DEBUG_MODE)
+    set(ASSFIRE_ROUTER_ALLOW_CORS_IN_REVERSE_PROXY true)
+else()
+    set(ASSFIRE_ROUTER_ALLOW_CORS_IN_REVERSE_PROXY false)
+endif()
+
 if (ASSFIRE_GENERATE_GRPC_REVERSE_PROXIES)
     include(reverse_proxy)
     GenerateGrpcReverseProxy(

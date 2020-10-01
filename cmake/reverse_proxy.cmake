@@ -82,7 +82,7 @@ function(GenerateGrpcReverseProxy)
 
     get_filename_component(_GO_ENTRY_POINT_NAME ${_GO_ENTRY_POINT} NAME)
     get_filename_component(_GO_MOD_NAME ${_GO_MOD} NAME)
-    configure_file(${_GO_ENTRY_POINT} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_ENTRY_POINT_NAME} COPYONLY)
+    configure_file(${_GO_ENTRY_POINT} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_ENTRY_POINT_NAME} @ONLY)
     configure_file(${_GO_MOD} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_MOD_NAME} COPYONLY)
 
     if(WIN32)

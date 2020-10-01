@@ -57,13 +57,13 @@ GetSingleRouteResponse HttpOsrmRouter::getRoute(GetSingleRouteRequest request, l
     double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinates_format());
 
     builder.append_path(
-            convert(std::to_string(from_lat)) +
-            U(",") +
             convert(std::to_string(from_lon)) +
-            U(";") +
-            convert(std::to_string(to_lat)) +
             U(",") +
-            convert(std::to_string(to_lon)));
+            convert(std::to_string(from_lat)) +
+            U(";") +
+            convert(std::to_string(to_lon)) +
+            U(",") +
+            convert(std::to_string(to_lat)));
 
     bool waypoints_expected = false;
     if (request.options().retrieve_waypoints()) {
@@ -112,8 +112,8 @@ GetSingleRouteResponse HttpOsrmRouter::getRoute(GetSingleRouteRequest request, l
                 if (response.at(U("routes")).at(0).has_field(U("geometry"))) {
                     for (const auto &g : response.at(U("routes")).at(0).at(U("geometry")).at(U("coordinates")).as_array()) {
                         Location *loc = result.mutable_route_info()->add_waypoints();
-                        loc->set_lat(CoordinatesEncoder::encode(g.at(0).as_double(), request.options().coordinates_format()));
-                        loc->set_lon(CoordinatesEncoder::encode(g.at(1).as_double(), request.options().coordinates_format()));
+                        loc->set_lat(CoordinatesEncoder::encode(g.at(1).as_double(), request.options().coordinates_format()));
+                        loc->set_lon(CoordinatesEncoder::encode(g.at(0).as_double(), request.options().coordinates_format()));
                     }
                 } else if (waypoints_expected) {
                     SPDLOG_WARN("[{}] Expected list of waypoints but no waypoins were found in OSRM response. Probably something could have been gone wrong", request_id);
@@ -122,15 +122,15 @@ GetSingleRouteResponse HttpOsrmRouter::getRoute(GetSingleRouteRequest request, l
                     result.mutable_route_info()->add_waypoints()->CopyFrom(request.destination());
                 }
 
+                result.mutable_route_info()->mutable_origin()->CopyFrom(request.origin());
+                result.mutable_route_info()->mutable_destination()->CopyFrom(request.destination());
+                result.mutable_status()->set_code(ResponseStatus::OK);
+
                 return result;
             });
 
     try {
-        auto result = task.get();
-        result.mutable_route_info()->mutable_origin()->CopyFrom(request.origin());
-        result.mutable_route_info()->mutable_destination()->CopyFrom(request.destination());
-        result.mutable_status()->set_code(ResponseStatus::OK);
-        return result;
+        return task.get();
     } catch (const std::exception &e) {
         SPDLOG_ERROR("[{}] Error occurred during route calculation: {}", request_id, e.what());
         GetSingleRouteResponse result;
