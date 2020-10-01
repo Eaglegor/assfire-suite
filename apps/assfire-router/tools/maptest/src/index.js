@@ -65,7 +65,7 @@ class RequestControls extends Component {
             "origin.lat": state.from_latitude,
             "origin.lon": state.from_longitude,
             "destination.lat": state.to_latitude,
-            "destination.to": state.to_longitude,
+            "destination.lon": state.to_longitude,
             "options.velocity": state.velocity,
             "options.coordinates_format.precision": state.coordinates_format_precision,
             "options.routing_type": state.routing_type,
