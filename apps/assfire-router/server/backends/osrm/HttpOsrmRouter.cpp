@@ -57,13 +57,13 @@ GetSingleRouteResponse HttpOsrmRouter::getRoute(GetSingleRouteRequest request, l
     double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinates_format());
 
     builder.append_path(
-            std::to_wstring(from_lat) +
+            convert(std::to_string(from_lat)) +
             U(",") +
-            std::to_wstring(from_lon) +
+            convert(std::to_string(from_lon)) +
             U(";") +
-            std::to_wstring(to_lat) +
+            convert(std::to_string(to_lat)) +
             U(",") +
-            std::to_wstring(to_lon));
+            convert(std::to_string(to_lon)));
 
     bool waypoints_expected = false;
     if (request.options().retrieve_waypoints()) {
