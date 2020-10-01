@@ -4,6 +4,7 @@
 #include <backends/random/RandomRouter.hpp>
 #include <backends/crowflight/CrowflightRouter.hpp>
 #include <backends/redis/RouterProxy.hpp>
+#include <backends/osrm/HttpOsrmRouter.hpp>
 #include "RoutingMetricsCollector.hpp"
 #include <memory>
 #include <atomic>
@@ -13,7 +14,7 @@ namespace assfire
 class RoutingService final : public assfire::routing::proto::v1::RoutesProvider::Service
 	{
 	public:
-		RoutingService(bool, const std::string&, std::size_t, const RoutingMetricsCollector&);
+		RoutingService(bool, const std::string&, std::size_t, const RoutingMetricsCollector&, const std::string&);
 
 		grpc::Status GetSingleRoute(grpc::ServerContext*, const routing::proto::v1::GetSingleRouteRequest*, routing::proto::v1::GetSingleRouteResponse*) override;
 		grpc::Status GetRoutesBatch(grpc::ServerContext*, const routing::proto::v1::GetRoutesBatchRequest*, grpc::ServerWriter<routing::proto::v1::GetRoutesBatchResponse>*) override;
@@ -29,5 +30,6 @@ class RoutingService final : public assfire::routing::proto::v1::RoutesProvider:
 		EuclideanRouter euclidean_router;
 		RandomRouter random_router;
 		CrowflightRouter crowflight_router;
+		HttpOsrmRouter osrm_router;
 	};
 }

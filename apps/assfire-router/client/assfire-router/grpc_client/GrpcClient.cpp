@@ -18,10 +18,10 @@ GrpcClient::GrpcClient(const std::string &host, int port, routing::proto::v1::Ro
 
 RouteInfo GrpcClient::getSingleRoute(const Location &origin, const Location &destination) const {
     routing::proto::v1::GetSingleRouteRequest request;
-    request.mutable_from()->set_latitude(origin.getLatitude());
-    request.mutable_from()->set_longitude(origin.getLongitude());
-    request.mutable_to()->set_latitude(destination.getLatitude());
-    request.mutable_to()->set_longitude(destination.getLongitude());
+    request.mutable_origin()->set_lat(origin.getLatitude());
+    request.mutable_origin()->set_lon(origin.getLongitude());
+    request.mutable_destination()->set_lat(destination.getLatitude());
+    request.mutable_destination()->set_lon(destination.getLongitude());
     request.mutable_options()->CopyFrom(routing_options);
 
     routing::proto::v1::RouteInfo reply = getSingleRoute(request);

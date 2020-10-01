@@ -5,10 +5,10 @@
 
 namespace assfire
 {
-	class DistanceMatrixBackend
+	class DistanceMatrixStrategy
 	{
 	public:
-		virtual ~DistanceMatrixBackend() {}
+		virtual ~DistanceMatrixStrategy() {}
 
 		virtual RouteInfo getRoute(const Location& origin, const Location& destination) const = 0;
 		virtual RouteInfo getRoute(long origin_id, const Location& destination) const = 0;

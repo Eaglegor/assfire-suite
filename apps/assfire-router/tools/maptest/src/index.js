@@ -56,21 +56,23 @@ class RequestControls extends Component {
         routing_type: "CROWFLIGHT",
         coordinates_format: "FIXED_POINT_INT",
         retrieve_waypoints: false,
-        force_update: false
+        force_update: false,
+        osrm_geometry: "STRAIGHT_LINE"
     }
 
     buildRequest(state) {
         return state.endpoint + "?" + new URLSearchParams({
-            "from.latitude": state.from_latitude,
-            "from.longitude": state.from_longitude,
-            "to.latitude": state.to_latitude,
-            "to.longitude": state.to_longitude,
+            "origin.lat": state.from_latitude,
+            "origin.lon": state.from_longitude,
+            "destination.lat": state.to_latitude,
+            "destination.lon": state.to_longitude,
             "options.velocity": state.velocity,
             "options.coordinates_format.precision": state.coordinates_format_precision,
             "options.routing_type": state.routing_type,
             "options.coordinates_format.type": state.coordinates_format,
             "options.retrieve_waypoints": state.retrieve_waypoints,
-            "options.force_update": state.force_update
+            "options.force_update": state.force_update,
+            "options.osrm.geometry": state.osrm_geometry
         }).toString();
     }
 
@@ -102,6 +104,7 @@ class RequestControls extends Component {
                         <option>CROWFLIGHT</option>
                         <option>EUCLIDEAN</option>
                         <option>RANDOM</option>
+                        <option>OSRM</option>
                     </select>
                     <label>coordinates.format: </label>
                     <select name="coordinates_format" value={this.state.coordinates_format}
@@ -114,6 +117,13 @@ class RequestControls extends Component {
                     <label>retrieve_waypoints: </label><input type="checkbox" name="retrieve_waypoints"
                                                               checked={this.state.retrieve_waypoints}
                                                               onChange={(event) => this.handleUpdate({retrieve_waypoints: !this.state.retrieve_waypoints})}/>
+                    <label>osrm_geometry: </label>
+                    <select name="osrm_geometry" value={this.state.osrm_geometry}
+                            onChange={(event) => this.handleUpdate({osrm_geometry: event.target.value})}>
+                        <option>STRAIGHT_LINE</option>
+                        <option>SIMPLIFIED</option>
+                        <option>FULL</option>
+                    </select>
                     <label>force_update: </label><input type="checkbox" name="force_update"
                                                         checked={this.state.force_update}
                                                         onChange={(event) => this.handleUpdate({force_update: !this.state.force_update})}/>
@@ -133,18 +143,18 @@ class AssfireRouterTestUI extends Component {
         waypoints: []
     };
 
-    convertCoodinate(coord, request) {
+    convertCoordinate(coord, request) {
         return coord / 1e6;
     }
 
     parseWaypoints(waypoints, request) {
-        if(waypoints == null) return [];
-        return waypoints.map((wp) => [this.convertCoodinate(wp.latitude, request), this.convertCoodinate(wp.longitude, request)])
+        if (waypoints == null) return [];
+        return waypoints.map((wp) => [this.convertCoordinate(wp.lat, request), this.convertCoordinate(wp.lon, request)])
     }
 
     sendRequest(requestString, request) {
         let httpRequest = new XMLHttpRequest()
-        httpRequest.addEventListener('load', ()=>{
+        httpRequest.addEventListener('load', () => {
             const response = JSON.parse(httpRequest.responseText);
             this.setState(Object.assign({}, this.state,
                 {
