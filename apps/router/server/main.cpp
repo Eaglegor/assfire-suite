@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	WinSockHelper winsock_helper;
 #endif
 
-	cxxopts::Options options("routes_provider_server");
+	cxxopts::Options options("assfire-router-server");
 	options.add_options()
 		("h,help","Print options help")
 		("bind-address", "Service bind address", cxxopts::value<std::string>()->default_value("0.0.0.0:50051"))

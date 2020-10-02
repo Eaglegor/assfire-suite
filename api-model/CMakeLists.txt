@@ -1,6 +1,6 @@
 find_package(protobuf CONFIG REQUIRED)
 
-add_library(assfire-api-model)
+add_library(assfire-api-model ../utils/assfire/win32/winsock_initializer.h)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/api)
 protobuf_generate(
         LANGUAGE cpp

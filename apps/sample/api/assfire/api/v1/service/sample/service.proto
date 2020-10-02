@@ -5,17 +5,16 @@ option go_package = "assfire.org/api/v1";
 
 import "assfire/api/v1/model/sample/sample.proto";
 
-message SampleRequest
+message GreetRequest
 {
-  string data = 1;
+  assfire.api.v1.model.sample.User user = 1;
 }
 
-message SampleResponse
+message GreetResponse
 {
-  string data = 1;
-  assfire.api.v1.model.sample.SampleMessage sample_message = 2;
+  string greeting = 1;
 }
 
-service SampleService {
-  rpc SampleMethod(SampleRequest) returns (SampleResponse){};
+service GreeterService {
+  rpc Greet(GreetRequest) returns (GreetResponse){};
 }

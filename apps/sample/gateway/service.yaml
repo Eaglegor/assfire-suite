@@ -3,5 +3,5 @@ config_version: 3
 
 http:
   rules:
-    - selector: assfire.api.v1.services.APP_NAME.SampleService.SampleMethod
-      get: /v1/sample
+    - selector: assfire.api.v1.services.sample.GreeterService.Greet
+      get: /v1/sample/greet
