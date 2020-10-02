@@ -1,9 +1,9 @@
 syntax="proto3";
 
 package assfire.api.v1.services.sample;
-option go_package = "assfire.org/api/v1/services/sample";
+option go_package = "assfire.org/api/v1";
 
-import "assfire/api/v1/sample/sample.proto";
+import "assfire/api/v1/model/sample/sample.proto";
 
 message SampleRequest
 {

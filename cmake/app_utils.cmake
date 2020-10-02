@@ -11,7 +11,8 @@ function(assfire_define_api component_name)
     message(STATUS "Defining api for component \"${assfire_define_api_COMPONENT}\"")
     message(STATUS "Protos: ${assfire_define_api_PROTOS}")
 
-    string(TOUPPER ${assfire_define_api_COMPONENT_NAME} _UPPER_COMPONENT_NAME)
+    set(_UPPER_COMPONENT_NAME SAMPLE)
+    #string(TOUPPER ${assfire_define_api_COMPONENT_NAME} _UPPER_COMPONENT_NAME)
     add_library(${ASSFIRE_${_UPPER_COMPONENT_NAME}_API_NAME})
 
     protobuf_generate(
@@ -19,6 +20,7 @@ function(assfire_define_api component_name)
             TARGET ${ASSFIRE_${_UPPER_COMPONENT_NAME}_API_NAME}
             PROTOS ${assfire_define_api_PROTOS}
             IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/api-model
+            PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api
     )
 
     protobuf_generate(
@@ -28,9 +30,10 @@ function(assfire_define_api component_name)
             TARGET ${ASSFIRE_${_UPPER_COMPONENT_NAME}_API_NAME}
             GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
             IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/api-model
+            PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api
     )
 
-    target_include_directories(${ASSFIRE_${_UPPER_COMPONENT_NAME}_API_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+    #target_include_directories(${ASSFIRE_${_UPPER_COMPONENT_NAME}_API_NAME} PUBLIC ${CMAKE_BINARY_DIR}/api)
 
     target_link_libraries(${ASSFIRE_${_UPPER_COMPONENT_NAME}_API_NAME} PUBLIC gRPC::grpc++ protobuf::libprotobuf assfire-api-model)
 endfunction()
