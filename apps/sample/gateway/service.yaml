@@ -1,0 +1,7 @@
+type: google.api.Service
+config_version: 3
+
+http:
+  rules:
+    - selector: assfire.api.v1.services.APP_NAME.SampleService.SampleMethod
+      get: /v1/sample

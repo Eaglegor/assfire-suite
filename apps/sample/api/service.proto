@@ -1,0 +1,21 @@
+syntax="proto3";
+
+package assfire.api.v1.services.sample;
+option go_package = "assfire.org/api/v1/services/sample";
+
+import "assfire/v1/sample/sample.proto";
+
+message SampleRequest
+{
+  string data = 1;
+}
+
+message SampleResponse
+{
+  string data = 1;
+  assfire.api.v1.model.sample SampleMessage = 2;
+}
+
+service SampleService {
+  rpc SampleMethod(SampleRequest) returns (SampleResponse){};
+}

@@ -1,16 +1,16 @@
 add_executable(${ASSFIRE_ROUTER_APP_NAME} main.cpp)
 
 add_library(${ASSFIRE_ROUTER_ENGINE_NAME}
-		RoutingService.cpp
-		backends/euclidean/EuclideanRouter.cpp
-		backends/random/RandomRouter.cpp
-		backends/crowflight/CrowflightRouter.cpp
-		backends/redis/RedisProxy.cpp
-		backends/redis/RouterProxy.hpp
-		backends/redis/TransparentProxy.hpp
-        RoutingMetricsCollector.cpp
-        RoutingMetricsCollector.hpp
-		backends/osrm/HttpOsrmRouter.cpp backends/osrm/HttpOsrmRouter.hpp)
+        ../engine/RoutingService.cpp
+        ../engine/backends/euclidean/EuclideanRouter.cpp
+        ../engine/backends/random/RandomRouter.cpp
+        ../engine/backends/crowflight/CrowflightRouter.cpp
+        ../engine/backends/redis/RedisProxy.cpp
+        ../engine/backends/redis/RouterProxy.hpp
+        ../engine/backends/redis/TransparentProxy.hpp
+        ../engine/RoutingMetricsCollector.cpp
+        ../engine/RoutingMetricsCollector.hpp
+        ../engine/backends/osrm/HttpOsrmRouter.cpp ../engine/backends/osrm/HttpOsrmRouter.hpp)
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -24,7 +24,7 @@ find_package(prometheus-cpp CONFIG REQUIRED)
 
 target_link_libraries(${ASSFIRE_ROUTER_ENGINE_NAME}
         PRIVATE cpp_redis::cpp_redis cxxopts::cxxopts spdlog::spdlog prometheus-cpp::core prometheus-cpp::pull cpprestsdk::cpprest
-        PUBLIC ${ASSFIRE_ROUTER_PROTO_BINDING_NAME})
+        PUBLIC ${ASSFIRE_ROUTER_API_NAME})
 target_include_directories(${ASSFIRE_ROUTER_ENGINE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${ASSFIRE_ROUTER_APP_NAME} PRIVATE ${ASSFIRE_ROUTER_ENGINE_NAME})
 

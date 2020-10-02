@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package assfire.api.v1.model.optimization.vrp;
+option go_package = "assfire.org/api/v1";
+
+import "assfire/api/v1/routing/routing.proto";
+
+message Job {
+  assfire.api.v1.model.routing.Location location = 1;
+}
+
+message Resource {
+  assfire.api.v1.model.routing.RoutingOptions routing_options = 1;
+}
+

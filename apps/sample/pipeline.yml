@@ -1,0 +1,137 @@
+stages:
+  - build
+  - test
+  - build docker images
+  - publish docker images
+  - build helm charts
+  - deploy release
+
+variables:
+  CMAKE_OPTIONS: |
+    -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
+    -DASSFIRE_DEBUG_MODE=OFF
+    -DCMAKE_BUILD_TYPE=Release
+    -DASSFIRE_GENERATE_GRPC_REVERSE_PROXIES=ON
+    -DASSFIRE_APPS_BUILD_ALL=OFF
+    -DASSFIRE_APPS_BUILD_ASSFIRE_SAMPLE=ON
+    -DASSFIRE_PACKAGE_BUILD_RPM=ON
+  APPLICATION_NAME: sample
+
+.configure:
+  before_script:
+    - mkdir out
+    - cd out
+    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
+    - cd ..
+
+build:
+  extends: .configure
+  stage: build
+  image: $BUILD_IMAGE_NAME
+  artifacts:
+    paths:
+      - out/*
+    expire_in: 1 hour
+  script:
+    - cd out
+    - make install package -j
+
+test:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out
+    - make test
+  dependencies:
+    - build
+  needs:
+    - build
+
+.install-service:
+  before_script:
+    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-${APPLICATION_NAME}.rpm
+    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-${APPLICATION_NAME}reverse-proxy.rpm
+
+lint-helm-chart:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out/apps/${APPLICATION_NAME}/helm/
+    - helm lint .
+
+build-docker-server:
+  image: docker:stable
+  services:
+    - docker:dind
+  variables:
+    IMAGE_TAG_NAME: latest
+  stage: build docker images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build out --build-arg APPLICATION_NAME=${APPLICATION_NAME} --build-arg APPLICATION_VERSION=${APPLICATION_VERSION} -f apps/assfire-${APPLICATION_NAME}/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-${APPLICATION_NAME}:$TEMP_IMAGE_TAG_NAME
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-${APPLICATION_NAME}:$TEMP_IMAGE_TAG_NAME
+  dependencies:
+    - build
+  needs:
+    - build
+    - test-unit
+    - test-int
+    - test-int-cache
+
+publish-docker-server:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: publish docker images
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-${APPLICATION_NAME}:$TEMP_IMAGE_TAG_NAME
+    - docker tag $CI_REGISTRY/assfire/assfire-suite/assfire-${APPLICATION_NAME}:$TEMP_IMAGE_TAG_NAME $CI_REGISTRY/assfire/assfire-suite/assfire-${APPLICATION_NAME}:${APPLICATION_VERSION}
+    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-${APPLICATION_NAME}:${APPLICATION_VERSION}
+  only:
+    refs:
+      - tags
+  needs:
+    - build-docker-server
+
+build-helm-chart:
+  image: $BUILD_IMAGE_NAME
+  variables:
+    HELM_EXPERIMENTAL_OCI: 1
+  stage: build helm charts
+  only:
+    - tags
+  script:
+    - cd out/apps/assfire-${APPLICATION_NAME}/helm/helm_charts/assfire-${APPLICATION_NAME}/
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart save . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-${APPLICATION_NAME}:${APPLICATION_VERSION}
+    - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-${APPLICATION_NAME}:${APPLICATION_VERSION}
+  dependencies:
+    - build
+  needs:
+    - build
+    - build-docker-server
+    - build-docker-maptest
+
+deploy-release:
+  only:
+    - tags
+  when: manual
+  variables:
+    HELM_EXPERIMENTAL_OCI: 1
+  tags:
+    - assfire-deployment-node
+  stage:
+    deploy release
+  script:
+    - echo "Deploying Assfire ${APPLICATION_NAME}"
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart pull $CI_REGISTRY/assfire/assfire-suite/helm/assfire-${APPLICATION_NAME}:${APPLICATION_VERSION}
+    - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-${APPLICATION_NAME}:${APPLICATION_VERSION}
+    - helm upgrade -i assfire-${APPLICATION_NAME} -n assfire ./assfire-${APPLICATION_NAME}
+  dependencies:
+    - publish-docker-server
+    - build-helm-chart
+  needs:
+    - publish-docker-server
+    - build-helm-chart

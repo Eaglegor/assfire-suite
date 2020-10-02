@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package assfire.api.v1.model.sample;
+option go_package = "assfire.org/api/v1";
+
+message SampleMessage {
+  enum Variant {
+    V1 = 0; // Enums start from 0
+    V2 = 1;
+  }
+
+  string string_data = 1; // Fields start from 1
+  int32 unsigned_int_data = 2;
+  Variant variant_data = 3;
+}
+
