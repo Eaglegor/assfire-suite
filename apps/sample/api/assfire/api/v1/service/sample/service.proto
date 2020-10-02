@@ -3,7 +3,7 @@ syntax="proto3";
 package assfire.api.v1.services.sample;
 option go_package = "assfire.org/api/v1/services/sample";
 
-import "assfire/v1/sample/sample.proto";
+import "assfire/api/v1/sample/sample.proto";
 
 message SampleRequest
 {
@@ -13,7 +13,7 @@ message SampleRequest
 message SampleResponse
 {
   string data = 1;
-  assfire.api.v1.model.sample SampleMessage = 2;
+  assfire.api.v1.model.sample.SampleMessage sample_message = 2;
 }
 
 service SampleService {
