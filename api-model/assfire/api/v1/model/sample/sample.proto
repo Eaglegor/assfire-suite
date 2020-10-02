@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package assfire.api.v1.model.sample;
+option go_package = "assfire.org/api/v1/model/sample";
+
+message User {
+  enum Role {
+    USER = 0; // Enums start from 0
+    ADMIN = 1;
+  }
+
+  string username = 1; // Fields start from 1
+  Role role = 2;
+}
+

@@ -1,0 +1,27 @@
+set(PUBLIC_HEADERS
+        assfire/router/client/RouterClient.hpp
+        assfire/router/client/DistanceMatrix.hpp
+        assfire/router/client/transport/GrpcClient.hpp
+        assfire/router/client/RequestStrategy.hpp
+        assfire/router/client/strategies/DirectRequestStrategy.hpp)
+set(SOURCES
+        assfire/router/client/RouterClient.cpp
+        assfire/router/client/DistanceMatrix.cpp
+        assfire/router/client/transport/GrpcClient.cpp
+        assfire/router/client/strategies/DirectRequestStrategy.cpp)
+
+add_library(assfire-router-client ${SOURCES})
+
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(assfire-router-client PRIVATE assfire-router-api spdlog::spdlog)
+target_include_directories(assfire-router-client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+install(TARGETS assfire-router-client COMPONENT router-client)
+foreach (item ${PUBLIC_HEADERS})
+    configure_file(${item} ${CMAKE_CURRENT_BINARY_DIR}/public_headers/${item} COPYONLY)
+endforeach ()
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/public_headers/assfire DESTINATION ${CMAKE_INSTALL_PREFIX}/include COMPONENT router-client)
+
+if (ASSFIRE_PACKAGE_BUILD_RPM)
+    cpack_add_component(router-client)
+endif ()
