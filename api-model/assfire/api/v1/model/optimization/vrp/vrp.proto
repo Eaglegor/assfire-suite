@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package assfire.api.v1.model.optimization.vrp;
-option go_package = "assfire.org/api/v1";
+option go_package = "assfire.org/api/v1/model/optimization/vrp";
 
 import "assfire/api/v1/model/routing/routing.proto";
 

@@ -4,6 +4,7 @@ get_target_property(GOOGLE_PROTOBUF_IMPORT_DIR protobuf::libprotobuf INTERFACE_I
 add_library(assfire-api-model ../utils/assfire/win32/winsock_initializer.h)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/api/cpp)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/api/go)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/api/swagger)
 protobuf_generate(
         LANGUAGE cpp
         TARGET assfire-api-model

@@ -3,13 +3,18 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
     find_package(protobuf REQUIRED)
 
     set(PROTOS
+            assfire/api/v1/model/sample/sample.proto
             assfire/api/v1/service/sample/service.proto)
     set(IMPORT_DIRS
             ${CMAKE_SOURCE_DIR}/apps/sample/api
             ${CMAKE_SOURCE_DIR}/api-model
             ${GOOGLE_PROTOBUF_IMPORT_DIR})
     set(GO_OUT_DIR
-            ${CMAKE_BINARY_DIR}/api/go)
+            ${CMAKE_BINARY_DIR}/api/go/assfire-sample-grpc-gateway)
+    file(MAKE_DIRECTORY ${GO_OUT_DIR})
+    set(SWAGGER_OUT_DIR
+            ${CMAKE_BINARY_DIR}/api/swagger)
+    file(MAKE_DIRECTORY ${SWAGGER_OUT_DIR})
     set(GO_FILE
             ${GO_OUT_DIR}/assfire/api/v1/service/sample/service.pb.go)
     set(GO_GW_FILE
@@ -55,7 +60,7 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
             COMMAND protobuf::protoc
             ARGS
             ${IMPORT_DIRS}
-            --swagger_out ${GO_OUT_DIR}
+            --swagger_out ${SWAGGER_OUT_DIR}
             ${PROTOS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Generating grpc gateway code for: ${PROTOS}"
