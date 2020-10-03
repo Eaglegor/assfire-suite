@@ -4,6 +4,7 @@ package assfire.api.v1.services.sample;
 option go_package = "assfire.org/api/v1";
 
 import "assfire/api/v1/model/sample/sample.proto";
+import "google/api/annotations.proto";
 
 message GreetRequest
 {
@@ -16,5 +17,9 @@ message GreetResponse
 }
 
 service GreeterService {
-  rpc Greet(GreetRequest) returns (GreetResponse){};
+  rpc Greet(GreetRequest) returns (GreetResponse){
+    option (google.api.http) = {
+      get: "/v1/sample/greet"
+    };
+  };
 }

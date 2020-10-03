@@ -38,6 +38,8 @@ if(ASSFIRE_GENERATE_GRPC_GATEWAYS)
 	if(GO_EXECUTABLE STREQUAL "GO_EXECUTABLE-NOTFOUND")
 		message(STATUS "Golang executable not found. Generating gRPC gateways will be disabled")
 		set(ASSFIRE_GENERATE_GRPC_GATEWAYS OFF)
+	else()
+		message(STATUS "Golang executable found: ${GO_EXECUTABLE}")
 	endif()
 endif()
 

@@ -1,7 +1,0 @@
-type: google.api.Service
-config_version: 3
-
-http:
-  rules:
-    - selector: assfire.api.v1.services.sample.GreeterService.Greet
-      get: /v1/sample/greet
