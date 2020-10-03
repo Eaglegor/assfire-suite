@@ -10,10 +10,10 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
             ${CMAKE_SOURCE_DIR}/api-model
             ${GOOGLE_PROTOBUF_IMPORT_DIR})
     set(GO_OUT_DIR
-            ${CMAKE_BINARY_DIR}/api/go/assfire-sample-grpc-gateway)
+            ${CMAKE_CURRENT_BINARY_DIR})
     file(MAKE_DIRECTORY ${GO_OUT_DIR})
     set(SWAGGER_OUT_DIR
-            ${CMAKE_BINARY_DIR}/api/swagger)
+            ${CMAKE_CURRENT_BINARY_DIR}/swagger)
     file(MAKE_DIRECTORY ${SWAGGER_OUT_DIR})
     set(GO_FILE
             ${GO_OUT_DIR}/assfire/api/v1/service/sample/service.pb.go)

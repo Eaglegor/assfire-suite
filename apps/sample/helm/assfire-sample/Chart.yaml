@@ -1,5 +1,5 @@
 apiVersion: v2
-name: assfire-router
+name: assfire-sample
 version: @ASSFIRE_APPLICATION_RELEASE_VERSION@
 appVersion: @ASSFIRE_APPLICATION_RELEASE_VERSION@
 type: application
