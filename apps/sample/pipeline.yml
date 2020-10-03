@@ -36,16 +36,16 @@ build:
     - cd out
     - make install package -j
 
-#test:
-#  image: $BUILD_IMAGE_NAME
-#  stage: test
-#  script:
-#    - cd out
-#    - make test
-#  dependencies:
-#    - build
-#  needs:
-#    - build
+test:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out
+    - make test
+  dependencies:
+    - build
+  needs:
+    - build
 
 .install-service:
   before_script:
