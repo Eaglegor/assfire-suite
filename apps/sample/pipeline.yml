@@ -109,7 +109,6 @@ build-helm-chart:
   needs:
     - build
     - build-docker-server
-    - build-docker-maptest
 
 deploy-release:
   only:
