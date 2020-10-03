@@ -24,9 +24,15 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
 
     list(TRANSFORM IMPORT_DIRS PREPEND --proto_path=)
 
+    file(MAKE_DIRECTORY ${GO_OUT_DIR}/assfire.org)
+    configure_file(assfire-sample-grpc-proxy.go ${GO_OUT_DIR}/assfire.org @ONLY)
+    configure_file(go.mod ${GO_OUT_DIR}/assfire.org @ONLY)
+
     add_custom_target(assfire-sample-grpc-gateway ALL
-            COMMAND ${GO_EXECUTABLE} build -o ${CMAKE_CURRENT_BINARY_DIR}/assfire-sample-grpc-gateway${CMAKE_EXECUTABLE_SUFFIX}
-            WORKING_DIRECTORY
+            COMMAND ${GO_EXECUTABLE} build
+            -o ${CMAKE_CURRENT_BINARY_DIR}/assfire-sample-grpc-gateway${CMAKE_EXECUTABLE_SUFFIX}
+#            -pkgdir ${GO_OUT_DIR}
+            WORKING_DIRECTORY ${GO_OUT_DIR}/assfire.org
             DEPENDS ${GO_FILE} ${GO_GW_FILE} ${SWAGGER_FILE})
     add_dependencies(assfire-sample-grpc-gateway assfire-sample-api)
 
@@ -48,8 +54,8 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
             COMMAND protobuf::protoc
             ARGS
             ${IMPORT_DIRS}
-            --grpc-gateway_out ${GO_OUT_DIR}
 #            --grpc-gateway_opt paths=source_relative
+            --grpc-gateway_out ${GO_OUT_DIR}
             ${PROTOS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Generating grpc gateway code for: ${PROTOS}"
