@@ -57,7 +57,7 @@ helm-lint:
     - cd out/apps/sample/helm/assfire-sample
     - helm lint .
 
-build-rpm-packages:
+rpm:
   image: $BUILD_IMAGE_NAME
   stage: rpm
   artifacts:
@@ -68,7 +68,7 @@ build-rpm-packages:
     - cmake -DASSFIRE_PACKAGE_BUILD_RPM=ON $CMAKE_OPTIONS ../
     - make package
 
-build-docker-server:
+docker-server:
   image: docker:stable
   services:
     - docker:dind
@@ -84,9 +84,9 @@ build-docker-server:
   needs:
     - build
     - test
-    - build-rpm-packages
+    - rpm
 
-publish-docker-server:
+docker-server-push:
   image: docker:stable
   services:
     - docker:dind
@@ -100,9 +100,9 @@ publish-docker-server:
     refs:
       - tags
   needs:
-    - build-docker-server
+    - docker-server
 
-build-helm-chart:
+helm:
   image: $BUILD_IMAGE_NAME
   variables:
     HELM_EXPERIMENTAL_OCI: 1
@@ -118,9 +118,9 @@ build-helm-chart:
     - build
   needs:
     - build
-    - build-docker-server
+    - docker-server
 
-deploy-release:
+deploy:
   only:
     - tags
   when: manual
@@ -137,8 +137,8 @@ deploy-release:
     - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-sample:${APPLICATION_VERSION}
     - helm upgrade -i assfire-sample -n assfire ./assfire-sample
   dependencies:
-    - publish-docker-server
-    - build-helm-chart
+    - docker-server-push
+    - helm
   needs:
-    - publish-docker-server
-    - build-helm-chart
+    - docker-server-push
+    - helm
