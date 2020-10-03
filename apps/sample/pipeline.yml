@@ -8,7 +8,13 @@ stages:
 
 variables:
   CMAKE_OPTIONS: |
-   r
+    -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
+    -DASSFIRE_DEBUG_MODE=OFF
+    -DCMAKE_BUILD_TYPE=Release
+    -DASSFIRE_GENERATE_GRPC_GATEWAYS=True
+    -DASSFIRE_APPS_BUILD_ALL=OFF
+    -DASSFIRE_APPS_BUILD_SAMPLE=ON
+    -DASSFIRE_PACKAGE_BUILD_RPM=ON
   APPLICATION_NAME: sample
 
 .configure:
@@ -30,16 +36,16 @@ build:
     - cd out
     - make install package -j
 
-test:
-  image: $BUILD_IMAGE_NAME
-  stage: test
-  script:
-    - cd out
-    - make test
-  dependencies:
-    - build
-  needs:
-    - build
+#test:
+#  image: $BUILD_IMAGE_NAME
+#  stage: test
+#  script:
+#    - cd out
+#    - make test
+#  dependencies:
+#    - build
+#  needs:
+#    - build
 
 .install-service:
   before_script:
