@@ -1,12 +1,9 @@
 FROM amd64/alpine:3.12.0
 
-ARG APPLICATION_VERSION
-ARG APPLICATION_NAME
-
 RUN apk add --no-cache bash libstdc++ rpm
 
-COPY ./assfire-${APPLICATION_VERSION}-Linux-${APPLICATION_NAME}.rpm /root/
-RUN rpm -i --nodeps /root/assfire-${APPLICATION_VERSION}-Linux-${APPLICATION_NAME}.rpm
+COPY ./assfire-${ASSFIRE_APPLICATION_RELEASE_VERSION}-Linux-sample-server.rpm /root/
+RUN rpm -i --nodeps /root/assfire-${ASSFIRE_APPLICATION_RELEASE_VERSION}-Linux-sample-server.rpm
 
-COPY ./assfire-${APPLICATION_VERSION}-Linux-${APPLICATION_NAME}-reverse-proxy.rpm /root/
-RUN rpm -i --nodeps /root/assfire-${APPLICATION_VERSION}-Linux-${APPLICATION_NAME}-reverse-proxy.rpm
+COPY ./assfire-${ASSFIRE_APPLICATION_RELEASE_VERSION}-Linux-sample-reverse-proxy.rpm /root/
+RUN rpm -i --nodeps /root/assfire-${ASSFIRE_APPLICATION_RELEASE_VERSION}-Linux-sample-grpc-gateway.rpm
