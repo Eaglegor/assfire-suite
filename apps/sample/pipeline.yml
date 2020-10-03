@@ -13,7 +13,6 @@ variables:
     -DASSFIRE_GENERATE_GRPC_GATEWAYS=True
     -DASSFIRE_APPS_BUILD_ALL=OFF
     -DASSFIRE_APPS_BUILD_SAMPLE=ON
-    -DASSFIRE_PACKAGE_BUILD_RPM=ON
 
 .configure:
   before_script:
@@ -32,7 +31,7 @@ build:
     expire_in: 1 hour
   script:
     - cd out
-    - make install package -j
+    - make -j
 
 test:
   image: $BUILD_IMAGE_NAME
@@ -56,6 +55,17 @@ helm-lint:
   script:
     - cd out/apps/sample/helm/assfire-sample
     - helm lint .
+
+build-rpm-packages:
+  image: $BUILD_IMAGE_NAME
+  stage: package
+  artifacts:
+    paths:
+      - out/*.rpm
+  script:
+    - cd out
+    - cmake -DASSFIRE_PACKAGE_BUILD_RPM=ON $CMAKE_OPTIONS ../
+    - make package
 
 build-docker-server:
   image: docker:stable
