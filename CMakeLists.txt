@@ -28,8 +28,6 @@ message(STATUS "Application release version: ${ASSFIRE_APPLICATION_RELEASE_VERSI
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG True)
 
 option(ASSFIRE_DEBUG_MODE "Enable debug mode" ON)
-option(ASSFIRE_BUNDLE_INSTALL_MODE "Enable bundle mode for installation" OFF)
-option(ASSFIRE_AUTO_INSTALL_RUNTIME_DEPS "Automatically copy all needed dynamic libraries to the installation location" OFF)
 option(ASSFIRE_GENERATE_GRPC_GATEWAYS "Generate reverse HTTP proxy services for gRPC (needs golang compiler to be installed)" OFF)
 option(ASSFIRE_PACKAGE_BUILD_RPM "Build RPM packages" OFF)
 
@@ -60,6 +58,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 enable_testing()
 
 include_directories(utils)
+
+
 
 add_subdirectory(api-model)
 add_subdirectory(apps)

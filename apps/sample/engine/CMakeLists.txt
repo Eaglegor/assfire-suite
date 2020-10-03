@@ -1,8 +1,8 @@
 set(SOURCES
-        Greeter.cpp
-        MetricsCollector.cpp)
+        assfire/sample/Greeter.cpp
+        assfire/sample/MetricsCollector.cpp)
 set(HEADERS
-        Greeter.hpp
+        assfire/sample/Greeter.hpp
         assfire/sample/MetricsCollector.hpp)
 
 find_package(spdlog CONFIG REQUIRED)

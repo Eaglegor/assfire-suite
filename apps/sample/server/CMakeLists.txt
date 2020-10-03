@@ -1,9 +1,9 @@
 set(TARGET_NAME assfire-sample-server)
 set(SOURCES
         main.cpp
-        GreeterService.cpp )
+        assfire/sample/GreeterService.cpp)
 set(HEADERS
-        GreeterService.h)
+        assfire/sample/GreeterService.h)
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)

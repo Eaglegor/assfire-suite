@@ -5,7 +5,7 @@
 #include <assfire/log/spdlog.h>
 #include <assfire/sample/Greeter.hpp>
 #include <prometheus/exposer.h>
-#include "GreeterService.h"
+#include "assfire/sample/GreeterService.h"
 
 #ifdef _WIN32
 
@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
     cxxopts::Options options("assfire-sample-server");
     options.add_options()
-            ("h,help","Print options help")
+            ("h,help", "Print options help")
             ("bind-address", "Service bind address", cxxopts::value<std::string>()->default_value("0.0.0.0:50051"))
             ("log-level", "Log level", cxxopts::value<std::string>()->default_value("info"))
             ("metrics-enabled", "Prometheus metrics enabled", cxxopts::value<bool>()->default_value("false"))
@@ -38,31 +38,34 @@ int main(int argc, char **argv)
 
     std::string bind_address = result["bind-address"].as<std::string>();
     std::string log_level = result["log-level"].as<std::string>();
-    assfire::log::initializeSpdlog(log_level);
 
     bool metrics_enabled = result["metrics-enabled"].as<bool>();
     std::string metrics_exposer_bind_address = result["metrics-exposer-bind-address"].as<std::string>();
     std::string metrics_exposer_uri = result["metrics-exposer-uri"].as<std::string>();
     std::size_t metrics_exposer_threads_count = result["metrics-exposer-threads-count"].as<std::size_t>();
 
-    SPDLOG_INFO("Creating routing service with options: \n\
-				bind-address={}, \n\
+    SPDLOG_INFO("Parsed options: \n\
+                log-level={},\n\
+                bind-address={}, \n\
 				metrics-enabled={}, \n\
 				metrics-exposer-bind-address={} \n\
 				metrics-exposer-uri={} \n\
 				metrics-exposer-threads-count={}",
+                log_level,
                 bind_address,
                 metrics_enabled,
                 metrics_exposer_bind_address,
                 metrics_exposer_uri,
                 metrics_exposer_threads_count);
 
-    assfire::GreeterService service(metrics_enabled ?
-                                    assfire::MetricsCollector(std::make_shared<prometheus::Exposer>(
+    assfire::log::initializeSpdlog(log_level);
+
+    assfire::sample::GreeterService service(metrics_enabled ?
+                                    assfire::sample::MetricsCollector(std::make_shared<prometheus::Exposer>(
                                             metrics_exposer_bind_address,
                                             metrics_exposer_uri,
                                             metrics_exposer_threads_count))
-                                                    : assfire::MetricsCollector());
+                                                    : assfire::sample::MetricsCollector());
 
     grpc::ServerBuilder serverBuilder;
     serverBuilder.AddListeningPort(bind_address, grpc::InsecureServerCredentials());
@@ -70,7 +73,7 @@ int main(int argc, char **argv)
 
     SPDLOG_INFO("Creating gRPC server...");
 
-    std::unique_ptr<grpc::Server> server(serverBuilder.BuildAndStart());
+    std::unique_ptr <grpc::Server> server(serverBuilder.BuildAndStart());
 
     SPDLOG_INFO("Starting server on {}...", bind_address);
 

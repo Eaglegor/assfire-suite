@@ -31,10 +31,13 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
     add_custom_target(assfire-sample-grpc-gateway ALL
             COMMAND ${GO_EXECUTABLE} build
             -o ${CMAKE_CURRENT_BINARY_DIR}/assfire-sample-grpc-gateway${CMAKE_EXECUTABLE_SUFFIX}
-#            -pkgdir ${GO_OUT_DIR}
             WORKING_DIRECTORY ${GO_OUT_DIR}/assfire.org
             DEPENDS ${GO_FILE} ${GO_GW_FILE} ${SWAGGER_FILE})
     add_dependencies(assfire-sample-grpc-gateway assfire-sample-api)
+    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/assfire-sample-grpc-gateway${CMAKE_EXECUTABLE_SUFFIX} COMPONENT sample-grpc-gateway DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+    if(ASSFIRE_PACKAGE_BUILD_RPM)
+        cpack_add_component(sample-grpc-gateway)
+    endif()
 
     add_custom_command(
             OUTPUT ${GO_FILE}
@@ -71,57 +74,5 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Generating grpc gateway code for: ${PROTOS}"
             VERBATIM)
-
-
-    #    add_custom_target(assfire-sample-grpc-gateway ALL
-    #                        COMMAND ${GO_EXECUTABLE} build
-    #                        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    #                        DEPENDS ${_FULL_OUTPUT_FILENAME} ${_FULL_SWAGGER_OUTPUT_FILENAME} ${_FULL_GO_OUTPUT_FILENAME})
-
-    #    add_custom_command(
-    #            OUTPUT ${_FULL_OUTPUT_FILENAME}
-    #            COMMAND protobuf::protoc
-    #            ARGS
-    #            -I .
-    #            --grpc-gateway_out ${_OUTPUT_DIR}
-    #            --grpc-gateway_opt logtostderr=true
-    #            --grpc-gateway_opt paths=source_relative
-    #            --grpc-gateway_opt grpc_api_configuration=${_SERVICE_DEFINITION}
-    #            ${_PROTO_DEFINITION}
-    #            DEPENDS ${_ABS_PROTO_DEFINITION} ${_ABS_SERVICE_DEFINITION}
-    #            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    #            COMMENT "Generating reverse proxy source ${_FULL_OUTPUT_FILENAME}"
-    #            VERBATIM)
-    #
-    #    add_custom_command(
-    #            OUTPUT ${_FULL_SWAGGER_OUTPUT_FILENAME}
-    #            COMMAND protobuf::protoc
-    #            ARGS
-    #            -I .
-    #            --swagger_out ${_OUTPUT_DIR}
-    #            --swagger_opt logtostderr=true
-    #            --swagger_opt grpc_api_configuration=${_SERVICE_DEFINITION}
-    #            ${_PROTO_DEFINITION}
-    #            DEPENDS ${_FULL_OUTPUT_FILENAME}
-    #            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    #            COMMENT "Generating swagger API description ${_FULL_SWAGGER_OUTPUT_FILENAME}"
-    #            VERBATIM)
-    #
-    #    get_filename_component(_GO_ENTRY_POINT_NAME ${_GO_ENTRY_POINT} NAME)
-    #    get_filename_component(_GO_MOD_NAME ${_GO_MOD} NAME)
-    #    configure_file(${_GO_ENTRY_POINT} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_ENTRY_POINT_NAME} @ONLY)
-    #    configure_file(${_GO_MOD} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_MOD_NAME} COPYONLY)
-    #
-    #    if (WIN32)
-    #        set(_GO_OUTPUT_NAME ${_TARGET_NAME}.exe)
-    #    else ()
-    #        set(_GO_OUTPUT_NAME ${_TARGET_NAME})
-    #    endif ()
-    #
-    #
-    #    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_OUTPUT_NAME} COMPONENT ${_COMPONENT_NAME} DESTINATION ${_INSTALL_PREFIX})
-    #    if (ASSFIRE_PACKAGE_BUILD_RPM)
-    #        cpack_add_component(${_COMPONENT_NAME})
-    #    endif ()
-
 endif ()
+

@@ -51,3 +51,4 @@ if (ASSFIRE_GENERATE_GRPC_REVERSE_PROXIES)
     )
 
 endif ()
+

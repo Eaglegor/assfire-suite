@@ -3,7 +3,7 @@
 #include <string>
 #include "MetricsCollector.hpp"
 
-namespace assfire {
+namespace assfire::sample {
     class Greeter
     {
     public:
