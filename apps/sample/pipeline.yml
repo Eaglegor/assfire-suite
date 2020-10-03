@@ -56,7 +56,7 @@ lint-helm-chart:
   image: $BUILD_IMAGE_NAME
   stage: test
   script:
-    - cd out/apps/${APPLICATION_NAME}/helm/
+    - cd out/apps/${APPLICATION_NAME}/helm/assfire-sample
     - helm lint .
 
 build-docker-server:
