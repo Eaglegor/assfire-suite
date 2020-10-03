@@ -74,9 +74,7 @@ build-docker-server:
     - build
   needs:
     - build
-    - test-unit
-    - test-int
-    - test-int-cache
+    - test
 
 publish-docker-server:
   image: docker:stable
