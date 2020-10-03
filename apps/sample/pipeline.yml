@@ -81,6 +81,7 @@ docker-server:
     - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-sample:$TEMP_IMAGE_TAG_NAME
   dependencies:
     - build
+    - rpm
   needs:
     - build
     - test
