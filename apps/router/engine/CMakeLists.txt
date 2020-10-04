@@ -3,14 +3,19 @@ set(SOURCES
         assfire/router/providers/euclidean/EuclideanRouteProvider.cpp
         assfire/router/providers/random/RandomRouteProvider.cpp
         assfire/router/providers/osrm/HttpOsrmRouteProvider.cpp
+        assfire/router/cache/RedisRouteProviderProxy.cpp
+        assfire/router/CompositeRouteProvider.cpp
         assfire/router/MetricsCollector.cpp)
 set(HEADERS
         assfire/router/providers/crowflight/CrowflightRouteProvider.hpp
         assfire/router/providers/euclidean/EuclideanRouteProvider.hpp
         assfire/router/providers/random/RandomRouteProvider.hpp
         assfire/router/providers/osrm/HttpOsrmRouteProvider.hpp
+        assfire/router/cache/TransparentRouteProviderProxy.hpp
+        assfire/router/cache/RedisRouteProviderProxy.hpp
         assfire/router/RouteProvider.hpp
-        assfire/router/MetricsCollector.hpp)
+        assfire/router/MetricsCollector.hpp
+        assfire/router/CompositeRouteProvider.hpp)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)

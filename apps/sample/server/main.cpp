@@ -5,7 +5,7 @@
 #include <assfire/log/spdlog.h>
 #include <assfire/sample/Greeter.hpp>
 #include <prometheus/exposer.h>
-#include "assfire/sample/GreeterService.h"
+#include "assfire/sample/GreeterService.hpp"
 
 #ifdef _WIN32
 

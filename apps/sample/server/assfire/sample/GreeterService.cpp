@@ -1,4 +1,4 @@
-#include "GreeterService.h"
+#include "GreeterService.hpp"
 
 namespace assfire::sample {
     GreeterService::GreeterService(const MetricsCollector &metrics_collector) :

@@ -1,21 +1,21 @@
-#include "RedisProxy.hpp"
+#include "RedisRouteProviderProxy.hpp"
 #include <cpp_redis/core/client.hpp>
 
-#include <CoordinatesDecoder.hpp>
+#include <assfire/router/CoordinatesDecoder.hpp>
 #include <spdlog/spdlog.h>
 
-using namespace assfire;
-using namespace assfire::routing::proto::v1;
+using namespace assfire::router;
 
 namespace {
-    std::string buildRouteKey(const Location &origin, const Location &destination, const RoutingOptions &options)
+    std::string buildRouteKey(const RouteProvider::Location &origin, const RouteProvider::Location &destination, const RouteProvider::RoutingOptions &options)
     {
         return origin.SerializeAsString() + destination.SerializeAsString() + options.SerializeAsString();
     }
 }
 
-RedisProxy::RedisProxy(const std::string &host, std::size_t port, RoutingMetricsCollector routing_metrics_context) :
-        metrics_context(routing_metrics_context)
+RedisRouteProviderProxy::RedisRouteProviderProxy(std::unique_ptr<RouteProvider> &&backend, const std::string &host, std::size_t port, const MetricsCollector &metrics_collector) :
+        backend(std::move(backend)),
+        metrics_collector(metrics_collector)
 {
     SPDLOG_INFO("Creating redis client...");
     redis_client = std::make_unique<cpp_redis::client>();
@@ -23,10 +23,10 @@ RedisProxy::RedisProxy(const std::string &host, std::size_t port, RoutingMetrics
     redis_client->connect(host, port);
 }
 
-GetSingleRouteResponse RedisProxy::getRoute(GetSingleRouteRequest request, const Router &backend, long request_id) const
+RouteProvider::GetSingleRouteResponse RedisRouteProviderProxy::getRoute(GetSingleRouteRequest request, long request_id) const
 {
-    metrics_context.routesCacheStopwatch(1, RoutingMetricsCollector::RequestMode::SINGLE);
-    metrics_context.addRoutesCacheRequests(1, RoutingMetricsCollector::RequestMode::SINGLE);
+    metrics_collector.routesCacheStopwatch(1, MetricsCollector::RequestMode::SINGLE);
+    metrics_collector.addRoutesCacheRequests(1, MetricsCollector::RequestMode::SINGLE);
     SPDLOG_DEBUG("[{}]: Requested route: ({},{})->({},{})", request_id,
                  request.origin().lat(), request.origin().lon(),
                  request.destination().lat(), request.destination().lon());
@@ -43,13 +43,13 @@ GetSingleRouteResponse RedisProxy::getRoute(GetSingleRouteRequest request, const
             SPDLOG_ERROR("[{}]: Error while retrieving redis route: {}", request_id, reply.error());
         }
         if (!request.options().force_update()) {
-            metrics_context.addRoutesCacheMisses(1);
+            metrics_collector.addRoutesCacheMisses(1);
             SPDLOG_DEBUG("[{}]: Route not found in cache: ({},{})->({},{}). Requesting backend service", request_id,
                          request.origin().lat(), request.origin().lon(),
                          request.destination().lat(), request.destination().lon());
         }
-        GetSingleRouteResponse routeResponse = backend.getRoute(request, request_id);
-        if(routeResponse.status().code() != ResponseStatus::OK) {
+        GetSingleRouteResponse routeResponse = backend->getRoute(request, request_id);
+        if (routeResponse.status().code() != ResponseStatus::OK) {
             SPDLOG_ERROR("[{}]: Backend returned response with error: {}", routeResponse.status().message());
             return routeResponse;
         }
@@ -66,7 +66,7 @@ GetSingleRouteResponse RedisProxy::getRoute(GetSingleRouteRequest request, const
                      request.destination().lat(), request.destination().lon(),
                      route.distance(), route.duration());
     } else {
-        metrics_context.addRoutesCacheHits(1);
+        metrics_collector.addRoutesCacheHits(1);
         route.ParseFromString(reply.as_string());
         SPDLOG_DEBUG("[{}]: Route found in cache ({},{})->({},{}) = (dist: {}, time: {})", request_id,
                      request.origin().lat(), request.origin().lon(),
@@ -79,41 +79,21 @@ GetSingleRouteResponse RedisProxy::getRoute(GetSingleRouteRequest request, const
     return response;
 }
 
-GetRoutesBatchResponse
-RedisProxy::getRoutesBatch(GetRoutesBatchRequest request, const Router &backend, long request_id) const
+RouteProvider::GetRoutesBatchResponse RedisRouteProviderProxy::getRoutesBatch(GetRoutesBatchRequest request, long request_id) const
 {
-    metrics_context.routesCacheStopwatch(1, RoutingMetricsCollector::RequestMode::BATCH);
-    metrics_context.addRoutesCacheRequests(request.origins_size() * request.destinations_size(),
-                                           RoutingMetricsCollector::RequestMode::BATCH);
-    return calculateBatchUsingSingleRoutes(request, backend, request_id);
+    metrics_collector.routesCacheStopwatch(1, MetricsCollector::RequestMode::BATCH);
+    metrics_collector.addRoutesCacheRequests(request.origins_size() * request.destinations_size(),
+                                             MetricsCollector::RequestMode::BATCH);
+    return calculateBatchUsingSingleRoutes(request, request_id);
 }
 
-void
-RedisProxy::getRoutesBatch(GetRoutesBatchRequest request, Router::RoutesBatchConsumer consumer, const Router &backend,
-                           long request_id) const
+void RedisRouteProviderProxy::getRoutesBatch(GetRoutesBatchRequest request, RoutesBatchConsumer consumer, long request_id) const
 {
-    metrics_context.routesCacheStopwatch(1, RoutingMetricsCollector::RequestMode::STREAMING_BATCH);
-    metrics_context.addRoutesCacheRequests(request.origins_size() * request.destinations_size(),
-                                           RoutingMetricsCollector::RequestMode::STREAMING_BATCH);
-    consumer(calculateBatchUsingSingleRoutes(request, backend, request_id));
+    metrics_collector.routesCacheStopwatch(1, MetricsCollector::RequestMode::STREAMING_BATCH);
+    metrics_collector.addRoutesCacheRequests(request.origins_size() * request.destinations_size(),
+                                             MetricsCollector::RequestMode::STREAMING_BATCH);
+    consumer(calculateBatchUsingSingleRoutes(request, request_id));
 }
 
-GetRoutesBatchResponse
-RedisProxy::calculateBatchUsingSingleRoutes(GetRoutesBatchRequest request, const Router &backend, long request_id) const
-{
-    routing::proto::v1::GetRoutesBatchResponse response;
-    for (const Location &origin : request.origins()) {
-        for (const Location &destination : request.destinations()) {
-            GetSingleRouteRequest single_request;
-            single_request.mutable_origin()->CopyFrom(origin);
-            single_request.mutable_destination()->CopyFrom(destination);
-            single_request.mutable_options()->CopyFrom(request.options());
-            response.add_route_infos()->CopyFrom(getRoute(single_request, backend, request_id));
-        }
-    }
-    return response;
-}
+RedisRouteProviderProxy::~RedisRouteProviderProxy() = default;
 
-RedisProxy::~RedisProxy()
-{
-}

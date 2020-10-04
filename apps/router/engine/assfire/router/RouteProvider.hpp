@@ -12,12 +12,14 @@ namespace assfire::router {
         using GetSingleRouteResponse = assfire::api::v1::services::router::GetSingleRouteResponse;
         using GetRoutesBatchRequest = assfire::api::v1::services::router::GetRoutesBatchRequest;
         using GetRoutesBatchResponse = assfire::api::v1::services::router::GetRoutesBatchResponse;
-        using Location = assfire::api::v1::model::routing::Location;
-        using RouteInfo = assfire::api::v1::model::routing::RouteInfo;
         using ResponseStatus = assfire::api::v1::services::router::ResponseStatus;
 
-        using RoutesBatchConsumer = std::function<void(GetRoutesBatchResponse)>;
+        using Location = assfire::api::v1::model::routing::Location;
+        using RouteInfo = assfire::api::v1::model::routing::RouteInfo;
+        using RoutingOptions = assfire::api::v1::model::routing::RoutingOptions;
+        using RoutingType = RoutingOptions::RoutingType;
 
+        using RoutesBatchConsumer = std::function<void(GetRoutesBatchResponse)>;
 
         virtual ~RouteProvider() = default;
 
