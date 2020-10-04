@@ -11,7 +11,7 @@ variables:
   APPLICATION_VERSION: $CI_COMMIT_REF_NAME
 
 build-ci-image:
-  image: docker:stable
+  image: docker:19.03.0
   services:
     - docker:dind
   stage: build ci image
