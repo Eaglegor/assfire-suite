@@ -19,7 +19,8 @@ set(HEADERS
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)
+find_package(cpprestsdk CONFIG REQUIRED)
 
 add_library(assfire-router-engine ${SOURCES})
-target_link_libraries(assfire-router-engine PUBLIC spdlog::spdlog prometheus-cpp::core assfire-router-api)
+target_link_libraries(assfire-router-engine PUBLIC spdlog::spdlog prometheus-cpp::core assfire-router-api cpprestsdk::cpprest)
 target_include_directories(assfire-router-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
