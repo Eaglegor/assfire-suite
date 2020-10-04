@@ -105,3 +105,5 @@ grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context
         return grpc::Status(grpc::StatusCode::UNKNOWN, e.what());
     }
 }
+
+RouterService::~RouterService() = default;
