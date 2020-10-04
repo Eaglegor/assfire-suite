@@ -10,7 +10,7 @@ if(ASSFIRE_APPS_BUILD_ROUTER OR ASSFIRE_APPS_BUILD_ALL)
     endif()
 
     add_subdirectory(api)
-#    add_subdirectory(client)
+    add_subdirectory(client)
     add_subdirectory(engine)
     add_subdirectory(gateway)
     add_subdirectory(helm)

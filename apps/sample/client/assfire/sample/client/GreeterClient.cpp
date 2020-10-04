@@ -1,6 +1,7 @@
 #include "GreeterClient.hpp"
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
+#include <spdlog/spdlog.h>
 
 namespace assfire::sample {
     GreeterClient::GreeterClient(const std::string &host, int port, bool use_ssl)
@@ -23,6 +24,7 @@ namespace assfire::sample {
         grpc::Status result = stub->Greet(&client_context, request, &response);
 
         if (!result.ok()) {
+            SPDLOG_ERROR("Error while processing gRPC call: {}", result.error_message());
             throw std::logic_error(result.error_message());
         }
 
