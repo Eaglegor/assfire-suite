@@ -1,7 +1,0 @@
-type: google.api.Service
-config_version: 3
-
-http:
-  rules:
-    - selector: assfire.routing.proto.v1.RoutesProvider.GetSingleRoute
-      get: /v1/route

@@ -77,7 +77,7 @@ docker-server:
   stage: docker
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build out --build-arg APPLICATION_NAME=sample --build-arg APPLICATION_VERSION=${APPLICATION_VERSION} -f out/apps/sample/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-sample:$TEMP_IMAGE_TAG_NAME
+    - docker build out -f out/apps/sample/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-sample:$TEMP_IMAGE_TAG_NAME
     - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-sample:$TEMP_IMAGE_TAG_NAME
   dependencies:
     - build
