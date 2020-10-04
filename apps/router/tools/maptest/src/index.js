@@ -45,7 +45,7 @@ class ResponseComponent extends Component {
 class RequestControls extends Component {
 
     state = {
-        endpoint: "https://router.assfire.org/api/v1/route",
+        endpoint: "https://assfire.org/router/api/v1/route",
         // endpoint: "http://localhost:8082/v1/route",
         from_latitude: 55740090,
         from_longitude: 37624716,
