@@ -74,6 +74,10 @@ helm-lint:
 rpm:
   image: $BUILD_IMAGE_NAME
   stage: rpm
+  dependencies:
+    - build
+  needs:
+    - build
   artifacts:
     paths:
       - out/*.rpm

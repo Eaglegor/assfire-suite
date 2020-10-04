@@ -63,6 +63,10 @@ rpm:
   artifacts:
     paths:
       - out/*.rpm
+  dependencies:
+    - build
+  needs:
+    - build
   script:
     - cd out
     - cmake -DASSFIRE_PACKAGE_BUILD_RPM=ON $CMAKE_OPTIONS ../
