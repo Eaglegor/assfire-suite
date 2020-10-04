@@ -68,7 +68,7 @@ helm-lint:
   image: $BUILD_IMAGE_NAME
   stage: test
   script:
-    - cd out/apps/sample/helm/assfire-router
+    - cd out/apps/router/helm/assfire-router
     - helm lint .
 
 rpm:
@@ -95,7 +95,7 @@ docker-server:
   stage: docker
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build out -f out/apps/sample/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
+    - docker build out -f out/apps/router/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
     - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-router:$TEMP_IMAGE_TAG_NAME
   dependencies:
     - build
@@ -162,7 +162,7 @@ helm:
   only:
     - tags
   script:
-    - cd out/apps/sample/helm/assfire-router/
+    - cd out/apps/router/helm/assfire-router/
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart save . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:${APPLICATION_VERSION}
     - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:${APPLICATION_VERSION}
@@ -183,7 +183,7 @@ deploy:
   stage:
     deploy
   script:
-    - echo "Deploying Assfire Sample"
+    - echo "Deploying Assfire Router"
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart pull $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:${APPLICATION_VERSION}
     - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:${APPLICATION_VERSION}
