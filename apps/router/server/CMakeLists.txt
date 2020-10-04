@@ -12,7 +12,6 @@ find_package(prometheus-cpp CONFIG REQUIRED)
 
 add_executable(assfire-router-server ${SOURCES})
 target_link_libraries(assfire-router-server PRIVATE assfire-router-engine assfire-sample-api prometheus-cpp::pull)
-target_include_directories(")
 
 install(TARGETS assfire-router-server COMPONENT router-server)
 if(ASSFIRE_PACKAGE_BUILD_RPM)
