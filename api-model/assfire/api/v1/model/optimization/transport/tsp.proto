@@ -1,0 +1,16 @@
+syntax="proto3";
+
+package assfire.api.v1.model.optimization.transport;
+option go_package = "assfire.org/api/v1/model/optimization/transport";
+
+import "assfire/api/v1/model/optimization/transport/transport.proto";
+
+message TspTask {
+  repeated assfire.api.v1.model.optimization.transport.Job jobs = 1;
+  assfire.api.v1.model.optimization.transport.Resource resource = 2;
+}
+
+message TspSolution {
+  repeated int32 optimized_order = 1;
+  assfire.api.v1.model.optimization.transport.TransportationCosts transportation_costs = 2;
+}

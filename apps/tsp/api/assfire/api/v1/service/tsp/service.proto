@@ -3,36 +3,26 @@ syntax="proto3";
 package assfire.api.v1.services.tsp;
 option go_package = "assfire.org/api/v1/services/tsp";
 
-import "assfire/api/v1/model/optimization/transport/transport.proto";
+import "assfire/api/v1/model/optimization/transport/tsp.proto";
 import "google/api/annotations.proto";
 
-message TspTask {
-  repeated assfire.api.v1.model.optimization.transport.Job jobs = 1;
-  assfire.api.v1.model.optimization.transport.Resource resource = 2;
-}
-
-message TspSolution {
-  repeated int32 optimized_order = 1;
-  assfire.api.v1.model.optimization.transport.TransportationCosts transportation_costs = 2;
-}
-
 message SolveTspSyncRequest {
-  TspTask task = 1;
+  assfire.api.v1.model.optimization.transport.TspTask task = 1;
 }
 
 message SolveTspSyncResponse {
-  TspSolution solution = 1;
+  assfire.api.v1.model.optimization.transport.TspSolution solution = 1;
 }
 
 message SolveTspStreamingRequest {
-  TspTask task = 1;
+  assfire.api.v1.model.optimization.transport.TspTask task = 1;
 }
 
 message SolveTspStreamingResponse {
   int32 progress = 1;
   bool finished = 2;
   string comment = 3;
-  TspSolution solution = 4;
+  assfire.api.v1.model.optimization.transport.TspSolution solution = 4;
 }
 
 service TspService {

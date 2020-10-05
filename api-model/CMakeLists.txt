@@ -9,6 +9,7 @@ protobuf_generate(
 
         PROTOS
         assfire/api/v1/model/optimization/transport/transport.proto
+        assfire/api/v1/model/optimization/transport/tsp.proto
         assfire/api/v1/model/routing/routing.proto
         assfire/api/v1/model/sample/sample.proto
 
