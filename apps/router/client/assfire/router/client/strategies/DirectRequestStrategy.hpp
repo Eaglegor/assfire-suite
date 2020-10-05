@@ -21,7 +21,22 @@ namespace assfire::router
         void getRoutesBatch(const GetRoutesBatchRequest &request, const RoutesBatchConsumer &consumer) const override;
 
         void getRoutesBatch(const RequestSupplier &supplier, const RoutesBatchConsumer &consumer) const override;
+
+        LocationId addLocation(const Location &location) override;
+
+        RoutingOptionsId addRoutingOptions(const RoutingOptions &routing_options) override;
+
+        void prepareRoute(const Location &origin, const Location &destination, const RoutingOptions &options) override;
+
+        void prepareRoute(LocationId origin, LocationId destination, RoutingOptionsId options) override;
+
+        RouteInfo getRoute(const Location &origin, const Location &destination, const RoutingOptions &options) const override;
+
+        RouteInfo getRoute(LocationId origin, LocationId destination, RoutingOptionsId options) override;
+
     private:
         const GrpcClient& transport_client;
+        std::vector<Location> locations;
+        std::vector<RoutingOptions> routing_options;
     };
 }

@@ -15,18 +15,33 @@ namespace assfire::router
         using GetRoutesBatchResponse = assfire::api::v1::services::router::GetRoutesBatchResponse;
         using ResponseStatus = assfire::api::v1::services::router::ResponseStatus;
 
+        using Location = assfire::api::v1::model::routing::Location;
+        using RoutingOptions = assfire::api::v1::model::routing::RoutingOptions;
+        using RouteInfo = assfire::api::v1::model::routing::RouteInfo;
+
         using RoutesBatchConsumer = std::function<void(GetRoutesBatchResponse)>;
         using RequestSupplier = std::function<bool(GetRoutesBatchRequest&)>;
 
-        DistanceMatrix(std::unique_ptr<RequestStrategy> &&request_strategy);
+        using LocationId = int;
+        using RoutingOptionsId = int;
+
+        explicit DistanceMatrix(std::unique_ptr<RequestStrategy> &&request_strategy);
+
+        LocationId addLocation(const Location& location);
+        RoutingOptionsId addRoutingOptions(const RoutingOptions& routing_options);
 
         void prepareRoute(const GetSingleRouteRequest &);
+        void prepareRoute(const Location& origin, const Location& destination, const RoutingOptions& options);
+        void prepareRoute(LocationId origin, LocationId destination, RoutingOptionsId options);
         void prepareRoutes(const GetRoutesBatchRequest &);
 
         [[nodiscard]]
         GetSingleRouteResponse getRoute(const GetSingleRouteRequest &) const;
         void getRoutesBatch(const GetRoutesBatchRequest &, const RoutesBatchConsumer &) const;
         void getRoutesBatch(const RequestSupplier&, const RoutesBatchConsumer &) const;
+
+        RouteInfo getRoute(const Location& origin, const Location& destination, const RoutingOptions& options) const;
+        RouteInfo getRoute(LocationId origin, LocationId destination, RoutingOptionsId options);
 
     private:
         std::unique_ptr<RequestStrategy> request_strategy;
