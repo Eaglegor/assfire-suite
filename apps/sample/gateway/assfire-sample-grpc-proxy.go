@@ -10,7 +10,7 @@ import (
   "github.com/grpc-ecosystem/grpc-gateway/runtime"
   "google.golang.org/grpc"
 
-  gw "assfire.org/api/v1/services/sample"
+  gw "assfire.org/api/v1/service/sample"
 )
 
 var (

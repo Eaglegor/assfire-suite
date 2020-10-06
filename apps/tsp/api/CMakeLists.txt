@@ -7,7 +7,7 @@ set(IMPORT_DIRS
         ${CMAKE_SOURCE_DIR}/api-model
         ${GOOGLE_PROTOBUF_IMPORT_DIR})
 set(PROTOS
-        assfire/api/v1/service/tsp/service.proto
+        assfire/api/v1/service/tsp/tsp.proto
         )
 
 add_library(assfire-tsp-api)

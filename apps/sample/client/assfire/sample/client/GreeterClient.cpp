@@ -14,13 +14,13 @@ namespace assfire::sample {
         }
 
         channel = grpc::CreateChannel(host + ": " + std::to_string(port), credentials);
-        stub = assfire::api::v1::services::sample::GreeterService::NewStub(channel);
+        stub = assfire::api::v1::service::sample::GreeterService::NewStub(channel);
     }
 
-    assfire::api::v1::services::sample::GreetResponse GreeterClient::greet(const assfire::api::v1::services::sample::GreetRequest &request) const
+    assfire::api::v1::service::sample::GreetResponse GreeterClient::greet(const assfire::api::v1::service::sample::GreetRequest &request) const
     {
         grpc::ClientContext client_context;
-        assfire::api::v1::services::sample::GreetResponse response;
+        assfire::api::v1::service::sample::GreetResponse response;
         grpc::Status result = stub->Greet(&client_context, request, &response);
 
         if (!result.ok()) {

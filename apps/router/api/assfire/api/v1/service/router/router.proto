@@ -1,7 +1,7 @@
 syntax="proto3";
 
-package assfire.api.v1.services.router;
-option go_package = "assfire.org/api/v1/services/router";
+package assfire.api.v1.service.router;
+option go_package = "assfire.org/api/v1/service/router";
 
 import "assfire/api/v1/model/routing/routing.proto";
 import "google/api/annotations.proto";

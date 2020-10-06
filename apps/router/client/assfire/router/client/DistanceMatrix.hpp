@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <assfire/api/v1/service/router/service.pb.h>
+#include <assfire/api/v1/service/router/router.pb.h>
 
 namespace assfire::router
 {
@@ -9,11 +9,11 @@ namespace assfire::router
     class DistanceMatrix
     {
     public:
-        using GetSingleRouteRequest = assfire::api::v1::services::router::GetSingleRouteRequest;
-        using GetSingleRouteResponse = assfire::api::v1::services::router::GetSingleRouteResponse;
-        using GetRoutesBatchRequest = assfire::api::v1::services::router::GetRoutesBatchRequest;
-        using GetRoutesBatchResponse = assfire::api::v1::services::router::GetRoutesBatchResponse;
-        using ResponseStatus = assfire::api::v1::services::router::ResponseStatus;
+        using GetSingleRouteRequest = assfire::api::v1::service::router::GetSingleRouteRequest;
+        using GetSingleRouteResponse = assfire::api::v1::service::router::GetSingleRouteResponse;
+        using GetRoutesBatchRequest = assfire::api::v1::service::router::GetRoutesBatchRequest;
+        using GetRoutesBatchResponse = assfire::api::v1::service::router::GetRoutesBatchResponse;
+        using ResponseStatus = assfire::api::v1::service::router::ResponseStatus;
 
         using Location = assfire::api::v1::model::routing::Location;
         using RoutingOptions = assfire::api::v1::model::routing::RoutingOptions;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <assfire/api/v1/service/router/service.grpc.pb.h>
+#include <assfire/api/v1/service/router/router.grpc.pb.h>
 #include <assfire/router/MetricsCollector.hpp>
 #include <memory>
 #include <atomic>
@@ -9,14 +9,14 @@ namespace assfire::router
 {
     class RouteProvider;
 
-    class RouterService final : public assfire::api::v1::services::router::RouterService::Service
+    class RouterService final : public assfire::api::v1::service::router::RouterService::Service
     {
     public:
-        using GetSingleRouteRequest = assfire::api::v1::services::router::GetSingleRouteRequest;
-        using GetSingleRouteResponse = assfire::api::v1::services::router::GetSingleRouteResponse;
-        using GetRoutesBatchRequest = assfire::api::v1::services::router::GetRoutesBatchRequest;
-        using GetRoutesBatchResponse = assfire::api::v1::services::router::GetRoutesBatchResponse;
-        using ResponseStatus = assfire::api::v1::services::router::ResponseStatus;
+        using GetSingleRouteRequest = assfire::api::v1::service::router::GetSingleRouteRequest;
+        using GetSingleRouteResponse = assfire::api::v1::service::router::GetSingleRouteResponse;
+        using GetRoutesBatchRequest = assfire::api::v1::service::router::GetRoutesBatchRequest;
+        using GetRoutesBatchResponse = assfire::api::v1::service::router::GetRoutesBatchResponse;
+        using ResponseStatus = assfire::api::v1::service::router::ResponseStatus;
 
         struct Options {
             MetricsCollector metrics_collector;

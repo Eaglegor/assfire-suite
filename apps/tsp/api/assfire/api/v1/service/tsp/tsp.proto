@@ -1,0 +1,65 @@
+syntax="proto3";
+
+package assfire.api.v1.service.tsp;
+option go_package = "assfire.org/api/v1/service/tsp";
+
+import "assfire/api/v1/model/optimization/transport/transport.proto";
+import "google/api/annotations.proto";
+
+message TspTask {
+  repeated assfire.api.v1.model.optimization.transport.Job jobs = 1;
+  assfire.api.v1.model.optimization.transport.Resource resource = 2;
+}
+
+message TspSolution {
+  repeated int32 optimized_order = 1;
+  assfire.api.v1.model.optimization.transport.TransportationCosts transportation_costs = 2;
+}
+
+message Settings {
+  enum Algorithm {
+    TWO_OPT = 0;
+  }
+
+  Algorithm algorithm = 1;
+}
+
+message SolveTspSyncRequest {
+  TspTask task = 1;
+  Settings settings = 2;
+}
+
+message SolveTspSyncResponse {
+  TspSolution solution = 1;
+  Settings settings = 2;
+}
+
+message SolveTspStreamingRequest {
+  TspTask task = 1;
+}
+
+message TspSolutionStatus {
+  int32 progress = 1;
+  bool finished = 2;
+  string comment = 3;
+}
+
+message SolveTspStreamingResponse {
+  TspSolutionStatus status = 1;
+  TspSolution solution = 2;
+}
+
+service TspService {
+  rpc SolveTspSync(SolveTspSyncRequest) returns (SolveTspSyncResponse){
+    option (google.api.http) = {
+      post: "/v1/sync"
+      body: "*"
+    };
+  };
+  rpc SolveTspStreaming(SolveTspStreamingRequest) returns (stream SolveTspStreamingResponse) {
+    option (google.api.http) = {
+      post: "/v1/streaming"
+      body: "*"
+    };
+  }
+}

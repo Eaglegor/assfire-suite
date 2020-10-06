@@ -5,7 +5,7 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
     set(MODEL_PROTOS
             assfire/api/v1/model/sample/sample.proto)
     set(SERVICE_PROTOS
-            assfire/api/v1/service/sample/service.proto)
+            assfire/api/v1/service/sample/sample.proto)
     set(IMPORT_DIRS
             ${CMAKE_SOURCE_DIR}/apps/sample/api
             ${CMAKE_SOURCE_DIR}/api-model
@@ -17,11 +17,11 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
             ${CMAKE_CURRENT_BINARY_DIR}/swagger)
     file(MAKE_DIRECTORY ${SWAGGER_OUT_DIR})
     set(GO_FILE
-            ${GO_OUT_DIR}/assfire/api/v1/service/sample/service.pb.go)
+            ${GO_OUT_DIR}/assfire/api/v1/service/sample/sample.pb.go)
     set(GO_GW_FILE
-            ${GO_OUT_DIR}/assfire/api/v1/service/sample/service.pb.gw.go)
+            ${GO_OUT_DIR}/assfire/api/v1/service/sample/sample.pb.gw.go)
     set(SWAGGER_FILE
-            ${GO_OUT_DIR}/assfire/api/v1/service/sample/service.json)
+            ${GO_OUT_DIR}/assfire/api/v1/service/sample/sample.json)
 
     list(TRANSFORM IMPORT_DIRS PREPEND --proto_path=)
 

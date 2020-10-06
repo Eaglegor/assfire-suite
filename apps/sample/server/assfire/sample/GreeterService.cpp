@@ -6,7 +6,7 @@ namespace assfire::sample {
     {
     }
 
-    grpc::Status GreeterService::Greet(::grpc::ServerContext *context, const ::assfire::api::v1::services::sample::GreetRequest *request, ::assfire::api::v1::services::sample::GreetResponse *response)
+    grpc::Status GreeterService::Greet(::grpc::ServerContext *context, const ::assfire::api::v1::service::sample::GreetRequest *request, ::assfire::api::v1::service::sample::GreetResponse *response)
     {
         response->mutable_greeting()->assign(greeter.greet(request->user().username()));
         return grpc::Status::OK;

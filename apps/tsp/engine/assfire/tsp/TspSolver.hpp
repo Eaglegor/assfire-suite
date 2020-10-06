@@ -1,16 +1,27 @@
 #pragma once
 
-#include <assfire/api/v1/model/optimization/transport/tsp.pb.h>
+#include <assfire/api/v1/service/tsp/tsp.pb.h>
+#include "TspAlgorithm.hpp"
 
 namespace assfire::tsp
 {
+    namespace {
+        const TspAlgorithm::StatusConsumer DEFAULT_STATUS_CONSUMER = [](const TspAlgorithm::TspSolutionStatus&){};
+        const TspAlgorithm::InterruptCondition DEFAULT_INTERRUPT_CONDITION = [](){return false;};
+    }
+
     class TspSolver
     {
     public:
-        using Task = assfire::api::v1::model::optimization::transport::TspTask;
-        using Solution = assfire::api::v1::model::optimization::transport::TspSolution;
+        using Task = TspAlgorithm::Task;
+        using Solution = TspAlgorithm::Solution;
+        using Settings = TspAlgorithm::Settings;
+        using TspSolutionStatus = TspAlgorithm::TspSolutionStatus;
 
-        Solution solveTsp(const Task& task);
+        using StatusConsumer = TspAlgorithm::StatusConsumer;
+        using InterruptCondition = TspAlgorithm::InterruptCondition;
+
+        Solution solveTsp(const Task&, const Settings&, const StatusConsumer& statuc_consumer = DEFAULT_STATUS_CONSUMER, const InterruptCondition& interrupt_condition = DEFAULT_INTERRUPT_CONDITION);
 
         virtual ~TspSolver() = default;
     };

@@ -1,7 +1,7 @@
 syntax="proto3";
 
-package assfire.api.v1.services.sample;
-option go_package = "assfire.org/api/v1/services/sample";
+package assfire.api.v1.service.sample;
+option go_package = "assfire.org/api/v1/service/sample";
 
 import "assfire/api/v1/model/sample/sample.proto";
 import "google/api/annotations.proto";

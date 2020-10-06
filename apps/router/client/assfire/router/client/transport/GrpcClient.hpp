@@ -1,6 +1,6 @@
 #pragma once
 
-#include <assfire/api/v1/service/router/service.grpc.pb.h>
+#include <assfire/api/v1/service/router/router.grpc.pb.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/security/credentials.h>
 #include <functional>
@@ -12,11 +12,11 @@ namespace assfire::router
     public:
         using Port = std::size_t;
 
-        using GetSingleRouteRequest = assfire::api::v1::services::router::GetSingleRouteRequest;
-        using GetSingleRouteResponse = assfire::api::v1::services::router::GetSingleRouteResponse;
-        using GetRoutesBatchRequest = assfire::api::v1::services::router::GetRoutesBatchRequest;
-        using GetRoutesBatchResponse = assfire::api::v1::services::router::GetRoutesBatchResponse;
-        using ResponseStatus = assfire::api::v1::services::router::ResponseStatus;
+        using GetSingleRouteRequest = assfire::api::v1::service::router::GetSingleRouteRequest;
+        using GetSingleRouteResponse = assfire::api::v1::service::router::GetSingleRouteResponse;
+        using GetRoutesBatchRequest = assfire::api::v1::service::router::GetRoutesBatchRequest;
+        using GetRoutesBatchResponse = assfire::api::v1::service::router::GetRoutesBatchResponse;
+        using ResponseStatus = assfire::api::v1::service::router::ResponseStatus;
 
         using RoutesBatchConsumer = std::function<void(GetRoutesBatchResponse)>;
         using RequestSupplier = std::function<bool(GetRoutesBatchRequest&)>;
@@ -30,6 +30,6 @@ namespace assfire::router
 
     private:
         std::shared_ptr<grpc::ChannelInterface> channel;
-        std::unique_ptr<assfire::api::v1::services::router::RouterService::Stub> stub;
+        std::unique_ptr<assfire::api::v1::service::router::RouterService::Stub> stub;
     };
 }

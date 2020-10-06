@@ -7,7 +7,7 @@ set(IMPORT_DIRS
         ${CMAKE_SOURCE_DIR}/api-model
         ${GOOGLE_PROTOBUF_IMPORT_DIR})
 set(PROTOS
-        assfire/api/v1/service/router/service.proto
+        assfire/api/v1/service/router/router.proto
         )
 
 add_library(assfire-router-api)
