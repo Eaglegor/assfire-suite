@@ -3,6 +3,10 @@
 #include <assfire/api/v1/service/tsp/tsp.pb.h>
 #include "TspAlgorithm.hpp"
 
+namespace assfire::router {
+    class RouterClient;
+}
+
 namespace assfire::tsp
 {
     namespace {
@@ -21,8 +25,13 @@ namespace assfire::tsp
         using StatusConsumer = TspAlgorithm::StatusConsumer;
         using InterruptCondition = TspAlgorithm::InterruptCondition;
 
+        TspSolver(const router::RouterClient&);
+
         Solution solveTsp(const Task&, const Settings&, const StatusConsumer& statuc_consumer = DEFAULT_STATUS_CONSUMER, const InterruptCondition& interrupt_condition = DEFAULT_INTERRUPT_CONDITION);
 
         virtual ~TspSolver() = default;
+
+    private:
+        const router::RouterClient& router_client;
     };
 }

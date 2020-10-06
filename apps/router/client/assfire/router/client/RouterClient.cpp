@@ -10,7 +10,7 @@ assfire::router::RouterClient::RouterClient(const std::string &server_host, Port
 
 assfire::router::RouterClient::~RouterClient() = default;
 
-assfire::router::DistanceMatrix assfire::router::RouterClient::createDistanceMatrix(assfire::router::RouterClient::RequestStrategy strategy)
+assfire::router::DistanceMatrix assfire::router::RouterClient::createDistanceMatrix(assfire::router::RouterClient::RequestStrategy strategy) const
 {
     switch(strategy) {
         case RequestStrategy::DIRECT_REQUEST:

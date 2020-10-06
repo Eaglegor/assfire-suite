@@ -62,3 +62,7 @@ DistanceMatrix::RouteInfo DistanceMatrix::getRoute(DistanceMatrix::LocationId or
 {
     return request_strategy->getRoute(origin, destination, options);
 }
+
+DistanceMatrix::DistanceMatrix(DistanceMatrix &&) = default;
+
+DistanceMatrix::~DistanceMatrix() = default;

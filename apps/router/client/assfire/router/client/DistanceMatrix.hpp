@@ -26,6 +26,8 @@ namespace assfire::router
         using RoutingOptionsId = int;
 
         explicit DistanceMatrix(std::unique_ptr<RequestStrategy> &&request_strategy);
+        DistanceMatrix(DistanceMatrix&&);
+        ~DistanceMatrix();
 
         LocationId addLocation(const Location& location);
         RoutingOptionsId addRoutingOptions(const RoutingOptions& routing_options);

@@ -21,7 +21,7 @@ namespace assfire::router
 
         ~RouterClient();
 
-        DistanceMatrix createDistanceMatrix(RequestStrategy);
+        DistanceMatrix createDistanceMatrix(RequestStrategy) const;
 
     private:
         std::unique_ptr<GrpcClient> transport_client;
