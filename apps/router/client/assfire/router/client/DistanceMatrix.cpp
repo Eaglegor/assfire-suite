@@ -58,7 +58,7 @@ void DistanceMatrix::prepareRoute(DistanceMatrix::LocationId origin, DistanceMat
     return request_strategy->prepareRoute(origin, destination, options);
 }
 
-DistanceMatrix::RouteInfo DistanceMatrix::getRoute(DistanceMatrix::LocationId origin, DistanceMatrix::LocationId destination, DistanceMatrix::RoutingOptionsId options)
+DistanceMatrix::RouteInfo DistanceMatrix::getRoute(DistanceMatrix::LocationId origin, DistanceMatrix::LocationId destination, DistanceMatrix::RoutingOptionsId options) const
 {
     return request_strategy->getRoute(origin, destination, options);
 }

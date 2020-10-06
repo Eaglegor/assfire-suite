@@ -12,7 +12,7 @@ message TspTask {
 }
 
 message TspSolution {
-  repeated int32 optimized_order = 1;
+  repeated assfire.api.v1.model.optimization.transport.Waypoint waypoints = 1;
   assfire.api.v1.model.optimization.transport.TransportationCosts transportation_costs = 2;
 }
 
@@ -21,7 +21,12 @@ message Settings {
     TWO_OPT = 0;
   }
 
+  enum InitialSolutionStrategy {
+    AS_IS = 0;
+  }
+
   Algorithm algorithm = 1;
+  InitialSolutionStrategy initial_solution_strategy = 2;
 }
 
 message SolveTspSyncRequest {

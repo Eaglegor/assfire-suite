@@ -5,6 +5,13 @@ set(SOURCES
 set(HEADERS
         assfire/tsp/MetricsCollector.hpp
         assfire/tsp/TspSolver.hpp
+        assfire/tsp/algorithms/model/Job.hpp
+        assfire/tsp/algorithms/model/Location.hpp
+        assfire/tsp/algorithms/model/Problem.hpp
+        assfire/tsp/algorithms/model/Resource.hpp
+        assfire/tsp/algorithms/model/RoutingOptons.hpp
+        assfire/tsp/algorithms/model/Solution.hpp
+        assfire/tsp/algorithms/model/Waypoint.hpp
         assfire/tsp/algorithms/two_opt/TwoOptTspAlgorithm.hpp)
 
 find_package(spdlog CONFIG REQUIRED)

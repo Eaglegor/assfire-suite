@@ -43,7 +43,7 @@ namespace assfire::router
         void getRoutesBatch(const RequestSupplier&, const RoutesBatchConsumer &) const;
 
         RouteInfo getRoute(const Location& origin, const Location& destination, const RoutingOptions& options) const;
-        RouteInfo getRoute(LocationId origin, LocationId destination, RoutingOptionsId options);
+        RouteInfo getRoute(LocationId origin, LocationId destination, RoutingOptionsId options) const;
 
     private:
         std::unique_ptr<RequestStrategy> request_strategy;

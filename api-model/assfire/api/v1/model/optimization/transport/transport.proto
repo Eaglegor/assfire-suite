@@ -10,6 +10,10 @@ message Job {
   int32 id = 2;
 }
 
+message Waypoint {
+  Job job = 1;
+}
+
 message Resource {
   message UsageCosts {
     double distance_unit_cost = 1;

@@ -12,16 +12,19 @@ namespace assfire::tsp
 {
     class Job;
     class Resource;
+    class Solution;
 
     class TwoOptTspAlgorithm : public TspAlgorithm
     {
     public:
+        using Cost = std::int64_t;
+
         TwoOptTspAlgorithm(const router::RouterClient &routing_client);
 
-        Solution solveTsp(const Task &, const Settings &, const StatusConsumer &, const InterruptCondition&) override;
+        TspSolution solveTsp(const Task &, const Settings &, const StatusConsumer &, const InterruptCondition&) override;
 
     private:
-        static std::int64_t estimate(const std::vector<Job>&, const Resource&);
+        static Cost estimate(const Solution&);
 
         const router::RouterClient& router_client;
     };

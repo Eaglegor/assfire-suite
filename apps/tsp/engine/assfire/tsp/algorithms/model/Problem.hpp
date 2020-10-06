@@ -1,6 +1,8 @@
 #pragma once
 
 #include <utility>
+#include <algorithm>
+#include <iterator>
 
 #include "Job.hpp"
 #include "Resource.hpp"
