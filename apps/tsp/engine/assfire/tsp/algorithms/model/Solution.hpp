@@ -10,39 +10,50 @@
 
 namespace assfire::tsp
 {
-    struct Solution
+    class Solution
     {
+    public:
         explicit Solution(std::vector<Waypoint> waypoints, const Problem &problem)
-                : waypoints(std::move(waypoints)), problem(problem)
+                : waypoints(std::move(waypoints)), problem(&problem)
         {}
 
         explicit Solution(const Problem &problem)
-                : problem(problem)
+                : problem(&problem)
         {
-            std::transform(problem.jobs.begin(), problem.jobs.end(), std::back_inserter(waypoints), [](const Job &j) {
+            std::transform(problem.getJobs().begin(), problem.getJobs().end(), std::back_inserter(waypoints), [](const Job &j) {
                 return Waypoint(j);
             });
         }
 
-        Solution &operator=(const Solution &rhs)
+        const std::vector<Waypoint> &getWaypoints() const
         {
-            assert(&rhs.problem == &problem);
-            this->waypoints = rhs.waypoints;
-        };
+            return waypoints;
+        }
 
-        assfire::api::v1::service::tsp::TspSolution toTspSolution()
+        std::vector<Waypoint> &getWaypoints()
+        {
+            return waypoints;
+        }
+
+        const Problem &getProblem() const
+        {
+            return *problem;
+        }
+
+        assfire::api::v1::service::tsp::TspSolution toTspSolution() const
         {
             assfire::api::v1::service::tsp::TspSolution result;
 
             for (const Waypoint &wp : waypoints) {
                 assfire::api::v1::model::optimization::transport::Waypoint *waypoint = result.add_waypoints();
-                waypoint->mutable_job()->CopyFrom(wp.job.data);
+                waypoint->mutable_job()->CopyFrom(wp.getJob().getData());
             }
 
             return result;
         }
 
+    private:
         std::vector<Waypoint> waypoints;
-        const Problem &problem;
+        const Problem *problem;
     };
 }

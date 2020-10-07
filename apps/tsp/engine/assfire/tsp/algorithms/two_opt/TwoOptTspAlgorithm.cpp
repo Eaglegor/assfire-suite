@@ -23,16 +23,16 @@ TwoOptTspAlgorithm::solveTsp(const TspAlgorithm::Task &task, const TspAlgorithm:
     Solution best_solution(current_solution);
     Cost best_cost = estimate(best_solution);
 
-    for (int k = 0; k < current_solution.waypoints.size(); ++k) {
-        for (int i = 0; i < current_solution.waypoints.size(); ++i) {
-            for (int j = i + 2; j <= current_solution.waypoints.size(); ++j) {
-                std::reverse(current_solution.waypoints.begin() + i, current_solution.waypoints.begin() + j);
+    for (int k = 0; k < current_solution.getWaypoints().size(); ++k) {
+        for (int i = 0; i < current_solution.getWaypoints().size(); ++i) {
+            for (int j = i + 2; j <= current_solution.getWaypoints().size(); ++j) {
+                std::reverse(current_solution.getWaypoints().begin() + i, current_solution.getWaypoints().begin() + j);
                 Cost current_cost = estimate(current_solution);
                 if (current_cost < best_cost) {
                     best_solution = current_solution;
                     best_cost = current_cost;
                 } else {
-                    std::reverse(current_solution.waypoints.begin() + i, current_solution.waypoints.begin() + j);
+                    std::reverse(current_solution.getWaypoints().begin() + i, current_solution.getWaypoints().begin() + j);
                 }
             }
         }
@@ -43,13 +43,13 @@ TwoOptTspAlgorithm::solveTsp(const TspAlgorithm::Task &task, const TspAlgorithm:
 
 TwoOptTspAlgorithm::Cost TwoOptTspAlgorithm::estimate(const Solution &solution)
 {
-    const DistanceMatrix &distance_matrix = solution.problem.distance_matrix;
+    const DistanceMatrix &distance_matrix = solution.getProblem().getDistanceMatrix();
 
     Cost cost = 0;
-    for (int i = 0; i < solution.waypoints.size() - 1; ++i) {
-        const auto &fromLocation = solution.waypoints[i].job.location.id;
-        const auto &toLocation = solution.waypoints[i + 1].job.location.id;
-        const auto &routingOptions = solution.problem.resource.routing_options.id;
+    for (int i = 0; i < solution.getWaypoints().size() - 1; ++i) {
+        const auto &fromLocation = solution.getWaypoints()[i].getJob().getLocation().getId();
+        const auto &toLocation = solution.getWaypoints()[i + 1].getJob().getLocation().getId();
+        const auto &routingOptions = solution.getProblem().getResource().getRoutingOptions().getId();
 
         cost += distance_matrix.getRoute(fromLocation, toLocation, routingOptions).duration();
     }

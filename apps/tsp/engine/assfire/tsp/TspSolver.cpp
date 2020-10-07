@@ -15,13 +15,27 @@ TspSolver::solveTsp(const Task &task, const Settings &settings, const StatusCons
 {
     switch (settings.algorithm()) {
         case Settings::TWO_OPT: {
-            TspSolver::Solution solution = TwoOptTspAlgorithm(router_client).solveTsp(task, settings, status_consumer,
-                                                                                      interruption_condition);
-            TspSolutionStatus status;
-            status.set_finished(true);
-            status.set_progress(100);
-            status_consumer(status);
-            return solution;
+            TspSolutionStatus before_status;
+            before_status.set_code(TspSolutionStatus::IN_PROGRESS);
+            before_status.set_progress(0);
+            status_consumer(before_status);
+
+            try {
+                TspSolver::Solution solution = TwoOptTspAlgorithm(router_client).solveTsp(task, settings, status_consumer,
+                                                                                          interruption_condition);
+                TspSolutionStatus after_status;
+                after_status.set_code(TspSolutionStatus::OK);
+                after_status.set_progress(100);
+                status_consumer(after_status);
+                return solution;
+            } catch (const std::exception& e) {
+                SPDLOG_ERROR("Exception thrown while solving TSP: {}", e.what());
+                TspSolutionStatus error_status;
+                error_status.set_code(TspSolutionStatus::ERROR);
+                error_status.set_progress(0);
+                status_consumer(error_status);
+                return TspSolver::Solution();
+            }
         }
         default:
             SPDLOG_ERROR("Unknown TSP algorithm: {}", settings.algorithm());

@@ -5,7 +5,7 @@
 #include <prometheus/summary.h>
 #include <spdlog/spdlog.h>
 
-namespace assfire::sample
+namespace assfire::tsp
 {
     MetricsCollector::MetricsCollector(const std::shared_ptr<prometheus::Exposer> &exposer) :
             exposer(exposer)

@@ -15,7 +15,7 @@ namespace prometheus
     class Summary;
 }
 
-namespace assfire::sample
+namespace assfire::tsp
 {
     class MetricsCollector
     {

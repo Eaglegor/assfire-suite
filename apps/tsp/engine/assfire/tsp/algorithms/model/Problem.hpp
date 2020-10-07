@@ -12,15 +12,27 @@
 
 namespace assfire::tsp
 {
-    struct Problem
+    class Problem
     {
+    public:
         Problem(router::DistanceMatrix distance_matrix, std::vector<Job> jobs, Resource resource)
                 : distance_matrix(std::move(distance_matrix)), jobs(std::move(jobs)), resource(std::move(resource))
         {}
 
-        const router::DistanceMatrix distance_matrix;
-        const std::vector<Job> jobs;
-        const Resource resource;
+        const router::DistanceMatrix &getDistanceMatrix() const
+        {
+            return distance_matrix;
+        }
+
+        const std::vector<Job> &getJobs() const
+        {
+            return jobs;
+        }
+
+        const Resource &getResource() const
+        {
+            return resource;
+        }
 
         static Problem of(const assfire::api::v1::service::tsp::TspTask &task,
                            const router::RouterClient &router_client)
@@ -35,11 +47,16 @@ namespace assfire::tsp
 
             for (const Job &from : trip) {
                 for (const Job &to : trip) {
-                    distance_matrix.prepareRoute(from.location.id, to.location.id, resource.routing_options.id);
+                    distance_matrix.prepareRoute(from.getLocation().getId(), to.getLocation().getId(), resource.getRoutingOptions().getId());
                 }
             }
 
             return Problem(std::move(distance_matrix), std::move(trip), std::move(resource));
         }
+
+    private:
+        const router::DistanceMatrix distance_matrix;
+        const std::vector<Job> jobs;
+        const Resource resource;
     };
 }

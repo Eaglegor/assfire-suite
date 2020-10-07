@@ -18,7 +18,7 @@ namespace assfire::tsp
     {
     public:
         using Task = TspAlgorithm::Task;
-        using Solution = TspAlgorithm::Solution;
+        using Solution = TspAlgorithm::TspSolution;
         using Settings = TspAlgorithm::Settings;
         using TspSolutionStatus = TspAlgorithm::TspSolutionStatus;
 

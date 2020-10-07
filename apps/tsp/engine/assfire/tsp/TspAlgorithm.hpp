@@ -10,7 +10,7 @@ namespace assfire::tsp
         using Task = assfire::api::v1::service::tsp::TspTask;
         using TspSolution = assfire::api::v1::service::tsp::TspSolution;
         using Settings = assfire::api::v1::service::tsp::Settings;
-        using TspSolutionStatus = assfire::api::v1::service::tsp::TspSolutionStatus;
+        using TspSolutionStatus = assfire::api::v1::service::tsp::ResponseStatus;
 
         using StatusConsumer = std::function<void(const TspSolutionStatus &status)>;
         using InterruptCondition = std::function<bool ()>;
