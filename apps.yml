@@ -1,5 +1,17 @@
-assfire-router:
+sample:
   stage: build applications
   trigger:
-    include: apps/assfire-router/pipeline.yml
+    include: apps/sample/pipeline.yml
+    strategy: depend
+
+router:
+  stage: build applications
+  trigger:
+    include: apps/router/pipeline.yml
+    strategy: depend
+
+tsp:
+  stage: build applications
+  trigger:
+    include: apps/tsp/pipeline.yml
     strategy: depend

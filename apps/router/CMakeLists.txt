@@ -1,0 +1,21 @@
+if(ASSFIRE_APPS_BUILD_ROUTER OR ASSFIRE_APPS_BUILD_ALL)
+
+    if(ASSFIRE_PACKAGE_BUILD_RPM)
+        set(CPACK_GENERATOR "RPM")
+        set(CPACK_PACKAGE_VERSION ${ASSFIRE_APPLICATION_RELEASE_VERSION})
+        set(CPACK_PACKAGE_CONTACT "Nikolay Gorbachenko <eaglegor@gmail.com>")
+        set(CPACK_PACKAGE_VENDOR "Nikolay Gorbachenko <eaglegor@gmail.com>")
+        set(CPACK_RPM_COMPONENT_INSTALL ON)
+        include(CPack)
+    endif()
+
+    add_subdirectory(api)
+    add_subdirectory(client)
+    add_subdirectory(engine)
+    add_subdirectory(gateway)
+    add_subdirectory(helm)
+    add_subdirectory(server)
+    add_subdirectory(tools)
+
+    configure_file(Dockerfile ${CMAKE_CURRENT_BINARY_DIR}/Dockerfile)
+endif()
