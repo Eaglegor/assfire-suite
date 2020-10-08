@@ -71,7 +71,7 @@ int main(int argc, char **argv)
         tsp_server_options.metrics_collector = MetricsCollector(std::make_shared<prometheus::Exposer>(
                 options[METRICS_EXPOSER_BIND_ADDRESS].as<std::string>(),
                 options[METRICS_EXPOSER_URI].as<std::string>(),
-                options[METRICS_EXPOSER_THREADS_COUNT].as<int>()));
+                options[METRICS_EXPOSER_THREADS_COUNT].as<std::size_t>()));
     }
 
     TspService service(tsp_server_options);
