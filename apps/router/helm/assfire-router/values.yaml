@@ -1,0 +1,6 @@
+replicas: 2
+redis_cache_enabled: true
+redis_host: assfire-geocache-redis-master.redis.svc.cluster.local
+redis_port: 6379
+log_level: info
+metrics_enabled: true
