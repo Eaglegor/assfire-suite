@@ -136,7 +136,6 @@ deploy:
   stage:
     deploy
   script:
-    - echo "Deploying Assfire Sample"
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart pull $CI_REGISTRY/assfire/assfire-suite/helm/assfire-sample:${APPLICATION_VERSION}
     - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-sample:${APPLICATION_VERSION}

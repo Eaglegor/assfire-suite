@@ -1,0 +1,6 @@
+replicas: 2
+router_host: assfire-router.assfire.svc.cluster.local
+router_port: 50051
+router_use_ssl: true
+log_level: info
+metrics_enabled: true

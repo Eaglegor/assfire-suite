@@ -2,12 +2,15 @@
 #include <grpc++/server_builder.h>
 #include <cxxopts.hpp>
 #include <memory>
+#include <numeric>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
 #include <prometheus/exposer.h>
 
 #ifdef _WIN32
+
 #include <assfire/win32/winsock_initializer.h>
+
 #endif
 
 using namespace assfire::tsp;
@@ -19,90 +22,69 @@ int main(int argc, char **argv)
     assfire::win32::winsock_initializer winsock_initializer;
 #endif
 
-    cxxopts::Options options("assfire-router-server");
-    options.add_options()
+    constexpr const char *BIND_ADDRESS = "bind-address";
+    constexpr const char *LOG_LEVEL = "log-level";
+    constexpr const char *METRICS_ENABLED = "metrics-enabled";
+    constexpr const char *METRICS_EXPOSER_BIND_ADDRESS = "metrics-exposer-bind-address";
+    constexpr const char *METRICS_EXPOSER_URI = "metrics-exposer-uri";
+    constexpr const char *METRICS_EXPOSER_THREADS_COUNT = "metrics-exposer-threads-count";
+    constexpr const char *ROUTER_HOST = "router-host";
+    constexpr const char *ROUTER_PORT = "router-port";
+    constexpr const char *ROUTER_USE_SSL = "router-use-ssl";
+
+    cxxopts::Options args_template("assfire-tsp-server");
+    args_template.add_options()
             ("h,help", "Print options help")
-            ("bind-address", "Service bind address", cxxopts::value<std::string>()->default_value("0.0.0.0:50051"))
-            ("log-level", "Log level", cxxopts::value<std::string>()->default_value("info"))
-            ("redis-cache-enabled", "Enable redis routes cache", cxxopts::value<bool>()->default_value("false"))
-            ("redis-host", "Redis host address", cxxopts::value<std::string>()->default_value("127.0.0.1"))
-            ("redis-port", "Redis connection port", cxxopts::value<std::size_t>()->default_value("6379"))
-            ("metrics-enabled", "Prometheus metrics enabled", cxxopts::value<bool>()->default_value("false"))
-            ("metrics-exposer-bind-address", "Prometheus exposer binding address", cxxopts::value<std::string>()->default_value("0.0.0.0:8081"))
-            ("metrics-exposer-uri", "Prometheus exposer URI", cxxopts::value<std::string>()->default_value("/metrics"))
-            ("metrics-exposer-threads-count", "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"))
-            ("osrm-endpoint", "OSRM server host (where /route starts from)", cxxopts::value<std::string>()->default_value("http://router.project-osrm.org"));
+            (BIND_ADDRESS, "Service bind address", cxxopts::value<std::string>()->default_value("0.0.0.0:50051"))
+            (LOG_LEVEL, "Log level", cxxopts::value<std::string>()->default_value("info"))
+            (METRICS_ENABLED, "Prometheus metrics enabled", cxxopts::value<bool>()->default_value("false"))
+            (METRICS_EXPOSER_BIND_ADDRESS, "Prometheus exposer binding address", cxxopts::value<std::string>()->default_value("0.0.0.0:8081"))
+            (METRICS_EXPOSER_URI, "Prometheus exposer URI", cxxopts::value<std::string>()->default_value("/metrics"))
+            (METRICS_EXPOSER_THREADS_COUNT, "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"))
+            (ROUTER_HOST, "Assfire Router server host", cxxopts::value<std::string>()->default_value("http://localhost"))
+            (ROUTER_PORT, "Assfire Router port to connect to", cxxopts::value<int>()->default_value("50051"))
+            (ROUTER_USE_SSL, "If true, SSL will be used to connect to the Assfire Router", cxxopts::value<bool>()->default_value("false"));
 
-    auto result = options.parse(argc, argv);
+    auto options = args_template.parse(argc, argv);
 
-    if (result.count("help")) {
-        std::cout << options.help() << std::endl;
+    if (options.count("help")) {
+        std::cout << args_template.help() << std::endl;
         return 0;
     }
 
-    std::string bind_address = result["bind-address"].as<std::string>();
-    std::string log_level = result["log-level"].as<std::string>();
-
-    bool enable_redis_cache = result["redis-cache-enabled"].as<bool>();
-    std::string redis_host = result["redis-host"].as<std::string>();
-    std::size_t redis_port = result["redis-port"].as<std::size_t>();
-
-    bool metrics_enabled = result["metrics-enabled"].as<bool>();
-    std::string metrics_exposer_bind_address = result["metrics-exposer-bind-address"].as<std::string>();
-    std::string metrics_exposer_uri = result["metrics-exposer-uri"].as<std::string>();
-    std::size_t metrics_exposer_threads_count = result["metrics-exposer-threads-count"].as<std::size_t>();
-
-    std::string osrm_endpoint = result["osrm-endpoint"].as<std::string>();
-
-    SPDLOG_INFO("Creating routing service with options: \n\
-                log-level={}, \n\
-				bind-address={}, \n\
-				redis-cache-enabled={}, \n\
-				redis-host={}, \n\
-				redis-port={}, \n\
-				metrics-enabled={}, \n\
-				metrics-exposer-bind-address={} \n\
-				metrics-exposer-uri={} \n\
-				metrics-exposer-threads-count={} \n\
-	            osrm-endpoint={}",
-                log_level,
-                bind_address,
-                enable_redis_cache,
-                redis_host,
-                redis_port,
-                metrics_enabled,
-                metrics_exposer_bind_address,
-                metrics_exposer_uri,
-                metrics_exposer_threads_count,
-                osrm_endpoint);
-
-    assfire::log::initializeSpdlog(log_level);
-
-    TspService::Options tsp_server_options;
-//    routing_server_options.use_redis = enable_redis_cache;
-//    routing_server_options.redis_host = redis_host;
-//    routing_server_options.redis_port = redis_port;
-
-    if (metrics_enabled) {
-        tsp_server_options.metrics_collector = MetricsCollector(std::make_shared<prometheus::Exposer>(
-                metrics_exposer_bind_address,
-                metrics_exposer_uri,
-                metrics_exposer_threads_count));
+    std::string options_string = std::accumulate(options.arguments().begin(), options.arguments().end(), std::string(),
+                                                 [](const std::string &current, const cxxopts::KeyValue &kv) {
+                                                     return current + "\n" + kv.key() + " = " + kv.value();
+                                                 });
+    if(!options_string.empty()) {
+        SPDLOG_INFO("Recognized args: {}", options_string);
     }
 
-//    routing_server_options.osrm_endpoint = osrm_endpoint;
+    TspService::Options tsp_server_options;
+    tsp_server_options.router_host = options[ROUTER_HOST].as<std::string>();
+    tsp_server_options.router_port = options[ROUTER_PORT].as<int>();
+    tsp_server_options.use_ssl_for_router = options[ROUTER_USE_SSL].as<bool>();
+
+    assfire::log::initializeSpdlog(options[LOG_LEVEL].as<std::string>());
+
+    if (options[METRICS_ENABLED].as<bool>()) {
+        tsp_server_options.metrics_collector = MetricsCollector(std::make_shared<prometheus::Exposer>(
+                options[METRICS_EXPOSER_BIND_ADDRESS].as<std::string>(),
+                options[METRICS_EXPOSER_URI].as<std::string>(),
+                options[METRICS_EXPOSER_THREADS_COUNT].as<int>()));
+    }
 
     TspService service(tsp_server_options);
 
     ServerBuilder serverBuilder;
-    serverBuilder.AddListeningPort(bind_address, grpc::InsecureServerCredentials());
+    serverBuilder.AddListeningPort(options[BIND_ADDRESS].as<std::string>(), grpc::InsecureServerCredentials());
     serverBuilder.RegisterService(&service);
 
     SPDLOG_INFO("Creating gRPC server...");
 
     std::unique_ptr<Server> server(serverBuilder.BuildAndStart());
 
-    SPDLOG_INFO("Starting server on {}...", bind_address);
+    SPDLOG_INFO("Starting server on {}...", options[BIND_ADDRESS].as<std::string>());
 
     server->Wait();
     return 0;

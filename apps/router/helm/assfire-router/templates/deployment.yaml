@@ -24,7 +24,7 @@ spec:
             - containerPort: 50051
             - containerPort: 8081
           command: ["assfire-router-server"]
-          args: ["--redis-cache-enabled=true", "--redis-host=assfire-geocache-redis-master.redis.svc.cluster.local", "--metrics-enabled=true", "--log-level=info"]
+          args: ["--redis-cache-enabled={{.Values.redis_cache_enabled}}", "--redis-host={{.Values.redis_host}}", "--redis-port={{.Values.redis_port}}", "--metrics-enabled={{.Values.metrics_enabled}}", "--log-level={{.Values.log_level}}"]
         - name: router-grpc-gateway
           image: registry.gitlab.com/assfire/assfire-suite/assfire-router:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:

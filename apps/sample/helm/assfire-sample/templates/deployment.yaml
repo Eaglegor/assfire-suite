@@ -24,7 +24,7 @@ spec:
             - containerPort: 50051
             - containerPort: 8081
           command: ["assfire-sample-server"]
-          args: ["--metrics-enabled=true", "--log-level=info"]
+          args: ["--metrics-enabled={{.Values.metrics_enabled}}", "--log-level={{.Values.log_level}}"]
         - name: assfire-sample-grpc-gateway
           image: registry.gitlab.com/assfire/assfire-suite/assfire-sample:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:

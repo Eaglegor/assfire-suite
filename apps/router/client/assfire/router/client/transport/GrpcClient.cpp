@@ -28,7 +28,7 @@ GrpcClient::GetSingleRouteResponse GrpcClient::getRoute(const GetSingleRouteRequ
 
     if (!result.ok()) {
         SPDLOG_ERROR("Error while processing gRPC call: {}", result.error_message());
-        throw std::logic_error(result.error_message());
+        throw std::runtime_error(result.error_message());
     }
 
     return response;
@@ -48,7 +48,7 @@ void GrpcClient::getRoutesBatch(const GetRoutesBatchRequest &request, const Rout
 
     if (!result.ok()) {
         SPDLOG_ERROR("Error while processing gRPC call: {}", result.error_message());
-        throw std::logic_error(result.error_message());
+        throw std::runtime_error(result.error_message());
     }
 }
 
