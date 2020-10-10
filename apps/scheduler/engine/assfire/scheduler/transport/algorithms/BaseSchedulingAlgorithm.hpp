@@ -18,7 +18,8 @@ namespace assfire::scheduler::transport
         using Allocation = assfire::api::v1::service::scheduler::transport::Allocation;
         using Job = assfire::api::v1::model::optimization::transport::Job;
         using RouteInfo = assfire::router::DistanceMatrix::RouteInfo;
-        using TimePoint = std::int64_t;
+        using TimeWindow = assfire::api::v1::model::optimization::transport::TimeWindow;
+        using TimePoint = decltype(TimeWindow().start_time());
 
         BaseSchedulingAlgorithm(const router::RouterClient &router_client);
 
