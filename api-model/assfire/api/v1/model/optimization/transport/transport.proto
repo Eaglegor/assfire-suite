@@ -5,9 +5,15 @@ option go_package = "assfire.org/api/v1/model/optimization/transport";
 
 import "assfire/api/v1/model/routing/routing.proto";
 
+message TimeWindow {
+  int32 start_time = 1;
+  int32 end_time = 2;
+}
+
 message Job {
   assfire.api.v1.model.routing.Location location = 1;
   int32 id = 2;
+  repeated TimeWindow time_windows = 3;
 }
 
 message Waypoint {

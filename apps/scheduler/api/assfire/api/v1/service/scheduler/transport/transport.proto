@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package assfire.api.v1.service.scheduler.transport;
+option go_package = "assfire.org/api/v1/service/scheduler/transport";
+
+import "assfire/api/v1/model/optimization/transport/transport.proto";
+import "assfire/api/v1/model/routing/routing.proto";
+import "google/api/annotations.proto";
+
+enum SchedulingAlgorithm {
+  LINEAR_SCHEDULING_ALGORITHM = 0;
+  BILINEAR_SCHEDULING_ALGORITHM = 1;
+}
+
+message Allocation {
+  int32 job_id = 1;
+  assfire.api.v1.model.optimization.transport.TimeWindow allocated_time = 2;
+  assfire.api.v1.model.routing.RouteInfo route_to_next = 3;
+}
+
+message Schedule {
+  repeated Allocation allocations = 1;
+}
+
+message SchedulerTask {
+  repeated assfire.api.v1.model.optimization.transport.Job jobs = 1;
+  assfire.api.v1.model.optimization.transport.Resource resource = 2;
+  SchedulingAlgorithm algorithm = 3;
+}
+
+message SchedulerResult {
+  Schedule schedule = 1;
+}
+
+message BuildScheduleRequest {
+  SchedulerTask task = 1;
+}
+
+message BuildScheduleResponse {
+  message Status {
+    enum Code {
+      OK_STATUS_CODE = 0;
+      ERROR_STATUS_CODE = 1;
+    }
+    Code code = 1;
+    string message = 2;
+  }
+  SchedulerResult schedule = 1;
+  Status status = 2;
+}
+
+service SchedulerService {
+  rpc BuildSchedule(BuildScheduleRequest) returns (BuildScheduleResponse) {
+    option (google.api.http) = {
+      get: "/v1/transport/schedule"
+    };
+  }
+}
