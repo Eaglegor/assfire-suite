@@ -54,11 +54,11 @@ RouteProvider::GetSingleRouteResponse CrowflightRouteProvider::getRoute(GetSingl
         result.set_duration(0);
     }
 
-    double from_lat = CoordinatesDecoder::decode(request.origin().lat(), request.options().coordinates_format());
-    double from_lon = CoordinatesDecoder::decode(request.origin().lon(), request.options().coordinates_format());
+    double from_lat = CoordinatesDecoder::decode(request.origin().lat(), request.options().coordinate_format());
+    double from_lon = CoordinatesDecoder::decode(request.origin().lon(), request.options().coordinate_format());
 
-    double to_lat = CoordinatesDecoder::decode(request.destination().lat(), request.options().coordinates_format());
-    double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinates_format());
+    double to_lat = CoordinatesDecoder::decode(request.destination().lat(), request.options().coordinate_format());
+    double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinate_format());
 
 
     result.set_distance(calculateCrowflightDistance(from_lat, from_lon, to_lat, to_lon));
@@ -78,7 +78,7 @@ RouteProvider::GetSingleRouteResponse CrowflightRouteProvider::getRoute(GetSingl
 
     GetSingleRouteResponse response;
     response.mutable_route_info()->CopyFrom(result);
-    response.mutable_status()->set_code(ResponseStatus::OK);
+    response.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_OK);
     return response;
 }
 

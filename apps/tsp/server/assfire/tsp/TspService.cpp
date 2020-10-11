@@ -21,15 +21,15 @@ grpc::Status TspService::SolveTspSync(grpc::ServerContext *context, const TspSer
     SPDLOG_INFO("Processing sync solveTsp request");
     try {
         response->mutable_solution()->CopyFrom(tsp_solver->solveTsp(request->task(), request->settings()));
-        response->mutable_status()->set_code(ResponseStatus::OK);
+        response->mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_OK);
         response->mutable_status()->set_progress(100);
         return grpc::Status::OK;
     } catch (std::exception &e) {
         SPDLOG_ERROR("Error while processing sync solveTsp request: {}", e.what());
         response->mutable_status()->set_message(e.what());
-        response->mutable_status()->set_code(api::v1::service::tsp::ResponseStatus_Code_ERROR);
+        response->mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_ERROR);
         response->clear_solution();
-        return grpc::Status::CANCELLED;
+        return grpc::Status(grpc::StatusCode::UNKNOWN, e.what());
     }
 }
 
@@ -42,16 +42,16 @@ grpc::Status TspService::SolveTspStreaming(grpc::ServerContext *context, const T
             response.mutable_status()->CopyFrom(status);
             stream->Write(response);
         }));
-        response.mutable_status()->set_code(ResponseStatus::OK);
+        response.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_OK);
         response.mutable_status()->set_progress(100);
         stream->Write(response);
         return grpc::Status::OK;
     } catch (std::exception &e) {
         response.mutable_status()->set_message(e.what());
-        response.mutable_status()->set_code(api::v1::service::tsp::ResponseStatus_Code_ERROR);
+        response.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_ERROR);
         response.clear_solution();
         stream->Write(response);
-        return grpc::Status::CANCELLED;
+        return grpc::Status(grpc::StatusCode::UNKNOWN, e.what());
     }
 }
 

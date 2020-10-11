@@ -30,11 +30,11 @@ RouteProvider::GetSingleRouteResponse EuclideanRouteProvider::getRoute(GetSingle
         result.set_duration(0);
     }
 
-    double from_lat = CoordinatesDecoder::decode(request.origin().lat(), request.options().coordinates_format());
-    double from_lon = CoordinatesDecoder::decode(request.origin().lon(), request.options().coordinates_format());
+    double from_lat = CoordinatesDecoder::decode(request.origin().lat(), request.options().coordinate_format());
+    double from_lon = CoordinatesDecoder::decode(request.origin().lon(), request.options().coordinate_format());
 
-    double to_lat = CoordinatesDecoder::decode(request.destination().lat(), request.options().coordinates_format());
-    double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinates_format());
+    double to_lat = CoordinatesDecoder::decode(request.destination().lat(), request.options().coordinate_format());
+    double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinate_format());
 
     result.set_distance(std::hypot(std::fabs(to_lat - from_lat), std::fabs(to_lon - from_lon)));
     result.set_duration(std::ceil(result.distance() / request.options().velocity()));
@@ -52,7 +52,7 @@ RouteProvider::GetSingleRouteResponse EuclideanRouteProvider::getRoute(GetSingle
 
     GetSingleRouteResponse response;
     response.mutable_route_info()->CopyFrom(result);
-    response.mutable_status()->set_code(ResponseStatus::OK);
+    response.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_OK);
     return response;
 }
 

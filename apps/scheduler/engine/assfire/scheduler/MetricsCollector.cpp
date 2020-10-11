@@ -5,15 +5,14 @@
 #include <prometheus/summary.h>
 #include <spdlog/spdlog.h>
 
-namespace assfire::scheduler {
-    MetricsCollector::MetricsCollector(const std::shared_ptr<prometheus::Exposer> &exposer) :
-            exposer(exposer)
-    {
-        if (exposer) {
-            registry = std::make_shared<prometheus::Registry>();
-        }
+using namespace assfire::scheduler::transport;
+
+MetricsCollector::MetricsCollector(const std::shared_ptr<prometheus::Exposer> &exposer)
+        : exposer(exposer)
+{
+    if (exposer) {
+        registry = std::make_shared<prometheus::Registry>();
     }
-
-    MetricsCollector::~MetricsCollector() = default;
-
 }
+
+MetricsCollector::~MetricsCollector() = default;

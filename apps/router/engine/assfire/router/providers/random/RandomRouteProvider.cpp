@@ -48,7 +48,7 @@ RouteProvider::GetSingleRouteResponse RandomRouteProvider::getRoute(GetSingleRou
 
     GetSingleRouteResponse response;
     response.mutable_route_info()->CopyFrom(result);
-    response.mutable_status()->set_code(ResponseStatus::OK);
+    response.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_OK);
     return response;
 }
 

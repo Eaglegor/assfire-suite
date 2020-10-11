@@ -8,13 +8,9 @@ message Location {
   int32 lon = 2;
 }
 
-message CoordinateFormat {
-  enum CoordinateFormatType {
-    FIXED_POINT_INT = 0;
-  }
-
-  CoordinateFormatType type = 1;
-  int32 precision = 2;
+enum CoordinateFormat {
+  COORDINATE_FORMAT_UNSPECIFIED = 0;
+  COORDINATE_FORMAT_FIXED_POINT_INT = 1;
 }
 
 message RoutingOptions {
@@ -36,7 +32,7 @@ message RoutingOptions {
   }
 
   RoutingType routing_type = 1;
-  CoordinateFormat coordinates_format = 2;
+  CoordinateFormat coordinate_format = 2;
   double velocity = 3;
   bool force_update = 4;
   bool retrieve_waypoints = 5;

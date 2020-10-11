@@ -49,11 +49,11 @@ RouteProvider::GetSingleRouteResponse HttpOsrmRouteProvider::getRoute(GetSingleR
             .append_path(U("v1"))
             .append_path(U("driving"));
 
-    double from_lat = CoordinatesDecoder::decode(request.origin().lat(), request.options().coordinates_format());
-    double from_lon = CoordinatesDecoder::decode(request.origin().lon(), request.options().coordinates_format());
+    double from_lat = CoordinatesDecoder::decode(request.origin().lat(), request.options().coordinate_format());
+    double from_lon = CoordinatesDecoder::decode(request.origin().lon(), request.options().coordinate_format());
 
-    double to_lat = CoordinatesDecoder::decode(request.destination().lat(), request.options().coordinates_format());
-    double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinates_format());
+    double to_lat = CoordinatesDecoder::decode(request.destination().lat(), request.options().coordinate_format());
+    double to_lon = CoordinatesDecoder::decode(request.destination().lon(), request.options().coordinate_format());
 
     builder.append_path(
             convert(std::to_string(from_lon)) +
@@ -97,7 +97,7 @@ RouteProvider::GetSingleRouteResponse HttpOsrmRouteProvider::getRoute(GetSingleR
                 if (response.at(U("code")).as_string() != U("Ok")) {
                     auto message = convert(response.at(U("message")).as_string());
                     SPDLOG_ERROR("[{}] OSRM backend returned error: {}", request_id, message);
-                    result.mutable_status()->set_code(ResponseStatus::ERROR);
+                    result.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_ERROR);
                     result.mutable_status()->set_message(fmt::format("OSRM backend returned error: {}", message));
                     return result;
                 }
@@ -111,8 +111,8 @@ RouteProvider::GetSingleRouteResponse HttpOsrmRouteProvider::getRoute(GetSingleR
                 if (response.at(U("routes")).at(0).has_field(U("geometry"))) {
                     for (const auto &g : response.at(U("routes")).at(0).at(U("geometry")).at(U("coordinates")).as_array()) {
                         Location *loc = result.mutable_route_info()->add_waypoints();
-                        loc->set_lat(CoordinatesEncoder::encode(g.at(1).as_double(), request.options().coordinates_format()));
-                        loc->set_lon(CoordinatesEncoder::encode(g.at(0).as_double(), request.options().coordinates_format()));
+                        loc->set_lat(CoordinatesEncoder::encode(g.at(1).as_double(), request.options().coordinate_format()));
+                        loc->set_lon(CoordinatesEncoder::encode(g.at(0).as_double(), request.options().coordinate_format()));
                     }
                 } else if (waypoints_expected) {
                     SPDLOG_WARN("[{}] Expected list of waypoints but no waypoins were found in OSRM response. Probably something could have been gone wrong", request_id);
@@ -123,7 +123,7 @@ RouteProvider::GetSingleRouteResponse HttpOsrmRouteProvider::getRoute(GetSingleR
 
                 result.mutable_route_info()->mutable_origin()->CopyFrom(request.origin());
                 result.mutable_route_info()->mutable_destination()->CopyFrom(request.destination());
-                result.mutable_status()->set_code(ResponseStatus::OK);
+                result.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_OK);
 
                 return result;
             });
@@ -133,7 +133,7 @@ RouteProvider::GetSingleRouteResponse HttpOsrmRouteProvider::getRoute(GetSingleR
     } catch (const std::exception &e) {
         SPDLOG_ERROR("[{}] Error occurred during route calculation: {}", request_id, e.what());
         GetSingleRouteResponse result;
-        result.mutable_status()->set_code(ResponseStatus::ERROR);
+        result.mutable_status()->set_code(ResponseStatus::RESPONSE_STATUS_CODE_ERROR);
         result.mutable_status()->set_message(fmt::format("Error occurred during route calculation: {}", e.what()));
         return result;
     }

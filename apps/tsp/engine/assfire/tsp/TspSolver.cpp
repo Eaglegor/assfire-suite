@@ -14,9 +14,10 @@ TspSolver::solveTsp(const Task &task, const Settings &settings, const StatusCons
                     const InterruptCondition &interruption_condition)
 {
     switch (settings.algorithm()) {
-        case Settings::TWO_OPT: {
+        case api::v1::service::tsp::TSP_ALGORITHM_UNSPECIFIED:
+        case api::v1::service::tsp::TSP_ALGORITHM_TWO_OPT: {
             TspSolutionStatus before_status;
-            before_status.set_code(TspSolutionStatus::IN_PROGRESS);
+            before_status.set_code(TspSolutionStatus::RESPONSE_STATUS_CODE_IN_PROGRESS);
             before_status.set_progress(0);
             status_consumer(before_status);
 
@@ -24,14 +25,14 @@ TspSolver::solveTsp(const Task &task, const Settings &settings, const StatusCons
                 TspSolver::Solution solution = TwoOptTspAlgorithm(router_client).solveTsp(task, settings, status_consumer,
                                                                                           interruption_condition);
                 TspSolutionStatus after_status;
-                after_status.set_code(TspSolutionStatus::OK);
+                after_status.set_code(TspSolutionStatus::RESPONSE_STATUS_CODE_OK);
                 after_status.set_progress(100);
                 status_consumer(after_status);
                 return solution;
             } catch (const std::exception& e) {
                 SPDLOG_ERROR("Exception thrown while solving TSP: {}", e.what());
                 TspSolutionStatus error_status;
-                error_status.set_code(TspSolutionStatus::ERROR);
+                error_status.set_code(TspSolutionStatus::RESPONSE_STATUS_CODE_ERROR);
                 error_status.set_progress(0);
                 status_consumer(error_status);
                 return TspSolver::Solution();

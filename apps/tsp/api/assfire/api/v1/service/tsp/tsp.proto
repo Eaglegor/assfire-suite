@@ -16,24 +16,27 @@ message TspSolution {
   assfire.api.v1.model.optimization.transport.TransportationCosts transportation_costs = 2;
 }
 
+enum TspAlgorithm {
+  TSP_ALGORITHM_UNSPECIFIED = 0;
+  TSP_ALGORITHM_TWO_OPT = 1;
+}
+
+enum TspInitialSolutionStrategy {
+  TSP_INITIAL_SOLUTION_STRATEGY_UNSPECIFIED = 0;
+  TSP_INITIAL_SOLUTION_STRATEGY_AS_IS = 1;
+}
+
 message Settings {
-  enum Algorithm {
-    TWO_OPT = 0;
-  }
-
-  enum InitialSolutionStrategy {
-    AS_IS = 0;
-  }
-
-  Algorithm algorithm = 1;
-  InitialSolutionStrategy initial_solution_strategy = 2;
+  TspAlgorithm algorithm = 1;
+  TspInitialSolutionStrategy initial_solution_strategy = 2;
 }
 
 message ResponseStatus {
   enum Code {
-    OK = 0;
-    IN_PROGRESS = 1;
-    ERROR = 2;
+    RESPONSE_STATUS_CODE_UNSPECIFIED = 0;
+    RESPONSE_STATUS_CODE_OK = 1;
+    RESPONSE_STATUS_CODE_IN_PROGRESS = 2;
+    RESPONSE_STATUS_CODE_ERROR = 3;
   }
   Code code = 1;
   string message = 2;

@@ -14,7 +14,7 @@ namespace prometheus {
     class Summary;
 }
 
-namespace assfire::scheduler {
+namespace assfire::scheduler::transport {
     class MetricsCollector
     {
     public:

@@ -49,7 +49,7 @@ RouteProvider::GetSingleRouteResponse RedisRouteProviderProxy::getRoute(GetSingl
                          request.destination().lat(), request.destination().lon());
         }
         GetSingleRouteResponse routeResponse = backend->getRoute(request, request_id);
-        if (routeResponse.status().code() != ResponseStatus::OK) {
+        if (routeResponse.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK) {
             SPDLOG_ERROR("[{}]: Backend returned response with error: {}", routeResponse.status().message());
             return routeResponse;
         }
