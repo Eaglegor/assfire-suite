@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package assfire.api.v1.service.estimator.transport;
+
+import "assfire/api/v1/service/scheduler/transport/transport.proto";
+import "assfire/api/v1/model/optimization/transport/transport.proto";
+
+message EstimateTask {
+  assfire.api.v1.service.scheduler.transport.Schedule schedule = 1;
+  assfire.api.v1.model.optimization.transport.CostFunction cost_function = 2;
+}
+
+message EstimateSyncRequest {
+  EstimateTask task = 1;
+}
+
+message EstimateSyncResponse {
+  double cost = 1;
+}
+
+message EstimateStreamingRequest {
+  EstimateTask task = 1;
+  int32 request_id = 2;
+}
+
+message EstimateStreamingResponse {
+  double cost = 1;
+  int32 request_id = 2;
+}
+
+service EstimateService {
+  rpc EstimateSync(EstimateSyncRequest) returns(EstimateSyncResponse);
+  rpc EstimateStreaming(EstimateStreamingRequest) returns(EstimateStreamingResponse);
+}
