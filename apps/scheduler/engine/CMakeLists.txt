@@ -4,7 +4,10 @@ set(SOURCES
         assfire/scheduler/transport/algorithms/BilinearSchedulingAlgorithm.cpp
         assfire/scheduler/transport/algorithms/BilinearSchedulingAlgorithm.hpp
         assfire/scheduler/transport/algorithms/LinearSchedulingAlgorithm.cpp
-        assfire/scheduler/transport/algorithms/LinearSchedulingAlgorithm.hpp assfire/scheduler/transport/algorithms/BaseSchedulingAlgorithm.hpp assfire/scheduler/transport/algorithms/BaseSchedulingAlgorithm.cpp assfire/scheduler/transport/algorithms/BaseSchedulingAlgorithm.hpp ../server/assfire/scheduler/transport/TransportSchedulerService.cpp ../server/assfire/scheduler/transport/TransportSchedulerService.hpp)
+        assfire/scheduler/transport/algorithms/LinearSchedulingAlgorithm.hpp
+        assfire/scheduler/transport/algorithms/BaseSchedulingAlgorithm.hpp
+        assfire/scheduler/transport/algorithms/BaseSchedulingAlgorithm.cpp
+        assfire/scheduler/transport/algorithms/BaseSchedulingAlgorithm.hpp)
 set(HEADERS
         assfire/scheduler/transport/Scheduler.hpp
         assfire/scheduler/transport/SchedulingAlgorithm.hpp

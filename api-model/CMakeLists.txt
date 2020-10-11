@@ -1,7 +1,7 @@
 find_package(protobuf CONFIG REQUIRED)
 get_target_property(GOOGLE_PROTOBUF_IMPORT_DIR protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
 
-add_library(assfire-api-model ../utils/assfire/win32/winsock_initializer.h)
+add_library(assfire-api-model)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/api/cpp)
 protobuf_generate(
         LANGUAGE cpp

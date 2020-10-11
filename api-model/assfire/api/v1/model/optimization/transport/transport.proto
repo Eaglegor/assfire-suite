@@ -22,14 +22,17 @@ message Waypoint {
 
 enum CostFunctionType {
   COST_FUNCTION_TYPE_UNSPECIFIED = 0;
-  COST_FUNCTION_TYPE_DISTANCE = 1;
-  COST_FUNCTION_TYPE_DURATION = 2;
-  COST_FUNCTION_TYPE_TRANSPORTATION_COSTS = 3;
+  COST_FUNCTION_TYPE_TOTAL_DISTANCE = 1;
+  COST_FUNCTION_TYPE_TOTAL_TIME = 2;
+  COST_FUNCTION_TYPE_RESOURCE_USAGE_COST = 3;
 }
 
 message ResourceUsageCosts {
   double distance_unit_cost = 1;
-  double time_unit_cost = 2;
+  double working_time_unit_cost = 2;
+  double waiting_time_unit_cost = 3;
+  double driving_time_unit_cost = 4;
+  double activation_cost = 5;
 }
 
 message CostFunction {
