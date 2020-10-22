@@ -2,10 +2,14 @@
 #include <spdlog/spdlog.h>
 #include <random>
 #include <assfire/router/client/RouterClient.hpp>
+#include <assfire/scheduler/transport/Scheduler.hpp>
+#include <assfire/estimator/transport/ScheduleEstimator.hpp>
 #include <assfire/tsp/TspSolver.hpp>
 
 using namespace assfire::tsp;
 using namespace assfire::router;
+using namespace assfire::scheduler::transport;
+using namespace assfire::estimator::transport;
 
 TspService::TspService(const Options &options)
         : request_id_counter(0)
@@ -13,7 +17,10 @@ TspService::TspService(const Options &options)
     metrics_collector = options.metrics_collector;
 
     router_client = std::make_unique<RouterClient>(options.router_host, options.router_port, options.use_ssl_for_router);
-    tsp_solver = std::make_unique<TspSolver>(*router_client);
+    scheduler = std::make_unique<Scheduler>(*router_client);
+    estimator = std::make_unique<ScheduleEstimator>();
+
+    tsp_solver = std::make_unique<TspSolver>(*router_client, *scheduler, *estimator);
 }
 
 grpc::Status TspService::SolveTspSync(grpc::ServerContext *context, const TspService::SolveTspSyncRequest *request, TspService::SolveTspSyncResponse *response)

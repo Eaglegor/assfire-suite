@@ -10,7 +10,7 @@ Scheduler::Scheduler(const RouterClient &router_client)
         : router_client(router_client)
 {}
 
-Scheduler::SchedulerResult Scheduler::buildSchedule(const SchedulerTask &task)
+Scheduler::SchedulerResult Scheduler::buildSchedule(const SchedulerTask &task) const
 {
     switch (task.algorithm()) {
         case api::v1::service::scheduler::transport::SCHEDULING_ALGORITHM_LINEAR: {
@@ -27,7 +27,7 @@ Scheduler::SchedulerResult Scheduler::buildSchedule(const SchedulerTask &task)
     }
 }
 
-Scheduler::SchedulerResult Scheduler::buildSchedule(const Scheduler::SchedulerTask &task, const DistanceMatrix &distance_matrix)
+Scheduler::SchedulerResult Scheduler::buildSchedule(const Scheduler::SchedulerTask &task, const DistanceMatrix &distance_matrix) const
 {
     switch (task.algorithm()) {
         case api::v1::service::scheduler::transport::SCHEDULING_ALGORITHM_LINEAR: {
@@ -44,7 +44,7 @@ Scheduler::SchedulerResult Scheduler::buildSchedule(const Scheduler::SchedulerTa
     }
 }
 
-Scheduler::SchedulerResult Scheduler::buildSchedule(const SchedulerTask &task, const DistanceMatrix &distance_matrix, const std::vector<LocationId> &location_ids, RoutingOptionsId routing_options_id)
+Scheduler::SchedulerResult Scheduler::buildSchedule(const SchedulerTask &task, const DistanceMatrix &distance_matrix, const std::vector<LocationId> &location_ids, RoutingOptionsId routing_options_id) const
 {
     switch (task.algorithm()) {
         case api::v1::service::scheduler::transport::SCHEDULING_ALGORITHM_LINEAR: {

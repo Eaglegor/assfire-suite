@@ -13,6 +13,7 @@ namespace assfire::router
     public:
         enum class RequestStrategy
         {
+            UNSPECIFIED,
             DIRECT_REQUEST
         };
         using Port = std::size_t;
@@ -21,7 +22,7 @@ namespace assfire::router
 
         ~RouterClient();
 
-        DistanceMatrix createDistanceMatrix(RequestStrategy) const;
+        DistanceMatrix createDistanceMatrix(RequestStrategy strategy = RequestStrategy::UNSPECIFIED) const;
 
     private:
         std::unique_ptr<GrpcClient> transport_client;

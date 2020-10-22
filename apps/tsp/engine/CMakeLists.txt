@@ -18,5 +18,5 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)
 
 add_library(assfire-tsp-engine ${SOURCES})
-target_link_libraries(assfire-tsp-engine PUBLIC spdlog::spdlog prometheus-cpp::core assfire-tsp-api assfire-router-client)
+target_link_libraries(assfire-tsp-engine PUBLIC spdlog::spdlog prometheus-cpp::core assfire-tsp-api assfire-router-client assfire-scheduler-engine assfire-estimator-engine)
 target_include_directories(assfire-tsp-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

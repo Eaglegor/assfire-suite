@@ -7,6 +7,14 @@ namespace assfire::router {
     class RouterClient;
 }
 
+namespace assfire::scheduler::transport {
+    class Scheduler;
+}
+
+namespace assfire::estimator::transport {
+    class ScheduleEstimator;
+}
+
 namespace assfire::tsp
 {
     namespace {
@@ -25,7 +33,7 @@ namespace assfire::tsp
         using StatusConsumer = TspAlgorithm::StatusConsumer;
         using InterruptCondition = TspAlgorithm::InterruptCondition;
 
-        TspSolver(const router::RouterClient&);
+        TspSolver(const router::RouterClient &router_client, const assfire::scheduler::transport::Scheduler &scheduler, const assfire::estimator::transport::ScheduleEstimator &estimator);
 
         Solution solveTsp(const Task&, const Settings&, const StatusConsumer& status_consumer = DEFAULT_STATUS_CONSUMER, const InterruptCondition& interrupt_condition = DEFAULT_INTERRUPT_CONDITION);
 
@@ -33,5 +41,7 @@ namespace assfire::tsp
 
     private:
         const router::RouterClient& router_client;
+        const scheduler::transport::Scheduler& scheduler;
+        const estimator::transport::ScheduleEstimator& estimator;
     };
 }

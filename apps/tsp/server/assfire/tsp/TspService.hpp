@@ -9,6 +9,14 @@ namespace assfire::router{
     class RouterClient;
 }
 
+namespace assfire::scheduler::transport {
+    class Scheduler;
+}
+
+namespace assfire::estimator::transport {
+    class ScheduleEstimator;
+}
+
 namespace assfire::tsp
 {
     class TspSolver;
@@ -45,5 +53,7 @@ namespace assfire::tsp
         MetricsCollector metrics_collector;
         std::unique_ptr<router::RouterClient> router_client;
         std::unique_ptr<TspSolver> tsp_solver;
+        std::unique_ptr<scheduler::transport::Scheduler> scheduler;
+        std::unique_ptr<estimator::transport::ScheduleEstimator> estimator;
     };
 }

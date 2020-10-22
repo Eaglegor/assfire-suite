@@ -20,11 +20,11 @@ namespace assfire::scheduler::transport
 
         Scheduler(const RouterClient &router_client);
 
-        SchedulerResult buildSchedule(const SchedulerTask &);
+        SchedulerResult buildSchedule(const SchedulerTask &) const;
 
-        SchedulerResult buildSchedule(const SchedulerTask &task, const DistanceMatrix &distance_matrix);
+        SchedulerResult buildSchedule(const SchedulerTask &task, const DistanceMatrix &distance_matrix) const;
 
-        SchedulerResult buildSchedule(const SchedulerTask &task, const DistanceMatrix &distance_matrix, const std::vector<LocationId> &location_ids, RoutingOptionsId routing_options_id);
+        SchedulerResult buildSchedule(const SchedulerTask &task, const DistanceMatrix &distance_matrix, const std::vector<LocationId> &location_ids, RoutingOptionsId routing_options_id) const;
 
     private:
         const RouterClient &router_client;

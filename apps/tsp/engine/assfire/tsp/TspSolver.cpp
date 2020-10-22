@@ -4,8 +4,8 @@
 
 using namespace assfire::tsp;
 
-TspSolver::TspSolver(const router::RouterClient &router_client)
-        : router_client(router_client)
+TspSolver::TspSolver(const router::RouterClient &router_client, const assfire::scheduler::transport::Scheduler &scheduler, const assfire::estimator::transport::ScheduleEstimator &estimator)
+        : router_client(router_client), scheduler(scheduler), estimator(estimator)
 {
 }
 
@@ -22,7 +22,7 @@ TspSolver::solveTsp(const Task &task, const Settings &settings, const StatusCons
             status_consumer(before_status);
 
             try {
-                TspSolver::Solution solution = TwoOptTspAlgorithm(router_client).solveTsp(task, settings, status_consumer,
+                TspSolver::Solution solution = TwoOptTspAlgorithm(router_client, scheduler, estimator).solveTsp(task, settings, status_consumer,
                                                                                           interruption_condition);
                 TspSolutionStatus after_status;
                 after_status.set_code(TspSolutionStatus::RESPONSE_STATUS_CODE_OK);

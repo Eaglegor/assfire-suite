@@ -2,13 +2,17 @@
 #include "assfire/router/client/RouterClient.hpp"
 #include "assfire/tsp/algorithms/model/Problem.hpp"
 #include "assfire/tsp/algorithms/model/Solution.hpp"
+#include "assfire/scheduler/transport/Scheduler.hpp"
+#include "spdlog/spdlog.h"
 #include <vector>
 
 using namespace assfire::tsp;
 using namespace assfire::router;
+using namespace assfire::scheduler::transport;
+using namespace assfire::estimator::transport;
 
-TwoOptTspAlgorithm::TwoOptTspAlgorithm(const RouterClient &routing_client)
-        : router_client(routing_client)
+TwoOptTspAlgorithm::TwoOptTspAlgorithm(const RouterClient &routing_client, const Scheduler &scheduler, const ScheduleEstimator &estimator)
+        : router_client(routing_client), scheduler(scheduler), estimator(estimator)
 {
 
 }
@@ -41,18 +45,27 @@ TwoOptTspAlgorithm::solveTsp(const TspAlgorithm::Task &task, const TspAlgorithm:
     return best_solution.toTspSolution();
 }
 
-TwoOptTspAlgorithm::Cost TwoOptTspAlgorithm::estimate(const Solution &solution)
+TwoOptTspAlgorithm::Cost TwoOptTspAlgorithm::estimate(const Solution &solution) const
 {
     const DistanceMatrix &distance_matrix = solution.getProblem().getDistanceMatrix();
 
-    Cost cost = 0;
-    for (int i = 0; i < solution.getWaypoints().size() - 1; ++i) {
-        const auto &fromLocation = solution.getWaypoints()[i].getJob().getLocation().getId();
-        const auto &toLocation = solution.getWaypoints()[i + 1].getJob().getLocation().getId();
-        const auto &routingOptions = solution.getProblem().getResource().getRoutingOptions().getId();
+    Scheduler::SchedulerTask scheduler_task;
+    std::vector<Scheduler::LocationId> location_ids;
+    location_ids.reserve(solution.getWaypoints().size());
+    for (const Waypoint &wp : solution.getWaypoints()) {
+        scheduler_task.add_jobs()->CopyFrom(wp.getJob().getData());
+        location_ids.push_back(wp.getJob().getLocation().getId());
+    }
+    scheduler_task.mutable_resource()->CopyFrom(solution.getProblem().getResource().getData());
 
-        cost += distance_matrix.getRoute(fromLocation, toLocation, routingOptions).duration();
+    Scheduler::SchedulerResult scheduler_result = scheduler.buildSchedule(scheduler_task, solution.getProblem().getDistanceMatrix(), location_ids,
+                                                                          solution.getProblem().getResource().getRoutingOptions().getId());
+
+    if (!scheduler_result.has_schedule()) {
+        const char *message = "TSP solver wasn't able to build schedule to estimate";
+        SPDLOG_ERROR(message);
+        throw std::runtime_error(message);
     }
 
-    return cost;
+    return estimator.estimate(solution.getProblem().getResource().getData(), scheduler_result.schedule());
 }

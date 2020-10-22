@@ -37,7 +37,7 @@ namespace assfire::tsp
         static Problem of(const assfire::api::v1::service::tsp::TspTask &task,
                            const router::RouterClient &router_client)
         {
-            router::DistanceMatrix distance_matrix = router_client.createDistanceMatrix(router::RouterClient::RequestStrategy::DIRECT_REQUEST);
+            router::DistanceMatrix distance_matrix = router_client.createDistanceMatrix();
             std::vector<Job> trip;
             std::transform(task.jobs().begin(), task.jobs().end(), std::back_inserter(trip), [&](const auto &api_job) {
                 return Job(Location::of(api_job.location(), distance_matrix), api_job);
