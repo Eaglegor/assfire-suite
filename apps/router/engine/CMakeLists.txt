@@ -1,10 +1,4 @@
 set(SOURCES
-        assfire/engine/router/providers/crowflight/CrowflightRouteProvider.cpp
-        assfire/engine/router/providers/euclidean/EuclideanRouteProvider.cpp
-        assfire/engine/router/providers/random/RandomRouteProvider.cpp
-        assfire/engine/router/providers/osrm/HttpOsrmRouteProvider.cpp
-        assfire/engine/router/cache/RedisRouteProviderProxy.cpp
-        assfire/engine/router/CompositeRouteProvider.cpp
         assfire/engine/router/MetricsCollector.cpp
         assfire/engine/router/DistanceMatrixFactory.cpp
         assfire/engine/router/impl/distance_matrix_engines/DirectRequestDistanceMatrixEngine.cpp
@@ -12,18 +6,10 @@ set(SOURCES
         assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.cpp
-        assfire/engine/router/model/Speed.hpp assfire/engine/router/RouteProviderSettings.hpp assfire/engine/router/impl/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp assfire/engine/router/impl/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.cpp)
+        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp
+        assfire/engine/router/model/Speed.hpp assfire/engine/router/RouteProviderSettings.hpp assfire/engine/router/impl/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp assfire/engine/router/impl/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.cpp assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp)
 set(HEADERS
-        assfire/engine/router/providers/crowflight/CrowflightRouteProvider.hpp
-        assfire/engine/router/providers/euclidean/EuclideanRouteProvider.hpp
-        assfire/engine/router/providers/random/RandomRouteProvider.hpp
-        assfire/engine/router/providers/osrm/HttpOsrmRouteProvider.hpp
-        assfire/engine/router/cache/TransparentRouteProviderProxy.hpp
-        assfire/engine/router/cache/RedisRouteProviderProxy.hpp
-        assfire/engine/router/RouteProvider.hpp
         assfire/engine/router/MetricsCollector.hpp
-        assfire/engine/router/CompositeRouteProvider.hpp
-        assfire/engine/router/Router.hpp
         assfire/engine/router/model/RoutingProfile.hpp
         assfire/engine/router/RouterEngineType.hpp
         assfire/engine/router/RouteProviderEngine.hpp
@@ -37,6 +23,7 @@ set(HEADERS
         assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp
         assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.hpp
         assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.hpp
+        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp
         assfire/engine/router/model/Coordinate.hpp
         assfire/engine/router/model/Distance.hpp
         assfire/engine/router/model/IndexedLocation.hpp

@@ -15,7 +15,7 @@ namespace assfire::router
 
         virtual Matrix<RouteInfo> getRouteInfoMatrix(const std::vector <Location> &origins, const std::vector <Location> &destinations)
         {
-            return Matrix(origins.size(), destinations.size(),
+            return Matrix<RouteInfo>(origins.size(), destinations.size(),
                           [&](int i, int j) {
                               return getSingleRouteInfo(origins.at(i), destinations.at(j));
                           });
@@ -23,7 +23,7 @@ namespace assfire::router
 
         virtual Matrix<RouteDetails> getRouteDetailsMatrix(const std::vector <Location> &origins, const std::vector <Location> &destinations)
         {
-            return Matrix(origins.size(), destinations.size(),
+            return Matrix<RouteDetails>(origins.size(), destinations.size(),
                           [&](int i, int j) {
                               return getSingleRouteDetails(origins.at(i), destinations.at(j));
                           });
