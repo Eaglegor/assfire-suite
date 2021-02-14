@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RouteInfo.hpp"
-#include "RouteDetails.hpp"
+#include "assfire/api/router/model/RouteInfo.hpp"
+#include "assfire/api/router/model/RouteDetails.hpp"
 #include "DistanceMatrixEngine.hpp"
 #include <memory>
 

@@ -8,6 +8,11 @@ namespace assfire::router
     class RouteInfo
     {
     public:
+        RouteInfo():
+        distance(0),
+        duration(0)
+        {}
+
         RouteInfo(const Distance &distance, const TimeInterval &duration)
                 :
                 distance(distance),

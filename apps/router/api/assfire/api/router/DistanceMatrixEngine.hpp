@@ -1,14 +1,15 @@
 #pragma once
 
-#include "assfire/engine/router/model/RouteInfo.hpp"
-#include "assfire/engine/router/model/RouteDetails.hpp"
-#include "assfire/engine/router/model/IndexedLocation.hpp"
+#include "assfire/api/router/model/RouteInfo.hpp"
+#include "assfire/api/router/model/RouteDetails.hpp"
+#include "assfire/api/router/model/IndexedLocation.hpp"
 
 namespace assfire::router
 {
     class DistanceMatrixEngine
     {
     public:
+        using Tag = int;
         virtual ~DistanceMatrixEngine() = default;
 
         virtual RouteInfo getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const = 0;

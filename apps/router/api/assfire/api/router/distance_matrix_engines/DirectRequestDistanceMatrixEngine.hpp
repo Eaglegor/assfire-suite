@@ -1,15 +1,15 @@
 #pragma once
 
 #include <memory>
-#include "assfire/engine/router/DistanceMatrixEngine.hpp"
-#include "assfire/engine/router/RouteProviderEngine.hpp"
+#include "../DistanceMatrixEngine.hpp"
+#include "assfire/api/router/RouteProviderEngine.hpp"
 
 namespace assfire::router
 {
     class DirectRequestDistanceMatrixEngine : public DistanceMatrixEngine
     {
     public:
-        DirectRequestDistanceMatrixEngine(std::unique_ptr <RouteProviderEngine> engine, int tag)
+        DirectRequestDistanceMatrixEngine(std::unique_ptr <RouteProviderEngine> engine, Tag tag)
                 :
                 matrix_tag(tag),
                 engine(std::move(engine))
@@ -28,7 +28,7 @@ namespace assfire::router
 
     private:
         std::vector <Location> known_locations;
-        int matrix_tag;
+        Tag matrix_tag;
         std::unique_ptr <RouteProviderEngine> engine;
     };
 }

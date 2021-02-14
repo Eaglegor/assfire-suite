@@ -1,30 +1,36 @@
-find_package(protobuf CONFIG REQUIRED)
-find_package(gRPC CONFIG REQUIRED)
-get_target_property(gRPC_CPP_PLUGIN_EXECUTABLE gRPC::grpc_cpp_plugin LOCATION)
-
-set(IMPORT_DIRS
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/api-model
-        ${GOOGLE_PROTOBUF_IMPORT_DIR})
-set(PROTOS
-        assfire/api/v1/service/router/router.proto
+set(SOURCES
+        assfire/api/router/distance_matrix_engines/DirectRequestDistanceMatrixEngine.cpp
+        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.cpp
+        assfire/api/router/RoutingContext.hpp assfire/api/router/RedisSerializer.hpp)
+set(HEADERS
+        assfire/api/router/model/RoutingProfile.hpp
+        assfire/api/router/RouterEngineType.hpp
+        assfire/api/router/Matrix.hpp
+        assfire/api/router/DistanceMatrixEngine.hpp
+        assfire/api/router/DistanceMatrixCachingPolicy.hpp
+        assfire/api/router/DistanceMatrix.hpp
+        assfire/api/router/RouteProviderEngine.hpp
+        assfire/api/router/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp
+        assfire/api/router/model/Coordinate.hpp
+        assfire/api/router/model/Distance.hpp
+        assfire/api/router/model/IndexedLocation.hpp
+        assfire/api/router/model/Interval.hpp
+        assfire/api/router/model/Location.hpp
+        assfire/api/router/model/RouteDetails.hpp
+        assfire/api/router/model/RouteInfo.hpp
+        assfire/api/router/model/Router.hpp
+        assfire/api/router/model/TimePoint.hpp
+        assfire/api/router/model/Speed.hpp
+        assfire/api/router/RouteProviderSettings.hpp
+        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp
         )
 
-add_library(assfire-router-api)
+find_package(spdlog CONFIG REQUIRED)
+find_package(prometheus-cpp CONFIG REQUIRED)
+find_package(cpprestsdk CONFIG REQUIRED)
+include(pkg_utils)
+vcpkg_find_cpp_redis()
 
-protobuf_generate(TARGET assfire-router-api
-        LANGUAGE cpp
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp)
-
-protobuf_generate(TARGET assfire-router-api
-        LANGUAGE grpc
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp
-        PLUGIN protoc-gen-grpc=${gRPC_CPP_PLUGIN_EXECUTABLE}
-        GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc)
-
-target_include_directories(assfire-router-api PUBLIC ${CMAKE_BINARY_DIR}/api/cpp)
-target_link_libraries(assfire-router-api PUBLIC gRPC::grpc++ protobuf::libprotobuf assfire-api-model)
+add_library(assfire-router-api ${SOURCES})
+target_link_libraries(assfire-router-api PUBLIC spdlog::spdlog)
+target_include_directories(assfire-router-api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

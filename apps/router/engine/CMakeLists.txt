@@ -1,38 +1,20 @@
 set(SOURCES
-        assfire/engine/router/MetricsCollector.cpp
         assfire/engine/router/DistanceMatrixFactory.cpp
-        assfire/engine/router/impl/distance_matrix_engines/DirectRequestDistanceMatrixEngine.cpp
         assfire/engine/router/impl/route_provider_engines/CrowflightRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp
-        assfire/engine/router/model/Speed.hpp assfire/engine/router/RouteProviderSettings.hpp assfire/engine/router/impl/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp assfire/engine/router/impl/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.cpp assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp)
+        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp)
 set(HEADERS
         assfire/engine/router/MetricsCollector.hpp
-        assfire/engine/router/model/RoutingProfile.hpp
-        assfire/engine/router/RouterEngineType.hpp
-        assfire/engine/router/RouteProviderEngine.hpp
-        assfire/engine/router/Matrix.hpp
         assfire/engine/router/DistanceMatrixFactory.hpp
-        assfire/engine/router/DistanceMatrixEngine.hpp
-        assfire/engine/router/DistanceMatrixCachingPolicy.hpp
-        assfire/engine/router/DistanceMatrix.hpp
-        assfire/engine/router/impl/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp
         assfire/engine/router/impl/route_provider_engines/CrowflightRouteProviderEngine.hpp
         assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp
         assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.hpp
         assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.hpp
         assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp
-        assfire/engine/router/model/Coordinate.hpp
-        assfire/engine/router/model/Distance.hpp
-        assfire/engine/router/model/IndexedLocation.hpp
-        assfire/engine/router/model/Interval.hpp
-        assfire/engine/router/model/Location.hpp
-        assfire/engine/router/model/RouteDetails.hpp
-        assfire/engine/router/model/RouteInfo.hpp
-        assfire/engine/router/model/Router.hpp
-        assfire/engine/router/model/TimePoint.hpp
+        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp
         )
 
 find_package(spdlog CONFIG REQUIRED)

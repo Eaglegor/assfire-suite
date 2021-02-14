@@ -2,14 +2,18 @@
 
 #include <utility>
 #include <vector>
-#include <Location>
+#include "Location.hpp"
+#include "RouteInfo.hpp"
 
 namespace assfire::router
 {
     class RouteDetails
     {
     public:
-        using Waypoints = std::vector<Location>;
+        using Waypoint = Location;
+        using Waypoints = std::vector<Waypoint>;
+
+        RouteDetails() = default;
 
         RouteDetails(const RouteInfo &summary,
                      Waypoints waypoints)

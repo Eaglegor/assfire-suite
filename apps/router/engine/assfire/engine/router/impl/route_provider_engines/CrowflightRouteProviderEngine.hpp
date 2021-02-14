@@ -1,10 +1,10 @@
 #pragma once
 
-#include <assfire/engine/router/model/RouteInfo.hpp>
-#include <assfire/engine/router/model/Location.hpp>
-#include <assfire/engine/router/model/RouteDetails.hpp>
-#include "../../RouteProviderEngine.hpp"
-#include "../../RoutingProfile.hpp"
+#include <assfire/api/router/model/RouteInfo.hpp>
+#include <assfire/api/router/model/Location.hpp>
+#include <assfire/api/router/model/RouteDetails.hpp>
+#include "assfire/api/router/RouteProviderEngine.hpp"
+#include "assfire/api/router/model/RoutingProfile.hpp"
 
 namespace assfire::router {
     class CrowflightRouteProviderEngine : public RouteProviderEngine {

@@ -1,4 +1,4 @@
-#include "MetricsCollector.hpp"
+#include "ServerMetricsCollector.hpp"
 #include <prometheus/counter.h>
 #include <prometheus/gauge.h>
 #include <prometheus/histogram.h>
@@ -7,9 +7,9 @@
 
 using namespace assfire::router;
 
-MetricsCollector::MetricsCollector() = default;
+ServerMetricsCollector::ServerMetricsCollector() = default;
 
-MetricsCollector::MetricsCollector(std::shared_ptr<prometheus::Exposer> exposer):
+ServerMetricsCollector::ServerMetricsCollector(std::shared_ptr<prometheus::Exposer> exposer):
 	exposer(exposer),
 	registry(std::make_shared<prometheus::Registry>())
 {
@@ -80,7 +80,7 @@ MetricsCollector::MetricsCollector(std::shared_ptr<prometheus::Exposer> exposer)
 	exposer->RegisterCollectable(registry);
 }
 
-MetricsCollector::Stopwatch MetricsCollector::routesRequestStopwatch(int count, MetricsCollector::RequestMode mode) const
+MetricsCollector::Stopwatch ServerMetricsCollector::routesRequestStopwatch(int count, ServerMetricsCollector::RequestMode mode) const
 {
 	if(!exposer) return MetricsCollector::Stopwatch();
 	
@@ -104,7 +104,7 @@ MetricsCollector::Stopwatch MetricsCollector::routesRequestStopwatch(int count, 
 		});
 }
 
-void MetricsCollector::addRequestedRoutes(int count, MetricsCollector::RequestMode mode) const
+void ServerMetricsCollector::addRequestedRoutes(int count, ServerMetricsCollector::RequestMode mode) const
 {
 	if (!exposer) return;
 
@@ -122,29 +122,28 @@ void MetricsCollector::addRequestedRoutes(int count, MetricsCollector::RequestMo
 	}
 }
 
-void MetricsCollector::addEuclideanCalculatedRoutes(int count, RequestMode mode) const
+void ServerMetricsCollector::addEuclideanCalculatedRoutes(int count, RequestMode mode) const
 {
 	if (!exposer) return;
 
 	calculated_routes_count_euclidean->Increment(count);
 }
 
-void MetricsCollector::addRandomCalculatedRoutes(int count, RequestMode mode) const
+void ServerMetricsCollector::addRandomCalculatedRoutes(int count, RequestMode mode) const
 {
 	if (!exposer) return;
 
 	calculated_routes_count_random->Increment(count);
 }
 
-void MetricsCollector::addCrowflightCalculatedRoutes(int count, RequestMode mode) const
+void ServerMetricsCollector::addCrowflightCalculatedRoutes(int count, RequestMode mode) const
 {
     if (!exposer) return;
 
     calculated_routes_count_random->Increment(count);
 }
 
-
-MetricsCollector::Stopwatch MetricsCollector::euclideanRoutesStopwatch(int count, RequestMode mode) const
+MetricsCollector::Stopwatch ServerMetricsCollector::euclideanRoutesStopwatch(int count, RequestMode mode) const
 {
 	if (!exposer) return MetricsCollector::Stopwatch();
 
@@ -167,7 +166,7 @@ MetricsCollector::Stopwatch MetricsCollector::euclideanRoutesStopwatch(int count
 		});
 }
 
-MetricsCollector::Stopwatch MetricsCollector::randomRoutesStopwatch(int count, RequestMode mode) const
+MetricsCollector::Stopwatch ServerMetricsCollector::randomRoutesStopwatch(int count, RequestMode mode) const
 {
     if (!exposer) return MetricsCollector::Stopwatch();
 
@@ -190,7 +189,7 @@ MetricsCollector::Stopwatch MetricsCollector::randomRoutesStopwatch(int count, R
     });
 }
 
-MetricsCollector::Stopwatch MetricsCollector::crowflightRoutesStopwatch(int count, RequestMode mode) const
+MetricsCollector::Stopwatch ServerMetricsCollector::crowflightRoutesStopwatch(int count, RequestMode mode) const
 {
     if (!exposer) return MetricsCollector::Stopwatch();
 
@@ -213,28 +212,28 @@ MetricsCollector::Stopwatch MetricsCollector::crowflightRoutesStopwatch(int coun
     });
 }
 
-void MetricsCollector::addRoutesCacheRequests(int count, RequestMode mode) const
+void ServerMetricsCollector::addRoutesCacheRequests(int count, RequestMode mode) const
 {
 	if (!exposer) return;
 
 	routes_cache_requests_count->Increment(count);
 }
 
-void MetricsCollector::addRoutesCacheHits(int count) const
+void ServerMetricsCollector::addRoutesCacheHits(int count) const
 {
 	if (!exposer) return;
 
 	routes_cache_hits_count->Increment(count);
 }
 
-void MetricsCollector::addRoutesCacheMisses(int count) const
+void ServerMetricsCollector::addRoutesCacheMisses(int count) const
 {
 	if (!exposer) return;
 
 	routes_cache_misses_count->Increment(count);
 }
 
-MetricsCollector::Stopwatch MetricsCollector::routesCacheStopwatch(int count, RequestMode mode) const
+MetricsCollector::Stopwatch ServerMetricsCollector::routesCacheStopwatch(int count, RequestMode mode) const
 {
 	if(!exposer) return MetricsCollector::Stopwatch();
 

@@ -7,9 +7,11 @@ import "assfire/api/v1/model/routing/routing.proto";
 import "google/api/annotations.proto";
 
 message GetSingleRouteRequest {
-  assfire.api.v1.model.routing.Location origin = 1;
-  assfire.api.v1.model.routing.Location destination = 2;
-  assfire.api.v1.model.routing.RoutingOptions options = 3;
+  string request_id = 1;
+  assfire.api.v1.model.routing.Location origin = 2;
+  assfire.api.v1.model.routing.Location destination = 3;
+  assfire.api.v1.model.routing.RoutingOptions options = 4;
+  assfire.api.v1.model.routing.RoutingProfile routing_profile = 5;
 }
 
 message ResponseStatus {
@@ -28,9 +30,11 @@ message GetSingleRouteResponse {
 }
 
 message GetRoutesBatchRequest {
-  repeated assfire.api.v1.model.routing.Location origins = 1;
-  repeated assfire.api.v1.model.routing.Location destinations = 2;
-  assfire.api.v1.model.routing.RoutingOptions options = 3;
+  string request_id = 1;
+  repeated assfire.api.v1.model.routing.Location origins = 2;
+  repeated assfire.api.v1.model.routing.Location destinations = 3;
+  assfire.api.v1.model.routing.RoutingOptions options = 4;
+  assfire.api.v1.model.routing.RoutingProfile routing_profile = 5;
 }
 
 message GetRoutesBatchResponse {

@@ -8,36 +8,33 @@ message Location {
   int32 lon = 2;
 }
 
-enum CoordinateFormat {
-  COORDINATE_FORMAT_UNSPECIFIED = 0;
-  COORDINATE_FORMAT_FIXED_POINT_INT = 1;
+message RoutingProfile {
+    double velocity = 1;
 }
 
 message RoutingOptions {
   enum RoutingType {
-    EUCLIDEAN = 0;
-    RANDOM = 1;
-    CROWFLIGHT = 2;
-    OSRM = 3;
+    ROUTING_TYPE_EUCLIDEAN = 0;
+    ROUTING_TYPE_RANDOM = 1;
+    ROUTING_TYPE_CROWFLIGHT = 2;
+    ROUTING_TYPE_OSRM = 3;
   }
 
   message Osrm {
     enum Geometry {
-      SIMPLIFIED = 0;
-      FULL = 1;
-      STRAIGHT_LINE = 2;
+      GEOMETRY_SIMPLIFIED = 0;
+      GEOMETRY_FULL = 1;
+      GEOMETRY_STRAIGHT_LINE = 2;
     }
 
     Geometry geometry = 1;
   }
 
   RoutingType routing_type = 1;
-  CoordinateFormat coordinate_format = 2;
-  double velocity = 3;
-  bool force_update = 4;
-  bool retrieve_waypoints = 5;
+  bool force_update = 2;
+  bool retrieve_waypoints = 3;
 
-  Osrm osrm = 6;
+  Osrm osrm = 4;
 }
 
 message RouteInfo {

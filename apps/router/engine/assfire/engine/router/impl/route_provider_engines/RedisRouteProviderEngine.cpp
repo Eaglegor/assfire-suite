@@ -9,7 +9,7 @@
 
 using namespace assfire::router;
 
-RedisRouteProviderEngine::RedisRouteProviderEngine(const RoutingProfile &routingProfile, std::unique_ptr<RouteProviderSettings::Redis::Serializer> serializer, std::unique_ptr<RouteProviderEngine> backend_engine,
+RedisRouteProviderEngine::RedisRouteProviderEngine(const RoutingProfile &routingProfile, std::unique_ptr<RedisSerializer> serializer, std::unique_ptr<RouteProviderEngine> backend_engine,
                                                    const std::string &redis_host,
                                                    std::size_t redis_port, bool force_update) :
         routing_profile(routingProfile),
@@ -42,8 +42,8 @@ RouteDetails RedisRouteProviderEngine::getSingleRouteDetails(const Location &ori
         }
         if (!force_update) {
             SPDLOG_DEBUG("Route not found in cache: ({},{})->({},{}). Requesting backend service",
-                         origin.getLatitude(), origin.getLongitude(),
-                         destination.getLatitude(), destination.getLongitude());
+                         origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
+                         destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
         }
 
         RouteDetails result = backend_engine->getSingleRouteDetails(origin, destination);

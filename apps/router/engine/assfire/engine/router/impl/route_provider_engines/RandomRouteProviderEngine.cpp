@@ -6,7 +6,6 @@
 using namespace assfire::router;
 
 RandomRouteProviderEngine::RandomRouteProviderEngine(const RoutingProfile &routingProfile) : routing_profile(routingProfile),
-                                                                                             metrics_collector(metrics_collector),
                                                                                              gen(rd()),
                                                                                              distr(1000.0, 100000.0) {}
 

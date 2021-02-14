@@ -1,14 +1,14 @@
 #pragma once
 
 #include <assfire/api/v1/service/router/router.grpc.pb.h>
-#include <assfire/router/MetricsCollector.hpp>
+#include <assfire/engine/router/DistanceMatrixFactory.hpp>
+#include "ServerMetricsCollector.hpp"
 #include <memory>
 #include <atomic>
+#include <functional>
 
 namespace assfire::router
 {
-    class RouteProvider;
-
     class RouterService final : public assfire::api::v1::service::router::RouterService::Service
     {
     public:
@@ -19,7 +19,7 @@ namespace assfire::router
         using ResponseStatus = assfire::api::v1::service::router::ResponseStatus;
 
         struct Options {
-            MetricsCollector metrics_collector;
+            std::shared_ptr<MetricsCollector> metrics_collector;
 
             bool use_redis = false;
             std::string redis_host;
@@ -38,8 +38,10 @@ namespace assfire::router
         grpc::Status GetStreamingRoutesBatch(grpc::ServerContext *, grpc::ServerReaderWriter<GetRoutesBatchResponse, GetRoutesBatchRequest> *) override;
 
     private:
-        std::unique_ptr<RouteProvider> route_provider;
-        std::atomic_long request_id_counter;
-        MetricsCollector metrics_collector;
+        void processBatchRequest(const GetRoutesBatchRequest& request, const std::function<void(const GetRoutesBatchResponse&)> &consumeResponse);
+
+        DistanceMatrixFactory distance_matrix_factory;
+        RoutingContext routing_context;
+        std::shared_ptr<MetricsCollector> metrics_collector;
     };
 }

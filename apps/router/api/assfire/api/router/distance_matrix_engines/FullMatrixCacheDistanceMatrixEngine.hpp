@@ -1,14 +1,14 @@
 #pragma once
 
 #include <memory>
-#include "assfire/engine/router/DistanceMatrixEngine.hpp"
-#include "assfire/engine/router/RouteProviderEngine.hpp"
-#include "../../Matrix.hpp"
+#include "../DistanceMatrixEngine.hpp"
+#include "assfire/api/router/RouteProviderEngine.hpp"
+#include "../Matrix.hpp"
 
 namespace assfire::router {
     class FullMatrixCacheDistanceMatrixEngine : public DistanceMatrixEngine {
     public:
-        FullMatrixCacheDistanceMatrixEngine(std::unique_ptr<RouteProviderEngine> engine, int tag)
+        FullMatrixCacheDistanceMatrixEngine(std::unique_ptr<RouteProviderEngine> engine, Tag tag)
                 :
                 matrix_tag(tag),
                 engine(std::move(engine)) {
@@ -29,7 +29,7 @@ namespace assfire::router {
 
         bool initialized = false;
         std::vector<Location> known_locations;
-        int matrix_tag;
+        Tag matrix_tag;
         mutable std::unique_ptr<Matrix<RouteDetails>> route_details_cache;
         std::unique_ptr<RouteProviderEngine> engine;
     };
