@@ -2,9 +2,10 @@
 
 namespace assfire::router {
     enum class RouterEngineType {
-        OSRM,
-        CROWFLIGHT,
-        EUCLIDEAN,
-        RANDOM
+        UNKNOWN = 0,
+        OSRM = 1,
+        CROWFLIGHT = 2,
+        EUCLIDEAN = 3,
+        RANDOM = 4
     };
 }

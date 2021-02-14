@@ -9,9 +9,10 @@ namespace assfire::router {
         class Osrm {
         public:
             enum class Geometry {
-                STRAIGHT_LINE,
-                SIMPLIFIED,
-                FULL
+                UNSPECIFIED = 0,
+                STRAIGHT_LINE = 1,
+                SIMPLIFIED = 2,
+                FULL = 3
             };
 
             Geometry getGeometry() const {

@@ -94,7 +94,7 @@ RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &orig
 
                 if (response.at(U("routes")).at(0).has_field(U("geometry"))) {
                     for (const auto &g : response.at(U("routes")).at(0).at(U("geometry")).at(U("coordinates")).as_array()) {
-                        waypoints.emplace_back(g.at(1).as_double(), g.at(0).as_double());
+                        waypoints.emplace_back(Coordinate(g.at(1).as_double()), Coordinate(g.at(0).as_double()));
                     }
                 } else {
                     if (waypoints_expected) {

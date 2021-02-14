@@ -34,8 +34,12 @@ namespace {
             if (!context.getRedisContext().getSerializerSupplier()) {
                 throw std::invalid_argument("No serializer supplier is provided for redis cache");
             }
-            return std::make_unique<RedisRouteProviderEngine>(routing_profile, context.getRedisContext().getSerializerSupplier()(), createEngine(engine_type, routing_profile, settings, context),
-                                                              context.getRedisContext().getHost(), context.getRedisContext().getPort(), settings.isForceUpdate());
+            return std::make_unique<RedisRouteProviderEngine>(routing_profile,
+                                                              context.getRedisContext().getSerializerSupplier()(engine_type, routing_profile, settings),
+                                                              createEngine(engine_type, routing_profile, settings, context),
+                                                              context.getRedisContext().getHost(),
+                                                              context.getRedisContext().getPort(),
+                                                              settings.isForceUpdate());
         } else {
             return createEngine(engine_type, routing_profile, settings, context);
         }

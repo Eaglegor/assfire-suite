@@ -4,14 +4,14 @@
 #include <assfire/api/v1/service/router/translators/RoutingProfileTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/RoutingOptionsTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/LocationTranslator.hpp>
-#include "DefaultRedisSerializer.hpp"
+#include "assfire/engine/router/DefaultRedisSerializer.hpp"
 #include <random>
 
 using namespace assfire::router;
 using namespace assfire::router::proto_translation;
 
 namespace {
-    std::string UNIDENTIFIED_REQUEST_ID = "?";
+    constexpr const char* UNIDENTIFIED_REQUEST_ID = "?";
 }
 
 RouterService::RouterService(const Options &options) :
@@ -20,7 +20,9 @@ RouterService::RouterService(const Options &options) :
     routing_context.getRedisContext().setCacheEnabled(options.use_redis);
     routing_context.getRedisContext().setHost(options.redis_host);
     routing_context.getRedisContext().setPort(options.redis_port);
-    routing_context.getRedisContext().setSerializerSupplier([]() { return std::make_unique<DefaultRedisSerializer>(); });
+    routing_context.getRedisContext().setSerializerSupplier([](RouterEngineType engine_type, const RoutingProfile &profile, const RouteProviderSettings &settings) {
+        return std::make_unique<DefaultRedisSerializer>(engine_type, profile, settings);
+    });
 }
 
 grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const GetSingleRouteRequest *request, GetSingleRouteResponse *response) {

@@ -10,6 +10,8 @@ namespace assfire::router {
     public:
         class RedisContext {
         public:
+            using SerializerSupplier = std::function<std::unique_ptr<RedisSerializer>(RouterEngineType, const RoutingProfile &, const RouteProviderSettings&)>;
+
             const std::string &getHost() const {
                 return host;
             }
@@ -26,12 +28,12 @@ namespace assfire::router {
                 this->port = port;
             }
 
-            const std::function<std::unique_ptr<RedisSerializer>()> &getSerializerSupplier() const {
+            const SerializerSupplier &getSerializerSupplier() const {
                 return serializer_supplier;
             }
 
-            void setSerializerSupplier(const std::function<std::unique_ptr<RedisSerializer>()> &serializerSupplier) {
-                serializer_supplier = serializerSupplier;
+            void setSerializerSupplier(const SerializerSupplier &serializerSupplier) {
+                this->serializer_supplier = serializerSupplier;
             }
 
             bool isCacheEnabled() const {
@@ -46,7 +48,7 @@ namespace assfire::router {
             std::string host = "localhost";
             std::size_t port = 6379;
             bool cache_enabled = false;
-            std::function<std::unique_ptr<RedisSerializer>()> serializer_supplier;
+            SerializerSupplier serializer_supplier;
         };
 
         class OsrmContext {
