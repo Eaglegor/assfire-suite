@@ -13,7 +13,7 @@ RouteDetails DirectRequestDistanceMatrixEngine::getRouteDetails(const IndexedLoc
     return engine->getSingleRouteDetails(origin.getLocation(), destination.getLocation());
 }
 
-IndexedLocation DirectRequestDistanceMatrixEngine::addLocation(const Location &location) {
+IndexedLocation DirectRequestDistanceMatrixEngine::addLocation(const Location &location, LocationType type) {
     known_locations.push_back(location);
     return IndexedLocation(known_locations.size() - 1, matrix_tag, location);
 }

@@ -24,7 +24,7 @@ namespace assfire::router
 
         RouteDetails getRouteDetails(const Location &origin, const Location &destination) const override;
 
-        IndexedLocation addLocation(const Location &location) override;
+        IndexedLocation addLocation(const Location &location, LocationType type) override;
 
     private:
         std::vector <Location> known_locations;

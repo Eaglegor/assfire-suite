@@ -16,6 +16,16 @@ namespace assfire::router
 
         IndexedLocation(const IndexedLocation &rhs) = default;
 
+        bool operator==(const IndexedLocation &rhs) const {
+            return id == rhs.id &&
+                   index_tag == rhs.index_tag &&
+                   location == rhs.location;
+        }
+
+        bool operator!=(const IndexedLocation &rhs) const {
+            return !(rhs == *this);
+        }
+
         int getId() const
         {
             return id;

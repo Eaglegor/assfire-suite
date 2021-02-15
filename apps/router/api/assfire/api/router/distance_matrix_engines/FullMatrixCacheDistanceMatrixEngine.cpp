@@ -23,7 +23,7 @@ RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const Location
     return engine->getSingleRouteDetails(origin, destination);
 }
 
-IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location &location) {
+IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location &location, LocationType type) {
     initialized = false;
     known_locations.push_back(location);
     return IndexedLocation(known_locations.size() - 1, matrix_tag, location);

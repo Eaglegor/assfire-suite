@@ -9,6 +9,12 @@ namespace assfire::router
     class DistanceMatrixEngine
     {
     public:
+        enum class LocationType {
+            ORIGIN,
+            DESTINATION,
+            ORIGIN_AND_DESTINATION
+        };
+
         using Tag = int;
         virtual ~DistanceMatrixEngine() = default;
 
@@ -18,6 +24,6 @@ namespace assfire::router
         virtual RouteInfo getRouteInfo(const Location &origin, const Location &destination) const = 0;
         virtual RouteDetails getRouteDetails(const Location &origin, const Location &destination) const = 0;
 
-        virtual IndexedLocation addLocation(const Location &location) = 0;
+        virtual IndexedLocation addLocation(const Location &location, LocationType type) = 0;
     };
 }

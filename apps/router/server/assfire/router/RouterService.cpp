@@ -99,17 +99,31 @@ grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context
 void RouterService::processBatchRequest(const RouterService::GetRoutesBatchRequest &request, const std::function<void(const GetRoutesBatchResponse &)> &consumeResponse) {
     DistanceMatrix distance_matrix = distance_matrix_factory.createDistanceMatrix(
             RoutingEngineTypeTranslator::fromProto(request.options().routing_type()),
-            DistanceMatrixCachingPolicy::NO_CACHING,
+            DistanceMatrixCachingPolicy::AUTO,
             RoutingProfileTranslator::fromProto(request.routing_profile()),
             RoutingOptionsTranslator::fromProto(request.options()),
             routing_context
     );
 
-    for (const auto &from_loc : request.origins()) {
-        for (const auto &to_loc : request.destinations()) {
-            RouteDetails route_details = distance_matrix.getRouteDetails(LocationTranslator::fromProto(from_loc), LocationTranslator::fromProto(to_loc));
+    std::vector<IndexedLocation> indexed_origins;
+    std::vector<IndexedLocation> indexed_destinations;
 
-            if (from_loc.lat() == to_loc.lat() && from_loc.lon() == to_loc.lon()) {
+    indexed_origins.reserve(request.origins().size());
+    indexed_destinations.reserve(request.destinations().size());
+
+    for (const auto &from_loc : request.origins()) {
+        indexed_origins.push_back(distance_matrix.addLocation(LocationTranslator::fromProto(from_loc), DistanceMatrixEngine::LocationType::ORIGIN));
+    }
+
+    for (const auto &to_loc : request.destinations()) {
+        indexed_destinations.push_back(distance_matrix.addLocation(LocationTranslator::fromProto(to_loc), DistanceMatrixEngine::LocationType::DESTINATION));
+    }
+
+    for (const auto &from_loc : indexed_origins) {
+        for (const auto &to_loc : indexed_destinations) {
+            RouteDetails route_details = distance_matrix.getRouteDetails(from_loc, to_loc);
+
+            if (from_loc == to_loc) {
                 continue;
             }
 
@@ -117,8 +131,8 @@ void RouterService::processBatchRequest(const RouterService::GetRoutesBatchReque
 
             response.mutable_status()->set_code(api::v1::service::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
             api::v1::model::routing::RouteInfo *route_info = response.add_route_infos();
-            route_info->mutable_origin()->CopyFrom(from_loc);
-            route_info->mutable_destination()->CopyFrom(to_loc);
+            route_info->mutable_origin()->CopyFrom(LocationTranslator::toProto(from_loc.getLocation()));
+            route_info->mutable_destination()->CopyFrom(LocationTranslator::toProto(to_loc.getLocation()));
             route_info->set_duration(route_details.getSummary().getDuration());
             route_info->set_distance(route_details.getSummary().getDistance());
 

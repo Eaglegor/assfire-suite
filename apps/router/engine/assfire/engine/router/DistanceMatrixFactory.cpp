@@ -53,6 +53,7 @@ DistanceMatrixFactory::createDistanceMatrix(RouterEngineType engine_type, Distan
         case DistanceMatrixCachingPolicy::NO_CACHING:
             return DistanceMatrix(std::make_shared<DirectRequestDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter));
         case DistanceMatrixCachingPolicy::FULL_MATRIX_PRECACHING:
+        case DistanceMatrixCachingPolicy::AUTO:
             return DistanceMatrix(std::make_shared<FullMatrixCacheDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter));
         default:
             throw std::runtime_error("Unknown distance matrix caching policy");

@@ -31,8 +31,8 @@ namespace assfire::router {
             return engine->getRouteDetails(origin, destination);
         }
 
-        IndexedLocation addLocation(const Location &location) {
-            return engine->addLocation(location);
+        IndexedLocation addLocation(const Location &location, DistanceMatrixEngine::LocationType type = DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION) {
+            return engine->addLocation(location, type);
         }
 
     private:
