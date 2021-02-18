@@ -3,23 +3,27 @@
 namespace assfire::router {
     class Coordinate {
     public:
-        static constexpr double PRECISION = 1000000.0;
+        using value_type = long;
+    private:
+        constexpr static double ENCODE_MULTIPLIER = 1e6;
+
+        explicit Coordinate(value_type value)
+                : data(value) {}
+
+    public:
+        using value_type = long;
 
         Coordinate()
                 : data(0) {}
 
-        explicit Coordinate(long value)
-                : data(value) {}
+        Coordinate(const Coordinate &rhs) = default;
 
-        explicit Coordinate(double value)
-                : data(static_cast<long>(value * PRECISION)) {}
-
-        double doubleValue() const {
-            return data / PRECISION;
+        value_type encodedValue() const {
+            return data;
         }
 
-        long longValue() const {
-            return data;
+        double doubleValue() const {
+            return data / ENCODE_MULTIPLIER;
         }
 
         bool operator==(const Coordinate &rhs) const {
@@ -30,7 +34,15 @@ namespace assfire::router {
             return !(rhs == *this);
         }
 
+        static Coordinate fromEncodedValue(value_type v) {
+            return Coordinate(v);
+        }
+
+        static Coordinate fromDoubleValue(double v) {
+            return Coordinate(static_cast<value_type>(v * ENCODE_MULTIPLIER));
+        }
+
     private:
-        long data;
+        value_type data;
     };
 }

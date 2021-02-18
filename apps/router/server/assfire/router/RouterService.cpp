@@ -4,6 +4,7 @@
 #include <assfire/api/v1/service/router/translators/RoutingProfileTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/RoutingOptionsTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/LocationTranslator.hpp>
+#include <assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp>
 #include "assfire/engine/router/DefaultRedisSerializer.hpp"
 #include <random>
 
@@ -40,18 +41,8 @@ grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const G
         RouteDetails route_details = distance_matrix.getRouteDetails(LocationTranslator::fromProto(request->origin()), LocationTranslator::fromProto(request->destination()));
 
         response->mutable_status()->set_code(api::v1::service::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
-        response->mutable_route_info()->mutable_origin()->CopyFrom(request->origin());
-        response->mutable_route_info()->mutable_destination()->CopyFrom(request->destination());
-        response->mutable_route_info()->set_duration(route_details.getSummary().getDuration());
-        response->mutable_route_info()->set_distance(route_details.getSummary().getDistance());
+        response->mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(request->origin(), request->destination(), route_details));
 
-        if (request->options().retrieve_waypoints()) {
-            for (const RouteDetails::Waypoint &waypoint : route_details.getWaypoints()) {
-                auto *wp = response->mutable_route_info()->add_waypoints();
-                wp->set_lat(waypoint.getLatitude().longValue());
-                wp->set_lon(waypoint.getLongitude().longValue());
-            }
-        }
         SPDLOG_INFO("Route request {} processing finished", request_id);
         return grpc::Status::OK;
     } catch (const std::exception &e) {
@@ -131,18 +122,7 @@ void RouterService::processBatchRequest(const RouterService::GetRoutesBatchReque
 
             response.mutable_status()->set_code(api::v1::service::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
             api::v1::model::routing::RouteInfo *route_info = response.add_route_infos();
-            route_info->mutable_origin()->CopyFrom(LocationTranslator::toProto(from_loc.getLocation()));
-            route_info->mutable_destination()->CopyFrom(LocationTranslator::toProto(to_loc.getLocation()));
-            route_info->set_duration(route_details.getSummary().getDuration());
-            route_info->set_distance(route_details.getSummary().getDistance());
-
-            if (request.options().retrieve_waypoints()) {
-                for (const RouteDetails::Waypoint &waypoint : route_details.getWaypoints()) {
-                    auto *wp = route_info->add_waypoints();
-                    wp->set_lat(waypoint.getLatitude().longValue());
-                    wp->set_lon(waypoint.getLongitude().longValue());
-                }
-            }
+            route_info->CopyFrom(RouteInfoTranslator::toProto(from_loc.getLocation(), to_loc.getLocation(), route_details));
 
             consumeResponse(response);
         }

@@ -3,7 +3,7 @@ find_package(gRPC CONFIG REQUIRED)
 get_target_property(gRPC_CPP_PLUGIN_EXECUTABLE gRPC::grpc_cpp_plugin LOCATION)
 
 set(SOURCES
-        assfire/api/v1/service/router/translators/LocationTranslator.hpp)
+        assfire/api/v1/service/router/translators/LocationTranslator.hpp assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp)
 set(HEADERS
         assfire/api/v1/service/router/translators/RoutingEngineTypeTranslator.hpp
         assfire/api/v1/service/router/translators/RoutingProfileTranslator.hpp

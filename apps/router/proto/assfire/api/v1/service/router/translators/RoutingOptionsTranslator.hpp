@@ -3,6 +3,7 @@
 #include <assfire/api/v1/service/router/router.grpc.pb.h>
 #include <assfire/api/router/RouteProviderSettings.hpp>
 #include <assfire/api/router/RouterEngineType.hpp>
+#include "RoutingEngineTypeTranslator.hpp"
 
 namespace assfire::router::proto_translation {
 
@@ -48,6 +49,7 @@ namespace assfire::router::proto_translation {
         static assfire::api::v1::model::routing::RoutingOptions::Osrm toProtoOsrmSettings(const RouteProviderSettings::Osrm &settings) {
             assfire::api::v1::model::routing::RoutingOptions::Osrm result;
             result.set_geometry(toProtoOsrmGeometry(settings.getGeometry()));
+            return result;
         }
 
         static assfire::api::v1::model::routing::RoutingOptions::Osrm::Geometry toProtoOsrmGeometry(const RouteProviderSettings::Osrm::Geometry &geometry) {

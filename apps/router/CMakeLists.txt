@@ -11,7 +11,7 @@ if(ASSFIRE_APPS_BUILD_ROUTER OR ASSFIRE_APPS_BUILD_ALL)
 
     add_subdirectory(api)
     add_subdirectory(proto)
-#    add_subdirectory(client)
+    add_subdirectory(client)
     add_subdirectory(engine)
 #    add_subdirectory(gateway)
 #    add_subdirectory(helm)
