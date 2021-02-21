@@ -12,6 +12,10 @@ namespace assfire::router {
             return meters_per_second;
         }
 
+        double toMetersPerSecondWithPrecision(double precision) const {
+            return round(meters_per_second / precision) * precision;
+        }
+
         double toKilometersPerHour() const {
             return meters_per_second / 1000.0 * 3600;
         }

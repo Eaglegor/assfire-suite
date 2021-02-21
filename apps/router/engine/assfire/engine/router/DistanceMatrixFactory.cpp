@@ -8,6 +8,7 @@
 #include "impl/route_provider_engines/RandomRouteProviderEngine.hpp"
 #include "impl/route_provider_engines/RedisRouteProviderEngine.hpp"
 #include "impl/route_provider_engines/CppRedisCacheConnector.hpp"
+#include "impl/route_provider_engines/RestSdkOsrmConnector.hpp"
 #include <stdexcept>
 
 using namespace assfire::router;
@@ -20,8 +21,9 @@ namespace {
             case assfire::router::RouterEngineType::EUCLIDEAN:
                 return std::make_unique<EuclideanRouteProviderEngine>(routing_profile);
             case assfire::router::RouterEngineType::OSRM:
-                return std::make_unique<OsrmRouteProviderEngine>(context.getOsrmContext().getEndpoint(), routing_profile,
-                                                                 settings.isRetrieveWaypoints() ? RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE : settings.getOsrmSettings().getGeometry());
+                return std::make_unique<OsrmRouteProviderEngine>(routing_profile,
+                                                                 settings.isRetrieveWaypoints() ? RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE : settings.getOsrmSettings().getGeometry(),
+                                                                 std::make_unique<RestSdkOsrmConnector>(context.getOsrmContext().getEndpoint()));
             case assfire::router::RouterEngineType::RANDOM:
                 return std::make_unique<RandomRouteProviderEngine>(routing_profile);
             default:

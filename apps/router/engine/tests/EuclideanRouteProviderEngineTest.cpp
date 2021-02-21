@@ -1,45 +1,45 @@
 #include "gtest/gtest.h"
-#include <assfire/engine/router/impl/route_provider_engines/CrowflightRouteProviderEngine.hpp>
+#include <assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp>
 #include "RouteProviderEngineTestFixtureBase.hpp"
 #include <iostream>
 
 using namespace assfire::router;
 
 namespace assfire::router {
-    class CrowflightRouteProviderEngineTest : public RouteProviderEngineTestFixtureBase {
+    class EuclideanRouteProviderEngineTest : public RouteProviderEngineTestFixtureBase {
     public:
         double getDistancePrecision() {
             return 1.0;
         }
 
         Location getOrigin() {
-            return getLocation(55.751, 37.616);
+            return getLocation(55751, 37616);
         }
 
         Location getDestination() {
-            return getLocation(59.939, 30.314);
+            return getLocation(59939, 30314);
         }
 
         Distance getExpectedDistance() {
-            return Distance::fromMeters(637375);
+            return Distance::fromMeters(8417);
         }
 
         TimeInterval getExpectedDuration() {
-            return TimeInterval::fromSeconds(38242);
+            return TimeInterval::fromSeconds(505);
         }
 
         std::vector<Location> getOriginsGroup() {
-            return {getLocation(55.759, 37.618), getLocation(55.411, 37.897)};
+            return {getLocation(55759, 37618), getLocation(55411, 37897)};
         }
 
         std::vector<Location> getDestinationsGroup() {
-            return {getLocation(52.519, 13.401), getLocation(55.411, 37.897), getLocation(50.064, 14.420)};
+            return {getLocation(52519, 13401), getLocation(55411, 37897), getLocation(50064, 14420)};
         }
 
         Matrix<double> getExpectedDistancesMatrix() {
             std::vector<std::vector<double>> data{
-                    {1616257, 42669, 1676856},
-                    {1632492, 0, 1686184}
+                    {24432, 446, 23886},
+                    {24666, 0, 24078}
             };
 
             return Matrix<double>(2, 3, [&](int i, int j){
@@ -49,8 +49,8 @@ namespace assfire::router {
 
         Matrix<long> getExpectedDurationsMatrix() {
             std::vector<std::vector<long>> data{
-                    {96975, 2560, 100611},
-                    {97949, 0, 101171}
+                    {1465, 26, 1433},
+                    {1479, 0, 1444}
             };
 
             return Matrix<long>(2, 3, [&](int i, int j){
@@ -60,8 +60,8 @@ namespace assfire::router {
     };
 }
 
-TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteInfo) {
-    CrowflightRouteProviderEngine engine(getRoutingProfile(60));
+TEST_F(EuclideanRouteProviderEngineTest, ReturnsRouteInfo) {
+    EuclideanRouteProviderEngine engine(getRoutingProfile(60));
 
     RouteInfo result = engine.getSingleRouteInfo(getOrigin(), getDestination());
 
@@ -69,8 +69,8 @@ TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteInfo) {
     ASSERT_EQ(result.getDuration().toSeconds(), getExpectedDuration().toSeconds());
 }
 
-TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteDetails) {
-    CrowflightRouteProviderEngine engine(getRoutingProfile(60));
+TEST_F(EuclideanRouteProviderEngineTest, ReturnsRouteDetails) {
+    EuclideanRouteProviderEngine engine(getRoutingProfile(60));
 
     RouteDetails result = engine.getSingleRouteDetails(getOrigin(), getDestination());
 
@@ -82,8 +82,8 @@ TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteDetails) {
     ASSERT_EQ(result.getWaypoints()[1], getDestination());
 }
 
-TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteInfoMatrix) {
-    CrowflightRouteProviderEngine engine(getRoutingProfile(60));
+TEST_F(EuclideanRouteProviderEngineTest, ReturnsRouteInfoMatrix) {
+    EuclideanRouteProviderEngine engine(getRoutingProfile(60));
 
     Matrix<RouteInfo> result = engine.getRouteInfoMatrix(getOriginsGroup(), getDestinationsGroup());
 
@@ -101,8 +101,8 @@ TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteInfoMatrix) {
     }
 }
 
-TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteDetailsMatrix) {
-    CrowflightRouteProviderEngine engine(getRoutingProfile(60));
+TEST_F(EuclideanRouteProviderEngineTest, ReturnsRouteDetailsMatrix) {
+    EuclideanRouteProviderEngine engine(getRoutingProfile(60));
 
     std::vector<Location> origins = getOriginsGroup();
     std::vector<Location> destinations = getDestinationsGroup();

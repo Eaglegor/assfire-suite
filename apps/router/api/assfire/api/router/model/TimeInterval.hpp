@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TimePoint.hpp"
+#include <compare>
 
 namespace assfire::router {
     class TimeInterval {
@@ -10,6 +11,8 @@ namespace assfire::router {
         explicit TimeInterval(value_type seconds) : seconds(seconds) {}
 
     public:
+        auto operator<=>(const TimeInterval& rhs) const = default;
+
         long toSeconds() const {
             return seconds;
         }

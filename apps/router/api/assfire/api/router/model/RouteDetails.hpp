@@ -26,6 +26,14 @@ namespace assfire::router {
             return summary;
         }
 
+        const Distance& getDistance() {
+            return summary.getDistance();
+        }
+
+        const TimeInterval& getDuration() {
+            return summary.getDuration();
+        }
+
         const Waypoints &getWaypoints() const {
             return waypoints;
         }

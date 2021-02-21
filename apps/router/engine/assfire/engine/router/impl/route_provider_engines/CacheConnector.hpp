@@ -14,6 +14,8 @@ namespace assfire::router {
             std::string message;
         };
 
+        virtual ~CacheConnector() = default;
+
         virtual void put(const std::string& key, const std::string& payload) = 0;
         virtual CacheEntry get(const std::string& key) = 0;
     };

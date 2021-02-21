@@ -9,7 +9,7 @@ class RouteProviderEngineTestFixtureBase : public testing::Test {
         }
 
         Location getLocation(double lat, double lon) const {
-            return Location(Coordinate::fromDoubleValue(lat), Coordinate::fromDoubleValue(lon));
+            return Location::fromDoubleLatLon(lat, lon);
         }
     };
 }

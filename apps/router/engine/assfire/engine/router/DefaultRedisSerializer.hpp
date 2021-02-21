@@ -3,6 +3,7 @@
 #include <sstream>
 #include <assfire/api/router/RouteProviderSettings.hpp>
 #include <assfire/api/router/RedisSerializer.hpp>
+#include <cmath>
 
 namespace assfire::router {
     // [TODO] Write proper portable binary serialization
@@ -11,7 +12,7 @@ namespace assfire::router {
         DefaultRedisSerializer(RouterEngineType engine_type, const RoutingProfile &routing_profile, const RouteProviderSettings &settings) {
             std::ostringstream str;
 
-            str << static_cast<int>(engine_type) << " " << routing_profile.getSpeed().toMetersPerSecond() << " " << settings.isRetrieveWaypoints() << " " << static_cast<int>(settings.getOsrmSettings().getGeometry());
+            str << static_cast<int>(engine_type) << " " <<  routing_profile.getSpeed().toMetersPerSecondWithPrecision(0.001) << " " << settings.isRetrieveWaypoints() << " " << static_cast<int>(settings.getOsrmSettings().getGeometry());
 
             suffix = str.str();
         }

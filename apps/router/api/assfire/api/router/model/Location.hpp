@@ -36,6 +36,10 @@ namespace assfire::router
             return !(rhs == *this);
         }
 
+        static Location fromDoubleLatLon(double lat, double lon) {
+            return Location(Coordinate::fromDoubleValue(lat), Coordinate::fromDoubleValue(lon));
+        }
+
     private:
         Coordinate latitude;
         Coordinate longitude;

@@ -1,9 +1,10 @@
 #pragma once
+#include <cstdint>
 
 namespace assfire::router {
     class Coordinate {
     public:
-        using value_type = long;
+        using value_type = std::int64_t;
     private:
         constexpr static double ENCODE_MULTIPLIER = 1e6;
 
@@ -11,8 +12,6 @@ namespace assfire::router {
                 : data(value) {}
 
     public:
-        using value_type = long;
-
         Coordinate()
                 : data(0) {}
 

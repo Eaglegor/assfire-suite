@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <compare>
 
 namespace assfire::router {
     class Distance {
@@ -9,6 +10,8 @@ namespace assfire::router {
                 meters(meters) {}
 
     public:
+        auto operator<=>(const Distance& rhs) const = default;
+
         double toMeters() const {
             return meters;
         }

@@ -5,7 +5,7 @@ set(SOURCES
         assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp
-        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp tests/CrowflightRouteProviderEngineTest.cpp assfire/engine/router/impl/route_provider_engines/CacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.cpp)
+        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp tests/CrowflightRouteProviderEngineTest.cpp assfire/engine/router/impl/route_provider_engines/CacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.cpp assfire/engine/router/impl/route_provider_engines/OsrmConnector.hpp assfire/engine/router/impl/route_provider_engines/RestSdkOsrmConnector.hpp assfire/engine/router/impl/route_provider_engines/RestSdkOsrmConnector.cpp assfire/engine/router/impl/route_provider_engines/CpprestWstringConvert.hpp)
 set(HEADERS
         assfire/engine/router/MetricsCollector.hpp
         assfire/engine/router/DistanceMatrixFactory.hpp
