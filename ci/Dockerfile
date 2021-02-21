@@ -45,3 +45,4 @@ RUN curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-hel
 RUN apk add --no-cache rpm
 
 RUN /opt/vcpkg/vcpkg install cpprestsdk --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install gtest --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
