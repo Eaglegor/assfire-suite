@@ -1,4 +1,4 @@
-FROM amd64/alpine:3.12.0
+FROM amd64/alpine:3.13.2
 
 RUN apk add --no-cache bash g++ cmake git curl make linux-headers perl
 
