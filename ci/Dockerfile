@@ -1,6 +1,14 @@
 FROM amd64/alpine:edge
 
-RUN apk update && apk add --no-cache bash g++ cmake git curl make linux-headers perl
+RUN apk update && apk add --no-cache bash g++ git curl make linux-headers perl npm openssl openssl-dev rpm go git
+
+# Installing cmake
+RUN git clone --depth 1 --branch v3.19.5 https://github.com/Kitware/CMake.git  /opt/cmake && \
+       cd /opt/cmake && \
+       ./configure && \
+       make install && \
+       cd / && \
+       rm -rf /opt/cmake
 
 # Installing ninja
 RUN git clone --depth 1 https://github.com/ninja-build/ninja.git /opt/ninja && \
@@ -23,11 +31,11 @@ RUN /opt/vcpkg/vcpkg install cxxopts --triplet x64-linux && rm -rf /opt/vcpkg/do
 RUN /opt/vcpkg/vcpkg install spdlog --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install catch2 --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install prometheus-cpp --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install cpprestsdk --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install gtest --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 
 ENV VCPKG_ROOT /opt/vcpkg
 
-RUN apk add --no-cache go
-RUN apk add --no-cache git
 RUN go get -v \
     github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
     github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
@@ -36,13 +44,7 @@ RUN go get -v \
 ENV GOPATH /root/go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 
-RUN apk add --no-cache npm
 RUN npm install -g react-scripts
 
-RUN apk add --no-cache openssl
 RUN curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-RUN apk add --no-cache rpm
-
-RUN /opt/vcpkg/vcpkg install cpprestsdk --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install gtest --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
