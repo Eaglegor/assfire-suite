@@ -1,34 +1,33 @@
 #pragma once
 
 #include "Distance.hpp"
-#include "Interval.hpp"
+#include "TimeInterval.hpp"
 
-namespace assfire::router
-{
-    class RouteInfo
-    {
+namespace assfire::router {
+    class RouteInfo {
     public:
-        RouteInfo():
-        distance(0),
-        duration(0)
-        {}
+        RouteInfo()
+                :
+                distance(Distance::zero()),
+                duration(TimeInterval::zero()) {}
 
         RouteInfo(const Distance &distance, const TimeInterval &duration)
                 :
                 distance(distance),
-                duration(duration)
-        {}
+                duration(duration) {}
 
         RouteInfo(const RouteInfo &rhs) = default;
 
-        const Distance &getDistance() const
-        {
+        const Distance &getDistance() const {
             return distance;
         }
 
-        const TimeInterval &getDuration() const
-        {
+        const TimeInterval &getDuration() const {
             return duration;
+        }
+
+        static RouteInfo zero() {
+            return RouteInfo(Distance::zero(), TimeInterval::zero());
         }
 
     private:

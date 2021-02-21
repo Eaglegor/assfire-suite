@@ -28,19 +28,16 @@ namespace {
 CrowflightRouteProviderEngine::CrowflightRouteProviderEngine(const RoutingProfile &routingProfile) : routing_profile(routingProfile) {}
 
 RouteInfo CrowflightRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const {
-    if (origin == destination) return RouteInfo(0, 0);
+    if (origin == destination) return RouteInfo::zero();
 
-    TimeInterval duration;
-    Distance distance;
-
-    distance = calculateCrowflightDistance(origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
-                                           destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
-    duration = routing_profile.getSpeed().getTimeToTravel(distance);
+    Distance distance = Distance::fromMeters(calculateCrowflightDistance(origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
+                                                                         destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue()));
+    TimeInterval duration = routing_profile.getSpeed().getSecondsToTravel(distance);
 
     SPDLOG_TRACE("Crowflight route calculated ({},{})->({},{}) = (dist: {}, time: {})",
                  origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
                  destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue(),
-                 distance, duration);
+                 distance.toMeters(), duration.toSeconds());
 
     return RouteInfo(distance, duration);
 }

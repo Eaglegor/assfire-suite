@@ -9,11 +9,11 @@ namespace assfire::router::proto_translation {
     class RouteInfoTranslator {
     public:
         static RouteInfo fromProto(const assfire::api::v1::model::routing::RouteInfo &info) {
-            return RouteInfo(info.distance(), info.duration());
+            return RouteInfo(Distance::fromMeters(info.distance()), TimeInterval::fromSeconds(info.duration()));
         }
 
         static RouteDetails fromProtoWithDetails(const assfire::api::v1::model::routing::RouteInfo &info) {
-            RouteInfo summary(info.distance(), info.duration());
+            RouteInfo summary(Distance::fromMeters(info.distance()), TimeInterval::fromSeconds(info.duration()));
 
             RouteDetails::Waypoints waypoints;
             waypoints.reserve(info.waypoints().size());
@@ -29,8 +29,8 @@ namespace assfire::router::proto_translation {
             assfire::api::v1::model::routing::RouteInfo result;
             result.mutable_origin()->CopyFrom(origin);
             result.mutable_origin()->CopyFrom(destination);
-            result.set_distance(info.getDistance());
-            result.set_duration(info.getDuration());
+            result.set_distance(info.getDistance().toMeters());
+            result.set_duration(info.getDuration().toSeconds());
             return result;
         }
 

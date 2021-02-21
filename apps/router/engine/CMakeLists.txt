@@ -5,7 +5,7 @@ set(SOURCES
         assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.cpp
         assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp
-        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp)
+        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp tests/CrowflightRouteProviderEngineTest.cpp assfire/engine/router/impl/route_provider_engines/CacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.cpp)
 set(HEADERS
         assfire/engine/router/MetricsCollector.hpp
         assfire/engine/router/DistanceMatrixFactory.hpp
@@ -26,3 +26,5 @@ vcpkg_find_cpp_redis()
 add_library(assfire-router-engine ${SOURCES})
 target_link_libraries(assfire-router-engine PUBLIC cpp_redis::cpp_redis spdlog::spdlog prometheus-cpp::core assfire-router-api cpprestsdk::cpprest)
 target_include_directories(assfire-router-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_subdirectory(tests)

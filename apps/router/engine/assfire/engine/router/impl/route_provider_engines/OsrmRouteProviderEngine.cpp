@@ -41,7 +41,7 @@ RouteInfo OsrmRouteProviderEngine::getSingleRouteInfo(const Location &origin, co
 }
 
 RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &origin, const Location &destination) const {
-    if (origin == destination) return RouteDetails(RouteInfo(0, 0), {origin, destination});
+    if (origin == destination) return RouteDetails(RouteInfo::zero(), {origin, destination});
 
     uri_builder builder;
     builder
@@ -87,8 +87,8 @@ RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &orig
                     throw std::runtime_error(fmt::format("OSRM backend returned error: {}", message));
                 }
 
-                TimeInterval duration = response.at(U("routes")).at(0).at(U("duration")).as_double();
-                Distance distance = response.at(U("routes")).at(0).at(U("distance")).as_double();
+                TimeInterval duration = TimeInterval::fromSeconds(response.at(U("routes")).at(0).at(U("duration")).as_double());
+                Distance distance = Distance::fromMeters(response.at(U("routes")).at(0).at(U("distance")).as_double());
 
                 RouteDetails::Waypoints waypoints;
 
@@ -103,6 +103,11 @@ RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &orig
                     waypoints.emplace_back(origin);
                     waypoints.emplace_back(destination);
                 }
+
+                SPDLOG_TRACE("OSRM route calculated ({},{})->({},{}) = (dist: {}, time: {})",
+                             origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
+                             destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue(),
+                             distance.toMeters(), duration.toSeconds());
 
                 return RouteDetails(RouteInfo(distance, duration), waypoints);
             });

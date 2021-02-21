@@ -14,7 +14,7 @@ set(HEADERS
         assfire/api/router/model/Coordinate.hpp
         assfire/api/router/model/Distance.hpp
         assfire/api/router/model/IndexedLocation.hpp
-        assfire/api/router/model/Interval.hpp
+        assfire/api/router/model/TimeInterval.hpp
         assfire/api/router/model/Location.hpp
         assfire/api/router/model/RouteDetails.hpp
         assfire/api/router/model/RouteInfo.hpp

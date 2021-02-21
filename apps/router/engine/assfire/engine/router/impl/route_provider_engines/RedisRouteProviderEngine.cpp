@@ -3,23 +3,21 @@
 #include <spdlog/spdlog.h>
 #include <future>
 #include <memory>
-#include <cpp_redis/core/reply.hpp>
-#include <cpp_redis/core/client.hpp>
+#include "CacheConnector.hpp"
 #include <utility>
 
 using namespace assfire::router;
 
-RedisRouteProviderEngine::RedisRouteProviderEngine(const RoutingProfile &routingProfile, std::unique_ptr<RedisSerializer> serializer, std::unique_ptr<RouteProviderEngine> backend_engine,
-                                                   const std::string &redis_host,
-                                                   std::size_t redis_port, bool force_update) :
+RedisRouteProviderEngine::RedisRouteProviderEngine(const RoutingProfile &routingProfile,
+                                                   std::unique_ptr<RedisSerializer> serializer,
+                                                   std::unique_ptr<RouteProviderEngine> backend_engine,
+                                                   std::unique_ptr<CacheConnector> redis_connector,
+                                                   bool force_update) :
         routing_profile(routingProfile),
+        redis_client(std::move(redis_connector)),
         serializer(std::move(serializer)),
         force_update(force_update),
         backend_engine(std::move(backend_engine)) {
-    SPDLOG_INFO("Creating redis client...");
-    redis_client = std::make_unique<cpp_redis::client>();
-    SPDLOG_INFO("Redis client connecting to {}:{}...", redis_host, redis_port);
-    redis_client->connect(redis_host, redis_port);
 }
 
 RouteInfo RedisRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const {
@@ -32,14 +30,9 @@ RouteDetails RedisRouteProviderEngine::getSingleRouteDetails(const Location &ori
                  destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
 
     std::string key = serializer->serializeKey(origin, destination);
-    std::future<cpp_redis::reply> freply = redis_client->get(key);
-    redis_client->sync_commit();
+    CacheConnector::CacheEntry reply = redis_client->get(key);
 
-    cpp_redis::reply reply = freply.get();
-    if (!reply.is_string() || reply.is_error() || force_update) {
-        if (reply.is_error()) {
-            SPDLOG_ERROR("Error while retrieving redis route: {}", reply.error());
-        }
+    if (reply.is_error || !reply.is_present || force_update) {
         if (!force_update) {
             SPDLOG_DEBUG("Route not found in cache: ({},{})->({},{}). Requesting backend service",
                          origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
@@ -48,24 +41,19 @@ RouteDetails RedisRouteProviderEngine::getSingleRouteDetails(const Location &ori
 
         RouteDetails result = backend_engine->getSingleRouteDetails(origin, destination);
 
-        redis_client->set(key, serializer->serializeRouteDetails(origin, destination, result), [](const cpp_redis::reply &rpl) {
-            if (rpl.is_error()) {
-                SPDLOG_ERROR("Error while saving route to redis: {}", rpl.error());
-            }
-        });
-        redis_client->commit();
+        redis_client->put(key, serializer->serializeRouteDetails(origin, destination, result));
 
         SPDLOG_DEBUG("Putting route to the cache ({},{})->({},{}) = (dist: {}, time: {})",
                      origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
                      destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue(),
-                     result.getSummary().getDistance(), result.getSummary().getDuration());
+                     result.getSummary().getDistance().toMeters(), result.getSummary().getDuration().toSeconds());
         return result;
     } else {
-        RouteDetails result = serializer->deserializeRouteDetails(origin, destination, reply.as_string());
+        RouteDetails result = serializer->deserializeRouteDetails(origin, destination, reply.payload);
         SPDLOG_DEBUG("Route found in cache ({},{})->({},{}) = (dist: {}, time: {})",
                      origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
                      destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue(),
-                     result.getSummary().getDistance(), result.getSummary().getDuration());
+                     result.getSummary().getDistance().toMeters(), result.getSummary().getDuration().toSeconds());
         return result;
     }
 }

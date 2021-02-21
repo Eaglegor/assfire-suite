@@ -11,7 +11,7 @@ namespace assfire::router {
         DefaultRedisSerializer(RouterEngineType engine_type, const RoutingProfile &routing_profile, const RouteProviderSettings &settings) {
             std::ostringstream str;
 
-            str << static_cast<int>(engine_type) << " " << routing_profile.getSpeed().getDistancePerTimeUnit() << " " << settings.isRetrieveWaypoints() << " " << static_cast<int>(settings.getOsrmSettings().getGeometry());
+            str << static_cast<int>(engine_type) << " " << routing_profile.getSpeed().toMetersPerSecond() << " " << settings.isRetrieveWaypoints() << " " << static_cast<int>(settings.getOsrmSettings().getGeometry());
 
             suffix = str.str();
         }
@@ -28,8 +28,8 @@ namespace assfire::router {
 
         std::string serializeRouteDetails(const Location &origin, const Location &destination, const RouteDetails &details) override {
             std::ostringstream str;
-            str << details.getSummary().getDuration() << " "
-                << details.getSummary().getDistance() << " ";
+            str << details.getSummary().getDuration().toSeconds() << " "
+                << details.getSummary().getDistance().toMeters() << " ";
 
             str << details.getWaypoints().size() << " ";
             for (const RouteDetails::Waypoint &waypoint : details.getWaypoints()) {
@@ -43,11 +43,11 @@ namespace assfire::router {
         RouteDetails deserializeRouteDetails(const Location &origin, const Location &destination, const std::string &serialized_route_details) override {
             std::istringstream str(serialized_route_details);
             RouteDetails result;
-            TimeInterval duration;
-            Distance distance;
-            str >> duration >> distance;
+            long seconds;
+            double meters;
+            str >> seconds >> meters;
 
-            RouteInfo summary(distance, duration);
+            RouteInfo summary(Distance::fromMeters(meters), TimeInterval::fromSeconds(seconds));
 
             int waypoints_size;
             str >> waypoints_size;

@@ -7,6 +7,7 @@
 #include "impl/route_provider_engines/OsrmRouteProviderEngine.hpp"
 #include "impl/route_provider_engines/RandomRouteProviderEngine.hpp"
 #include "impl/route_provider_engines/RedisRouteProviderEngine.hpp"
+#include "impl/route_provider_engines/CppRedisCacheConnector.hpp"
 #include <stdexcept>
 
 using namespace assfire::router;
@@ -37,8 +38,8 @@ namespace {
             return std::make_unique<RedisRouteProviderEngine>(routing_profile,
                                                               context.getRedisContext().getSerializerSupplier()(engine_type, routing_profile, settings),
                                                               createEngine(engine_type, routing_profile, settings, context),
-                                                              context.getRedisContext().getHost(),
-                                                              context.getRedisContext().getPort(),
+                                                              std::make_unique<CppRedisCacheConnector>(context.getRedisContext().getHost(),
+                                                                                                       context.getRedisContext().getPort()),
                                                               settings.isForceUpdate());
         } else {
             return createEngine(engine_type, routing_profile, settings, context);

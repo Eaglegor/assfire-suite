@@ -19,11 +19,11 @@ namespace assfire::router::proto_translation {
 
     private:
         static Speed fromProtoVelocity(double velocity) {
-            return Speed(velocity);
+            return Speed::fromMetersPerSecond(velocity);
         }
 
         static double toProtoVelocity(const Speed& speed) {
-            return speed.getDistancePerTimeUnit();
+            return speed.toMetersPerSecond();
         }
     };
 

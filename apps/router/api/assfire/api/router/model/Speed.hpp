@@ -1,26 +1,34 @@
 #pragma once
 
 #include "Distance.hpp"
-#include "Interval.hpp"
+#include "TimeInterval.hpp"
 
 namespace assfire::router {
     class Speed {
+    private:
+        explicit Speed(double meters_per_second) : meters_per_second(meters_per_second) {}
     public:
-        Speed(Distance distancePerTimeUnit) : distance_per_time_unit(distancePerTimeUnit) {}
-
-        Distance getDistancePerTime(const TimeInterval &interval) const {
-            return distance_per_time_unit;
+        double toMetersPerSecond() const {
+            return meters_per_second;
         }
 
-        Distance getDistancePerTimeUnit() const {
-            return getDistancePerTime(1);
+        double toKilometersPerHour() const {
+            return meters_per_second / 1000.0 * 3600;
         }
 
-        TimeInterval getTimeToTravel(const Distance &distance) {
-            return distance / distance_per_time_unit;
+        TimeInterval getSecondsToTravel(const Distance &distance) {
+            return TimeInterval::fromSeconds(distance.toMeters() / meters_per_second);
+        }
+
+        static Speed fromMetersPerSecond(double value) {
+            return Speed(value);
+        }
+
+        static Speed fromKilometersPerHour(double value) {
+            return Speed(value / 3600.0 * 1000);
         }
 
     private:
-        Distance distance_per_time_unit;
+        double meters_per_second;
     };
 }
