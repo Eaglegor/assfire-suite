@@ -16,11 +16,11 @@ namespace assfire::router {
             return getLocation(59.939, 30.314); // Hermitage
         }
 
-        Distance expectedDistance() {
+        Distance getExpectedDistance() {
             return Distance::fromMeters(637375);
         }
 
-        TimeInterval expectedDuration() {
+        TimeInterval getExpectedDuration() {
             return TimeInterval::fromSeconds(38242);
         }
 
@@ -34,8 +34,8 @@ namespace assfire::router {
 
         Matrix<double> getExpectedDistancesMatrix() {
             std::vector<std::vector<double>> data{
-                    {expectedDistance().toMeters(), expectedDistance().toMeters(), expectedDistance().toMeters()},
-                    {expectedDistance().toMeters(), expectedDistance().toMeters(), expectedDistance().toMeters()}
+                    {getExpectedDistance().toMeters(), getExpectedDistance().toMeters(), getExpectedDistance().toMeters()},
+                    {getExpectedDistance().toMeters(), getExpectedDistance().toMeters(), getExpectedDistance().toMeters()}
             };
 
             return Matrix<double>(2, 3, [&](int i, int j){
@@ -45,8 +45,8 @@ namespace assfire::router {
 
         Matrix<long> getExpectedDurationsMatrix() {
             std::vector<std::vector<long>> data{
-                    {expectedDuration().toSeconds(), expectedDuration().toSeconds(), expectedDuration().toSeconds()},
-                    {expectedDuration().toSeconds(), expectedDuration().toSeconds(), expectedDuration().toSeconds()}
+                    {getExpectedDuration().toSeconds(), getExpectedDuration().toSeconds(), getExpectedDuration().toSeconds()},
+                    {getExpectedDuration().toSeconds(), getExpectedDuration().toSeconds(), getExpectedDuration().toSeconds()}
             };
 
             return Matrix<long>(2, 3, [&](int i, int j){
@@ -61,8 +61,8 @@ TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteInfo) {
 
     RouteInfo result = engine.getSingleRouteInfo(getOrigin(), getDestination());
 
-    ASSERT_NEAR(result.getDistance().toMeters(), expectedDistance().toMeters(), 1.0);
-    ASSERT_EQ(result.getDuration().toSeconds(), expectedDuration().toSeconds());
+    ASSERT_NEAR(result.getDistance().toMeters(), getExpectedDistance().toMeters(), 1.0);
+    ASSERT_EQ(result.getDuration().toSeconds(), getExpectedDuration().toSeconds());
 }
 
 TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteDetails) {
@@ -70,8 +70,8 @@ TEST_F(CrowflightRouteProviderEngineTest, ReturnsRouteDetails) {
 
     RouteDetails result = engine.getSingleRouteDetails(getOrigin(), getDestination());
 
-    ASSERT_NEAR(result.getSummary().getDistance().toMeters(), expectedDistance().toMeters(), 1.0);
-    ASSERT_EQ(result.getSummary().getDuration().toSeconds(), expectedDuration().toSeconds());
+    ASSERT_NEAR(result.getSummary().getDistance().toMeters(), getExpectedDistance().toMeters(), 1.0);
+    ASSERT_EQ(result.getSummary().getDuration().toSeconds(), getExpectedDuration().toSeconds());
 
     ASSERT_EQ(result.getWaypoints().size(), 2);
     ASSERT_EQ(result.getWaypoints()[0], getOrigin());
