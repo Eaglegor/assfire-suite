@@ -68,7 +68,7 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
             COMMAND protobuf::protoc
             ARGS
             ${IMPORT_DIRS}
-            --swagger_out ${SWAGGER_OUT_DIR}
+            --openapiv2_out ${SWAGGER_OUT_DIR}
             ${SERVICE_PROTOS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Generating swagger API definition for: ${SERVICE_PROTOS}"
