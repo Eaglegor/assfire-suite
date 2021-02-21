@@ -26,11 +26,11 @@ namespace assfire::router {
             return summary;
         }
 
-        const Distance& getDistance() {
+        const Distance& getDistance() const {
             return summary.getDistance();
         }
 
-        const TimeInterval& getDuration() {
+        const TimeInterval& getDuration() const {
             return summary.getDuration();
         }
 

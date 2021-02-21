@@ -12,7 +12,8 @@ using namespace web::http::client;
 
 OsrmRouteProviderEngine::OsrmRouteProviderEngine(const RoutingProfile &routingProfile, const RouteProviderSettings::Osrm::Geometry &geometry, std::unique_ptr<OsrmConnector> connector) :
         routing_profile(routingProfile),
-        geometry(geometry) {}
+        geometry(geometry),
+        client(std::move(connector)){}
 
 RouteInfo OsrmRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const {
     return getSingleRouteDetails(origin, destination).getSummary();
