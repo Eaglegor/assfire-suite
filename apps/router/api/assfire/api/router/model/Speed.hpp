@@ -2,6 +2,7 @@
 
 #include "Distance.hpp"
 #include "TimeInterval.hpp"
+#include <cmath>
 
 namespace assfire::router {
     class Speed {
