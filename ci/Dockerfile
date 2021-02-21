@@ -1,6 +1,6 @@
 FROM amd64/alpine:3.13.2
 
-RUN apk add --no-cache bash g++ cmake git curl make linux-headers perl
+RUN apk update && apk add --no-cache bash g++ cmake git curl make linux-headers perl
 
 # Installing ninja
 RUN git clone --depth 1 https://github.com/ninja-build/ninja.git /opt/ninja && \
