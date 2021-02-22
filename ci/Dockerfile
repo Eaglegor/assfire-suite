@@ -2,7 +2,7 @@ FROM amd64/alpine:3.13.2
 
 RUN apk update && apk add --no-cache bash g++ git curl make linux-headers perl npm openssl openssl-dev rpm go git
 
-# Installing cmake
+# Installing cmake (using one of the latest versions that may be not available in official alpine repo)
 RUN git clone --depth 1 --branch v3.19.5 https://github.com/Kitware/CMake.git  /opt/cmake && \
        cd /opt/cmake && \
        ./configure && \
@@ -10,28 +10,33 @@ RUN git clone --depth 1 --branch v3.19.5 https://github.com/Kitware/CMake.git  /
        cd / && \
        rm -rf /opt/cmake
 
-# Installing ninja
-RUN git clone --depth 1 -- branch v1.10.2 https://github.com/ninja-build/ninja.git /opt/ninja && \
+# Installing ninja (used to vcpkg buildsystem)
+RUN git clone --depth 1 --branch v1.10.2 https://github.com/ninja-build/ninja.git /opt/ninja && \
        cmake -B/opt/ninja/build-cmake -DCMAKE_INSTALL_PREFIX=/usr/ /opt/ninja && \
        cmake --build /opt/ninja/build-cmake && \
        cmake --build /opt/ninja/build-cmake --target install && \
        rm -rf /opt/ninja
 
 # Installing vcpkg (used to manage dependencies)
-RUN git clone --depth 1 -- branch 2020.11-1 https://github.com/Microsoft/vcpkg.git /opt/vcpkg &&  \
+RUN git clone --branch 2020.11-1 https://github.com/Microsoft/vcpkg.git /opt/vcpkg &&  \
     cd /opt/vcpkg && \
+    git cherry-pick -n 557ecbe253f87d75c6914b9a522ea92fc15eb20f && \
     ./bootstrap-vcpkg.sh --useSystemBinaries && \
     ./vcpkg integrate install
 
 # Installing dependencies
-RUN /opt/vcpkg/vcpkg install grpc --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install cpp-redis --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install cxxopts --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install spdlog --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install catch2 --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install prometheus-cpp --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install cpprestsdk --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-RUN /opt/vcpkg/vcpkg install gtest --triplet x64-linux && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install --debug \
+    grpc \
+    cpp-redis \
+    cxxopts \
+    spdlog \
+    catch2 \
+    prometheus-cpp \
+    cpprestsdk \
+    gtest \
+    --triplet x64-linux && \
+    rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+
 
 ENV VCPKG_ROOT /opt/vcpkg
 

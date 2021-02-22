@@ -85,7 +85,6 @@ int main(int argc, char **argv)
     if (metrics_enabled) {
         routing_server_options.metrics_collector = std::make_shared<ServerMetricsCollector>(std::make_shared<prometheus::Exposer>(
                 metrics_exposer_bind_address,
-                metrics_exposer_uri,
                 metrics_exposer_threads_count));
     }
 

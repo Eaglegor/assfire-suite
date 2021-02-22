@@ -7,7 +7,7 @@ if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
     set(SERVICE_PROTOS
             assfire/api/v1/service/router/router.proto)
     set(IMPORT_DIRS
-            ${CMAKE_SOURCE_DIR}/apps/router/api
+            ${CMAKE_SOURCE_DIR}/apps/router/proto
             ${CMAKE_SOURCE_DIR}/api-model
             ${GOOGLE_PROTOBUF_IMPORT_DIR})
     set(GO_OUT_DIR
