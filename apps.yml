@@ -1,8 +1,8 @@
-sample:
-  stage: build applications
-  trigger:
-    include: apps/sample/pipeline.yml
-    strategy: depend
+#sample:
+#  stage: build applications
+#  trigger:
+#    include: apps/sample/pipeline.yml
+#    strategy: depend
 
 router:
   stage: build applications
@@ -10,20 +10,20 @@ router:
     include: apps/router/pipeline.yml
     strategy: depend
 
-tsp:
-  stage: build applications
-  trigger:
-    include: apps/tsp/pipeline.yml
-    strategy: depend
-
-scheduler:
-  stage: build applications
-  trigger:
-    include: apps/scheduler/pipeline.yml
-    strategy: depend
-
-estimator:
-  stage: build applications
-  trigger:
-    include: apps/estimator/pipeline.yml
-    strategy: depend
+#tsp:
+#  stage: build applications
+#  trigger:
+#    include: apps/tsp/pipeline.yml
+#    strategy: depend
+#
+#scheduler:
+#  stage: build applications
+#  trigger:
+#    include: apps/scheduler/pipeline.yml
+#    strategy: depend
+#
+#estimator:
+#  stage: build applications
+#  trigger:
+#    include: apps/estimator/pipeline.yml
+#    strategy: depend
