@@ -61,7 +61,8 @@ test:
   artifacts:
     when: always
     reports:
-      junit: "*/junit_test_report/*.xml"
+      junit:
+        - out/apps/router/engine/tests/junit_test_report/*.xml
 
 .install-service:
   before_script:
