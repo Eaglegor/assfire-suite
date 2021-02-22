@@ -58,6 +58,10 @@ test:
     - build
   needs:
     - build
+  artifacts:
+    when: always
+    reports:
+      junit: report/*.xml
 
 .install-service:
   before_script:

@@ -15,4 +15,5 @@ add_executable(assfire-router-engine-test
         RedisRouteProviderEngineTest.cpp MockRouteProviderEngine.hpp MockRouteProviderEngine.cpp MockCache.cpp)
 target_link_libraries(assfire-router-engine-test PRIVATE GTest::gtest GTest::gtest_main assfire-router-engine)
 
-gtest_discover_tests(assfire-router-engine-test)
+gtest_discover_tests(assfire-router-engine-test
+        XML_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/report)
