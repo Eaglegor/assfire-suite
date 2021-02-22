@@ -1,4 +1,5 @@
 #include "MockCache.hpp"
+#include <spdlog/spdlog.h>
 
 using namespace assfire::router;
 
@@ -20,8 +21,10 @@ CacheConnector::CacheEntry MockCache::get(const std::string &key) {
 
 void MockCache::addReply(const std::string &key, const std::string &reply) {
     replies.insert_or_assign(key, reply);
+    SPDLOG_INFO("Registered cache entry: ({})->{}", key, reply);
 }
 
 void MockCache::addError(const std::string &key, const std::string &error_message) {
     errors.insert_or_assign(key, error_message);
+    SPDLOG_INFO("Registered error entry: ({})->{}", key, error_message);
 }

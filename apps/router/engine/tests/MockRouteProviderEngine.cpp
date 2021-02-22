@@ -1,4 +1,5 @@
 #include "MockRouteProviderEngine.hpp"
+#include <spdlog/spdlog.h>
 
 using namespace assfire::router;
 
@@ -16,8 +17,10 @@ RouteDetails MockRouteProviderEngine::getSingleRouteDetails(const Location &orig
 
 void MockRouteProviderEngine::addResponse(double distance, long duration) {
     route_details_responses.push(RouteDetails(RouteInfo(Distance::fromMeters(distance), TimeInterval::fromSeconds(duration)), {}));
+    SPDLOG_INFO("Registered mock route response: ({}, {})", distance, duration);
 }
 
 void MockRouteProviderEngine::addResponse(double distance, long duration, const RouteDetails::Waypoints &waypoints) {
     route_details_responses.push(RouteDetails(RouteInfo(Distance::fromMeters(distance), TimeInterval::fromSeconds(duration)), waypoints));
+    SPDLOG_INFO("Registered mock route response: ({}, {}) + {} waypoints", distance, duration, waypoints.size());
 }
