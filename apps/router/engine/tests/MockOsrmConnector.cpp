@@ -14,8 +14,8 @@ web::json::value MockOsrmConnector::requestRouteInfo(const utility::string_t &ge
         return replies.at(get_url);
     } else {
         web::json::value error_response;
-        error_response[convert("code")] = web::json::value::string(L"InvalidUrl");
-        error_response[convert("message")] = web::json::value::string(L"Mocked URL is not found: " + get_url);
+        error_response[convert("code")] = web::json::value::string(convert("InvalidUrl"));
+        error_response[convert("message")] = web::json::value::string(convert("Mocked URL is not found: ") + get_url);
         return error_response;
     }
 }
