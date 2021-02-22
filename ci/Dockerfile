@@ -11,16 +11,15 @@ RUN git clone --depth 1 --branch v3.19.5 https://github.com/Kitware/CMake.git  /
        rm -rf /opt/cmake
 
 # Installing ninja
-RUN git clone --depth 1 https://github.com/ninja-build/ninja.git /opt/ninja && \
+RUN git clone --depth 1 -- branch v1.10.2 https://github.com/ninja-build/ninja.git /opt/ninja && \
        cmake -B/opt/ninja/build-cmake -DCMAKE_INSTALL_PREFIX=/usr/ /opt/ninja && \
        cmake --build /opt/ninja/build-cmake && \
        cmake --build /opt/ninja/build-cmake --target install && \
        rm -rf /opt/ninja
 
 # Installing vcpkg (used to manage dependencies)
-RUN cd /opt && \
-    git clone https://github.com/Microsoft/vcpkg.git &&  \
-    cd vcpkg && \
+RUN git clone --depth 1 -- branch 2020.11-1 https://github.com/Microsoft/vcpkg.git /opt/vcpkg &&  \
+    cd /opt/vcpkg && \
     ./bootstrap-vcpkg.sh --useSystemBinaries && \
     ./vcpkg integrate install
 
