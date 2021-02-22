@@ -53,6 +53,20 @@ namespace assfire::router {
     };
 }
 
+TEST_F(RedisRouteProviderEngineTest, PreCheckMockIsReturningValuesAsExpected) {
+    auto backend_engine = getMockEngine();
+    backend_engine->addResponse(0, 10);
+    backend_engine->addResponse(100, 20);
+
+    RouteInfo result1 = backend_engine->getSingleRouteInfo(getOrigin(), getDestination());
+    ASSERT_DOUBLE_EQ(result1.getDistance().toMeters(), 0);
+    ASSERT_EQ(result1.getDuration().toSeconds(), 10);
+
+    RouteInfo result2 = backend_engine->getSingleRouteInfo(getOrigin(), getDestination());
+    ASSERT_DOUBLE_EQ(result2.getDistance().toMeters(), 100);
+    ASSERT_EQ(result2.getDuration().toSeconds(), 20);
+}
+
 TEST_F(RedisRouteProviderEngineTest, RouteIsRetrievedFromCache) {
     cache->put(getRedisSerializer()->serializeKey(getOrigin(), getDestination()),
                getRedisSerializer()->serializeRouteDetails(getOrigin(), getDestination(), RouteDetails(RouteInfo(Distance::fromMeters(50), TimeInterval::fromSeconds(50)), {})));
