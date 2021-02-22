@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Matrix.hpp"
+#include <assfire/api/router/model/Location.hpp>
+#include <assfire/api/router/model/RouteInfo.hpp>
+#include <assfire/api/router/model/RouteDetails.hpp>
 
 namespace assfire::router
 {

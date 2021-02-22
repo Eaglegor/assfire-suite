@@ -3,6 +3,7 @@
 #include <sstream>
 #include <assfire/api/router/RouteProviderSettings.hpp>
 #include <assfire/api/router/RedisSerializer.hpp>
+#include <assfire/api/router/RouterEngineType.hpp>
 #include <cmath>
 
 namespace assfire::router {

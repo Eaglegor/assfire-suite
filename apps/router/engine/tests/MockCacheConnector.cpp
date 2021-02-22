@@ -2,26 +2,20 @@
 
 using namespace assfire::router;
 
+MockCacheConnector::MockCacheConnector(const std::shared_ptr<MockCache> &cache) : cache(cache) {}
+
 void MockCacheConnector::put(const std::string &key, const std::string &payload) {
-    addReply(key, payload);
+    cache->put(key, payload);
 }
 
 CacheConnector::CacheEntry MockCacheConnector::get(const std::string &key) {
-    CacheEntry result;
-    if(errors.contains(key)) {
-        result.is_error = true;
-        result.message = errors.at(key);
-    } else if(replies.contains(key)) {
-        result.is_present = true;
-        result.payload = replies.at(key);
-    }
-    return result;
+    return cache->get(key);
 }
 
 void MockCacheConnector::addReply(const std::string &key, const std::string &reply) {
-    replies.emplace(key, reply);
+    cache->addReply(key, reply);
 }
 
 void MockCacheConnector::addError(const std::string &key, const std::string &error_message) {
-    errors.emplace(key, error_message);
+    cache->addError(key, error_message);
 }
