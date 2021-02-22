@@ -7,7 +7,7 @@ import (
   "log"
   "strings"
 
-  "github.com/grpc-ecosystem/grpc-gateway/runtime"
+  "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
   "google.golang.org/grpc"
 
   gw "assfire.org/api/v1/service/router"
@@ -53,7 +53,7 @@ func run() error {
 
   // Register gRPC server endpoint
   // Note: Make sure the gRPC server is running properly and accessible
-  mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: true, EmitDefaults: true}))
+  mux := runtime.NewServeMux()
   opts := []grpc.DialOption{grpc.WithInsecure()}
   err := gw.RegisterRouterServiceHandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
   if err != nil {

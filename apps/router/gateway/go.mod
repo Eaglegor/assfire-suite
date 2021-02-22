@@ -1,11 +1,10 @@
 module assfire.org
 
-go 1.15
+go 1.16
 
 require (
-    github.com/golang/protobuf v1.4.2
-    github.com/grpc-ecosystem/grpc-gateway v1.15.0
-    google.golang.org/genproto v0.0.0-20200513103714-09dca8ec2884
-    google.golang.org/grpc v1.32.0
-    google.golang.org/protobuf v1.23.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.2.0
+	google.golang.org/grpc v1.35.0
+	google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea
+	google.golang.org/protobuf v1.25.0
 )
