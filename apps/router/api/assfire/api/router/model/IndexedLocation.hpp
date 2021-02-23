@@ -7,7 +7,10 @@ namespace assfire::router
     class IndexedLocation
     {
     public:
-        IndexedLocation(int id, int index_tag, const Location &location)
+        using Id = int;
+        using IndexTag = int;
+
+        IndexedLocation(Id id, IndexTag index_tag, const Location &location)
                 :
                 id(id),
                 index_tag(index_tag),
@@ -26,12 +29,12 @@ namespace assfire::router
             return !(rhs == *this);
         }
 
-        int getId() const
+        Id getId() const
         {
             return id;
         }
 
-        int getIndexTag() const
+        IndexTag getIndexTag() const
         {
             return index_tag;
         }
@@ -51,8 +54,8 @@ namespace assfire::router
         }
 
     private:
-        int id;
-        int index_tag;
+        Id id;
+        IndexTag index_tag;
         Location location;
     };
 }

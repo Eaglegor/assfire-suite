@@ -1,9 +1,11 @@
 #pragma once
 
 #include <memory>
-#include "../DistanceMatrixEngine.hpp"
-#include "assfire/api/router/RouteProviderEngine.hpp"
-#include "../Matrix.hpp"
+#include <unordered_map>
+#include <string>
+#include <assfire/api/router/DistanceMatrixEngine.hpp>
+#include <assfire/api/router/RouteProviderEngine.hpp>
+#include <assfire/api/router/Matrix.hpp>
 
 namespace assfire::router {
     class FullMatrixCacheDistanceMatrixEngine : public DistanceMatrixEngine {
@@ -26,9 +28,13 @@ namespace assfire::router {
 
     private:
         void initialize() const;
+        std::string encodeLocation(const Location& location) const;
+        RouteInfo getCachedRouteInfo(int origin_id, int destination_id) const;
+        RouteDetails getCachedRouteDetails(int origin_id, int destination_id) const;
 
         bool initialized = false;
         std::vector<Location> known_locations;
+        std::unordered_map<std::string, int> known_locations_mapping;
         Tag matrix_tag;
         mutable std::unique_ptr<Matrix<RouteDetails>> route_details_cache;
         std::unique_ptr<RouteProviderEngine> engine;

@@ -15,7 +15,7 @@ namespace assfire::router
             ORIGIN_AND_DESTINATION
         };
 
-        using Tag = int;
+        using Tag = IndexedLocation::IndexTag;
         virtual ~DistanceMatrixEngine() = default;
 
         virtual RouteInfo getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const = 0;

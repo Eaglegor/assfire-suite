@@ -6,27 +6,39 @@ using namespace assfire::router;
 RouteInfo FullMatrixCacheDistanceMatrixEngine::getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const {
     assert(origin.getIndexTag() == matrix_tag && destination.getIndexTag() == matrix_tag);
     if (!initialized) initialize();
-    return route_details_cache->at(origin.getId(), destination.getId()).getSummary();
+    return getCachedRouteInfo(origin.getId(), destination.getId());
 }
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const IndexedLocation &origin, const IndexedLocation &destination) const {
     assert(origin.getIndexTag() == matrix_tag && destination.getIndexTag() == matrix_tag);
     if (!initialized) initialize();
-    return route_details_cache->at(origin.getId(), destination.getId());
+    return getCachedRouteDetails(origin.getId(), destination.getId());
 }
 
 RouteInfo FullMatrixCacheDistanceMatrixEngine::getRouteInfo(const Location &origin, const Location &destination) const {
+    auto origin_iter = known_locations_mapping.find(encodeLocation(origin));
+    auto destination_iter = known_locations_mapping.find(encodeLocation(destination));
+    if(origin_iter != known_locations_mapping.end() && destination_iter != known_locations_mapping.end()) {
+        return getCachedRouteInfo(origin_iter->second, destination_iter->second);
+    }
     return engine->getSingleRouteInfo(origin, destination);
 }
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const Location &origin, const Location &destination) const {
+    auto origin_iter = known_locations_mapping.find(encodeLocation(origin));
+    auto destination_iter = known_locations_mapping.find(encodeLocation(destination));
+    if(origin_iter != known_locations_mapping.end() && destination_iter != known_locations_mapping.end()) {
+        return getCachedRouteDetails(origin_iter->second, destination_iter->second);
+    }
     return engine->getSingleRouteDetails(origin, destination);
 }
 
 IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location &location, LocationType type) {
     initialized = false;
     known_locations.push_back(location);
-    return IndexedLocation(known_locations.size() - 1, matrix_tag, location);
+    int index = known_locations.size() - 1;
+    known_locations_mapping.insert_or_assign(encodeLocation(location), index);
+    return IndexedLocation(index, matrix_tag, location);
 }
 
 void FullMatrixCacheDistanceMatrixEngine::initialize() const {
@@ -39,4 +51,16 @@ void FullMatrixCacheDistanceMatrixEngine::initialize() const {
     });
 
     route_details_cache.swap(new_cache);
+}
+
+std::string FullMatrixCacheDistanceMatrixEngine::encodeLocation(const Location& location) const {
+    return std::to_string(location.getLatitude().encodedValue()) + std::to_string(location.getLatitude().encodedValue());
+}
+
+RouteInfo FullMatrixCacheDistanceMatrixEngine::getCachedRouteInfo(int origin_id, int destination_id) const {
+    return route_details_cache->at(origin_id, destination_id).getSummary();
+}
+
+RouteDetails FullMatrixCacheDistanceMatrixEngine::getCachedRouteDetails(int origin_id, int destination_id) const {
+    return route_details_cache->at(origin_id, destination_id);
 }
