@@ -4,12 +4,14 @@
 using namespace assfire::router;
 
 RouteInfo MockRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const {
+    if(origin == destination) return RouteInfo::zero();
     RouteInfo result = route_details_responses.front().getSummary();
     route_details_responses.pop();
     return result;
 }
 
 RouteDetails MockRouteProviderEngine::getSingleRouteDetails(const Location &origin, const Location &destination) const {
+    if(origin == destination) return RouteDetails();
     RouteDetails result = route_details_responses.front();
     route_details_responses.pop();
     return result;

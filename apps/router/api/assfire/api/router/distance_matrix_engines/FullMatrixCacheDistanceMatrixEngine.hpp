@@ -2,7 +2,9 @@
 
 #include <memory>
 #include <unordered_map>
+#include <atomic>
 #include <string>
+#include <mutex>
 #include <assfire/api/router/DistanceMatrixEngine.hpp>
 #include <assfire/api/router/RouteProviderEngine.hpp>
 #include <assfire/api/router/Matrix.hpp>
@@ -32,11 +34,12 @@ namespace assfire::router {
         RouteInfo getCachedRouteInfo(int origin_id, int destination_id) const;
         RouteDetails getCachedRouteDetails(int origin_id, int destination_id) const;
 
-        bool initialized = false;
+        mutable std::atomic_bool initialized = false;
         std::vector<Location> known_locations;
         std::unordered_map<std::string, int> known_locations_mapping;
         Tag matrix_tag;
         mutable std::unique_ptr<Matrix<RouteDetails>> route_details_cache;
         std::unique_ptr<RouteProviderEngine> engine;
+        mutable std::mutex cache_update_lock;
     };
 }
