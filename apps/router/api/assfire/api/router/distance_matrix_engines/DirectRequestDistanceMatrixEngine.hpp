@@ -27,7 +27,6 @@ namespace assfire::router
         IndexedLocation addLocation(const Location &location, LocationType type) override;
 
     private:
-        std::vector <Location> known_locations;
         Tag matrix_tag;
         std::unique_ptr <RouteProviderEngine> engine;
     };

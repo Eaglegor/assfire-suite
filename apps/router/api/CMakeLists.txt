@@ -22,8 +22,7 @@ set(HEADERS
         assfire/api/router/model/TimePoint.hpp
         assfire/api/router/model/Speed.hpp
         assfire/api/router/RouteProviderSettings.hpp
-        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp
-        )
+        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)
@@ -31,6 +30,6 @@ find_package(cpprestsdk CONFIG REQUIRED)
 include(pkg_utils)
 vcpkg_find_cpp_redis()
 
-add_library(assfire-router-api ${SOURCES})
+add_library(assfire-router-api ${SOURCES} ${HEADERS})
 target_link_libraries(assfire-router-api PUBLIC spdlog::spdlog)
 target_include_directories(assfire-router-api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

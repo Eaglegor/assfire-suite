@@ -148,3 +148,11 @@ TEST_F(RedisRouteProviderEngineTest, CacheIsUpdatedOnForceUpdate) {
     ASSERT_DOUBLE_EQ(result4.getDistance().toMeters(), 30);
     ASSERT_EQ(result4.getDuration().toSeconds(), 15);
 }
+
+TEST_F(RedisRouteProviderEngineTest, DISABLED_OnlyMissingRoutesAreRequestedAtBackendInSingleMode) {
+    // [TODO] Implement me
+}
+
+TEST_F(RedisRouteProviderEngineTest, DISABLED_OnlyMissingRoutesAreRequestedAtBackendInMatrixMode) {
+    // [TODO] Implement me
+}

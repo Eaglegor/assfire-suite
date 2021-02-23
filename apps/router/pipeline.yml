@@ -62,7 +62,7 @@ test:
     when: always
     reports:
       junit:
-        - out/apps/router/engine/tests/junit_test_report/*.xml
+        - out/apps/router/tests/junit_test_report/*.xml
 
 .install-service:
   before_script:

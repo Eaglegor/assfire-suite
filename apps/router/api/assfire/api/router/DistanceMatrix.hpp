@@ -11,7 +11,7 @@ namespace assfire::router {
         using EnginePtr = std::shared_ptr<DistanceMatrixEngine>;
 
         DistanceMatrix(EnginePtr engine)
-                : engine(engine) {}
+                : engine(std::move(engine)) {}
 
         DistanceMatrix(const DistanceMatrix &rhs) = default;
 
@@ -36,6 +36,6 @@ namespace assfire::router {
         }
 
     private:
-        std::shared_ptr<DistanceMatrixEngine> engine;
+        EnginePtr engine;
     };
 }
