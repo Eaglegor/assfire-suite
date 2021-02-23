@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include <assfire/api/router/model/Location.hpp>
-#include <assfire/api/router/model/RouteDetails.hpp>
+#include <assfire/router/api/model/Location.hpp>
+#include <assfire/router/api/model/RouteDetails.hpp>
 #include "RedisSerializer.hpp"
 
 namespace assfire::router {

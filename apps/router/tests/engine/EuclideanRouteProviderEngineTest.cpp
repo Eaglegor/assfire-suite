@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp>
+#include <assfire/router/engine/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp>
 #include "RouteProviderEngineTestFixtureBase.hpp"
 #include <iostream>
 

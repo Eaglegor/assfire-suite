@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <assfire/api/router/DistanceMatrixErrorPolicy.hpp>
-#include "../DistanceMatrixEngine.hpp"
-#include "assfire/api/router/RouteProviderEngine.hpp"
+#include <assfire/router/api/DistanceMatrixErrorPolicy.hpp>
+#include "assfire/router/api/DistanceMatrixEngine.hpp"
+#include "assfire/router/api/RouteProviderEngine.hpp"
 
 namespace assfire::router {
     class DirectRequestDistanceMatrixEngine : public DistanceMatrixEngine {

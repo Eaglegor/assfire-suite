@@ -1,12 +1,12 @@
 #pragma once
 
-#include "assfire/api/router/RouterEngineType.hpp"
-#include "assfire/api/router/DistanceMatrixCachingPolicy.hpp"
-#include "assfire/api/router/DistanceMatrixErrorPolicy.hpp"
-#include "assfire/api/router/model/RoutingProfile.hpp"
-#include "assfire/api/router/DistanceMatrix.hpp"
-#include "assfire/api/router/RouteProviderSettings.hpp"
-#include <assfire/api/router/RoutingContext.hpp>
+#include "assfire/router/api/RouterEngineType.hpp"
+#include "assfire/router/api/DistanceMatrixCachingPolicy.hpp"
+#include "assfire/router/api/DistanceMatrixErrorPolicy.hpp"
+#include "assfire/router/api/model/RoutingProfile.hpp"
+#include "assfire/router/api/DistanceMatrix.hpp"
+#include "assfire/router/api/RouteProviderSettings.hpp"
+#include <assfire/router/api/RoutingContext.hpp>
 #include <atomic>
 
 namespace assfire::router {

@@ -1,28 +1,28 @@
 set(SOURCES
-        assfire/api/router/distance_matrix_engines/DirectRequestDistanceMatrixEngine.cpp
-        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.cpp
-        assfire/api/router/RoutingContext.hpp assfire/api/router/RedisSerializer.hpp)
+        assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.cpp
+        assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.cpp
+        assfire/router/api/RoutingContext.hpp assfire/router/api/RedisSerializer.hpp)
 set(HEADERS
-        assfire/api/router/model/RoutingProfile.hpp
-        assfire/api/router/RouterEngineType.hpp
-        assfire/api/router/Matrix.hpp
-        assfire/api/router/DistanceMatrixEngine.hpp
-        assfire/api/router/DistanceMatrixCachingPolicy.hpp
-        assfire/api/router/DistanceMatrix.hpp
-        assfire/api/router/RouteProviderEngine.hpp
-        assfire/api/router/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp
-        assfire/api/router/model/Coordinate.hpp
-        assfire/api/router/model/Distance.hpp
-        assfire/api/router/model/IndexedLocation.hpp
-        assfire/api/router/model/TimeInterval.hpp
-        assfire/api/router/model/Location.hpp
-        assfire/api/router/model/RouteDetails.hpp
-        assfire/api/router/model/RouteInfo.hpp
-        assfire/api/router/model/Router.hpp
-        assfire/api/router/model/TimePoint.hpp
-        assfire/api/router/model/Speed.hpp
-        assfire/api/router/RouteProviderSettings.hpp
-        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp assfire/api/router/DistanceMatrixErrorPolicy.hpp)
+        assfire/router/api/model/RoutingProfile.hpp
+        assfire/router/api/RouterEngineType.hpp
+        assfire/router/api/Matrix.hpp
+        assfire/router/api/DistanceMatrixEngine.hpp
+        assfire/router/api/DistanceMatrixCachingPolicy.hpp
+        assfire/router/api/DistanceMatrix.hpp
+        assfire/router/api/RouteProviderEngine.hpp
+        assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp
+        assfire/router/api/model/Coordinate.hpp
+        assfire/router/api/model/Distance.hpp
+        assfire/router/api/model/IndexedLocation.hpp
+        assfire/router/api/model/TimeInterval.hpp
+        assfire/router/api/model/Location.hpp
+        assfire/router/api/model/RouteDetails.hpp
+        assfire/router/api/model/RouteInfo.hpp
+        assfire/router/api/model/Router.hpp
+        assfire/router/api/model/TimePoint.hpp
+        assfire/router/api/model/Speed.hpp
+        assfire/router/api/RouteProviderSettings.hpp
+        assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp assfire/router/api/DistanceMatrixErrorPolicy.hpp)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)

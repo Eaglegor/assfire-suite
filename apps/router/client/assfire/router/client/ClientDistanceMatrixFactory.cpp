@@ -1,7 +1,7 @@
 #include "ClientDistanceMatrixFactory.hpp"
-#include "assfire/api/router/RouteProviderEngine.hpp"
-#include "assfire/api/router/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp"
-#include "assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp"
+#include "assfire/router/api/RouteProviderEngine.hpp"
+#include "assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp"
+#include "assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp"
 #include "GrpcRouteProviderEngine.hpp"
 #include <stdexcept>
 

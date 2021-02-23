@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <assfire/api/router/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp>
+#include <assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp>
 #include "../engine/MockRouteProviderEngine.hpp"
 #include <memory>
 

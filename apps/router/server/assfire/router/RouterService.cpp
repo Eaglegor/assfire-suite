@@ -5,7 +5,7 @@
 #include <assfire/api/v1/service/router/translators/RoutingOptionsTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/LocationTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp>
-#include "assfire/engine/router/DefaultRedisSerializer.hpp"
+#include "assfire/router/engine/DefaultRedisSerializer.hpp"
 #include <random>
 
 using namespace assfire::router;

@@ -1,20 +1,20 @@
 set(SOURCES
-        assfire/engine/router/DistanceMatrixFactory.cpp
-        assfire/engine/router/impl/route_provider_engines/CrowflightRouteProviderEngine.cpp
-        assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.cpp
-        assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.cpp
-        assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.cpp
-        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp
-        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.cpp ../tests/engine/CrowflightRouteProviderEngineTest.cpp assfire/engine/router/impl/route_provider_engines/CacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.hpp assfire/engine/router/impl/route_provider_engines/CppRedisCacheConnector.cpp assfire/engine/router/impl/route_provider_engines/OsrmConnector.hpp assfire/engine/router/impl/route_provider_engines/RestSdkOsrmConnector.hpp assfire/engine/router/impl/route_provider_engines/RestSdkOsrmConnector.cpp assfire/engine/router/impl/route_provider_engines/CpprestWstringConvert.hpp)
+        assfire/router/engine/DistanceMatrixFactory.cpp
+        assfire/router/engine/impl/route_provider_engines/CrowflightRouteProviderEngine.cpp
+        assfire/router/engine/impl/route_provider_engines/EuclideanRouteProviderEngine.cpp
+        assfire/router/engine/impl/route_provider_engines/RandomRouteProviderEngine.cpp
+        assfire/router/engine/impl/route_provider_engines/OsrmRouteProviderEngine.cpp
+        assfire/router/engine/impl/route_provider_engines/RedisRouteProviderEngine.cpp
+        assfire/router/engine/impl/route_provider_engines/RedisRouteProviderEngine.cpp ../tests/engine/CrowflightRouteProviderEngineTest.cpp assfire/router/engine/impl/route_provider_engines/CacheConnector.hpp assfire/router/engine/impl/route_provider_engines/CppRedisCacheConnector.hpp assfire/router/engine/impl/route_provider_engines/CppRedisCacheConnector.cpp assfire/router/engine/impl/route_provider_engines/OsrmConnector.hpp assfire/router/engine/impl/route_provider_engines/RestSdkOsrmConnector.hpp assfire/router/engine/impl/route_provider_engines/RestSdkOsrmConnector.cpp assfire/router/engine/impl/route_provider_engines/CpprestWstringConvert.hpp)
 set(HEADERS
-        assfire/engine/router/MetricsCollector.hpp
-        assfire/engine/router/DistanceMatrixFactory.hpp
-        assfire/engine/router/impl/route_provider_engines/CrowflightRouteProviderEngine.hpp
-        assfire/engine/router/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp
-        assfire/engine/router/impl/route_provider_engines/RandomRouteProviderEngine.hpp
-        assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.hpp
-        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp
-        assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp
+        assfire/router/engine/MetricsCollector.hpp
+        assfire/router/engine/DistanceMatrixFactory.hpp
+        assfire/router/engine/impl/route_provider_engines/CrowflightRouteProviderEngine.hpp
+        assfire/router/engine/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp
+        assfire/router/engine/impl/route_provider_engines/RandomRouteProviderEngine.hpp
+        assfire/router/engine/impl/route_provider_engines/OsrmRouteProviderEngine.hpp
+        assfire/router/engine/impl/route_provider_engines/RedisRouteProviderEngine.hpp
+        assfire/router/engine/impl/route_provider_engines/RedisRouteProviderEngine.hpp
         )
 
 find_package(spdlog CONFIG REQUIRED)

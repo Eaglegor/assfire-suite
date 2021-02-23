@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include <assfire/api/router/model/RouteDetails.hpp>
-#include <assfire/engine/router/impl/route_provider_engines/CpprestWstringConvert.hpp>
+#include <assfire/router/api/model/RouteDetails.hpp>
+#include <assfire/router/engine/impl/route_provider_engines/CpprestWstringConvert.hpp>
 #include <cpprest/json.h>
 
 namespace assfire::router::test::osrm_replies {

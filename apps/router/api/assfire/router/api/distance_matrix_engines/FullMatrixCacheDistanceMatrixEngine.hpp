@@ -5,10 +5,10 @@
 #include <atomic>
 #include <string>
 #include <mutex>
-#include <assfire/api/router/DistanceMatrixEngine.hpp>
-#include <assfire/api/router/RouteProviderEngine.hpp>
-#include <assfire/api/router/DistanceMatrixErrorPolicy.hpp>
-#include <assfire/api/router/Matrix.hpp>
+#include <assfire/router/api/DistanceMatrixEngine.hpp>
+#include <assfire/router/api/RouteProviderEngine.hpp>
+#include <assfire/router/api/DistanceMatrixErrorPolicy.hpp>
+#include <assfire/router/api/Matrix.hpp>
 
 namespace assfire::router {
     class FullMatrixCacheDistanceMatrixEngine : public DistanceMatrixEngine {

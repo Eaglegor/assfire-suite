@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assfire/api/v1/service/router/router.grpc.pb.h>
-#include <assfire/engine/router/DistanceMatrixFactory.hpp>
+#include <assfire/router/engine/DistanceMatrixFactory.hpp>
 #include "ServerMetricsCollector.hpp"
 #include <memory>
 #include <atomic>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <queue>
-#include <assfire/api/router/RouteProviderEngine.hpp>
+#include <assfire/router/api/RouteProviderEngine.hpp>
 
 namespace assfire::router {
     class MockRouteProviderEngine : public RouteProviderEngine {

@@ -2,7 +2,7 @@ set(TARGET_NAME assfire-router-server)
 set(SOURCES
         main.cpp
         assfire/router/RouterService.cpp
-        assfire/router/ServerMetricsCollector.cpp ../engine/assfire/engine/router/DefaultRedisSerializer.hpp)
+        assfire/router/ServerMetricsCollector.cpp ../engine/assfire/router/engine/DefaultRedisSerializer.hpp)
 set(HEADERS
         assfire/router/RouterService.h
         assfire/router/ServerMetricsCollector.hpp)

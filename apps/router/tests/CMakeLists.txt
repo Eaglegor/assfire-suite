@@ -21,7 +21,7 @@ add_executable(assfire-router-engine-test
         api/DistanceMatrixTest.cpp
         client/MockProtobufClient.hpp
         client/MockProtobufClient.cpp)
-target_link_libraries(assfire-router-engine-test PRIVATE GTest::gtest GTest::gtest_main assfire-router-engine assfire-router-api)
+target_link_libraries(assfire-router-engine-test PRIVATE GTest::gtest GTest::gtest_main assfire-router-engine assfire-router-api assfire-router-client)
 
 gtest_discover_tests(assfire-router-engine-test
         XML_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/junit_test_report)

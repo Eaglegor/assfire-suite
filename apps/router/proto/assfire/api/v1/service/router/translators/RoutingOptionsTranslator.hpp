@@ -1,8 +1,8 @@
 #pragma once
 
 #include <assfire/api/v1/service/router/router.grpc.pb.h>
-#include <assfire/api/router/RouteProviderSettings.hpp>
-#include <assfire/api/router/RouterEngineType.hpp>
+#include <assfire/router/api/RouteProviderSettings.hpp>
+#include <assfire/router/api/RouterEngineType.hpp>
 #include "RoutingEngineTypeTranslator.hpp"
 
 namespace assfire::router::proto_translation {

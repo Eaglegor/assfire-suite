@@ -1,9 +1,9 @@
 #pragma once
 
 #include <sstream>
-#include <assfire/api/router/RouteProviderSettings.hpp>
-#include <assfire/api/router/RedisSerializer.hpp>
-#include <assfire/api/router/RouterEngineType.hpp>
+#include <assfire/router/api/RouteProviderSettings.hpp>
+#include <assfire/router/api/RedisSerializer.hpp>
+#include <assfire/router/api/RouterEngineType.hpp>
 #include <cmath>
 
 namespace assfire::router {

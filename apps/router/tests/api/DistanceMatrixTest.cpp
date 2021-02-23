@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <assfire/api/router/DistanceMatrix.hpp>
+#include <assfire/router/api/DistanceMatrix.hpp>
 
 using namespace assfire::router;
 

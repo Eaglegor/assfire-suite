@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
 #include "MockRouteProviderEngine.hpp"
-#include <assfire/engine/router/impl/route_provider_engines/RedisRouteProviderEngine.hpp>
+#include <assfire/router/engine/impl/route_provider_engines/RedisRouteProviderEngine.hpp>
+#include <assfire/router/engine/DefaultRedisSerializer.hpp>
 #include "RouteProviderEngineTestFixtureBase.hpp"
 #include "MockCacheConnector.hpp"
 #include <memory>
-#include <assfire/engine/router/DefaultRedisSerializer.hpp>
 
 using namespace assfire::router;
 

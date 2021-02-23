@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp>
+#include <assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp>
 #include "../engine/MockRouteProviderEngine.hpp"
 
 using namespace assfire::router;

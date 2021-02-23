@@ -1,13 +1,13 @@
 #pragma once
 
-#include <assfire/api/router/model/RouteInfo.hpp>
-#include <assfire/api/router/model/Location.hpp>
-#include <assfire/api/router/model/RouteDetails.hpp>
-#include "assfire/api/router/RouteProviderEngine.hpp"
-#include "assfire/api/router/model/RoutingProfile.hpp"
-#include "assfire/api/router/RouterEngineType.hpp"
-#include "assfire/api/router/RouteProviderSettings.hpp"
-#include "assfire/api/router/model/RoutingProfile.hpp"
+#include <assfire/router/api/model/RouteInfo.hpp>
+#include <assfire/router/api/model/Location.hpp>
+#include <assfire/router/api/model/RouteDetails.hpp>
+#include "assfire/router/api/RouteProviderEngine.hpp"
+#include "assfire/router/api/model/RoutingProfile.hpp"
+#include "assfire/router/api/RouterEngineType.hpp"
+#include "assfire/router/api/RouteProviderSettings.hpp"
+#include "assfire/router/api/model/RoutingProfile.hpp"
 #include "transport/ProtobufClient.hpp"
 #include <random>
 

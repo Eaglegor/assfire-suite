@@ -1,10 +1,9 @@
 #include "gtest/gtest.h"
-#include <assfire/engine/router/impl/route_provider_engines/OsrmRouteProviderEngine.hpp>
+#include <iostream>
+#include <assfire/router/engine/impl/route_provider_engines/OsrmRouteProviderEngine.hpp>
 #include "RouteProviderEngineTestFixtureBase.hpp"
 #include "OsrmReplies.hpp"
 #include "MockOsrmConnector.hpp"
-#include <assfire/engine/router/impl/route_provider_engines/CpprestWstringConvert.hpp>
-#include <iostream>
 
 using namespace assfire::router;
 

@@ -5,7 +5,7 @@
 #include <chrono>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
-#include <assfire/engine/router/MetricsCollector.hpp>
+#include <assfire/router/engine/MetricsCollector.hpp>
 
 namespace assfire::router {
 	class ServerMetricsCollector : public MetricsCollector
