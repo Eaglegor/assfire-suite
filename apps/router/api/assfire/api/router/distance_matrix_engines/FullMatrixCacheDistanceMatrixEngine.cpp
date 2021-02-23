@@ -32,6 +32,7 @@ RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const Location
 }
 
 IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location &location, LocationType type) {
+    std::lock_guard<std::mutex> guard(cache_update_lock);
     initialized = false;
     known_locations.push_back(location);
     int index = known_locations.size() - 1;
