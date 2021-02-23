@@ -8,13 +8,13 @@
 using namespace assfire::router;
 using namespace assfire::router::proto_translation;
 
-using GetSingleRouteRequest = GrpcClient::GetSingleRouteRequest;
-using GetSingleRouteResponse = GrpcClient::GetSingleRouteResponse;
-using GetRoutesBatchRequest = GrpcClient::GetRoutesBatchRequest;
-using GetRoutesBatchResponse = GrpcClient::GetRoutesBatchResponse;
-using ResponseStatus = GrpcClient::ResponseStatus;
+using GetSingleRouteRequest = ProtobufClient::GetSingleRouteRequest;
+using GetSingleRouteResponse = ProtobufClient::GetSingleRouteResponse;
+using GetRoutesBatchRequest = ProtobufClient::GetRoutesBatchRequest;
+using GetRoutesBatchResponse = ProtobufClient::GetRoutesBatchResponse;
+using ResponseStatus = ProtobufClient::ResponseStatus;
 
-GrpcRouteProviderEngine::GrpcRouteProviderEngine(const GrpcClient &client, RouterEngineType engineType, const RouteProviderSettings &settings, const RoutingProfile &routingProfile) :
+GrpcRouteProviderEngine::GrpcRouteProviderEngine(const ProtobufClient &client, RouterEngineType engineType, const RouteProviderSettings &settings, const RoutingProfile &routingProfile) :
         client(client),
         engine_type(engineType),
         settings(settings),

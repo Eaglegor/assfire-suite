@@ -1,20 +1,21 @@
 set(PUBLIC_HEADERS
         assfire/router/client/RouterClient.hpp
-        assfire/router/client/transport/GrpcClient.hpp
+        assfire/router/client/transport/GrpcProtobufClient.hpp
+        assfire/router/client/transport/ProtobufClient.hpp
         assfire/router/client/GrpcRouteProviderEngine.hpp
         assfire/router/client/ClientDistanceMatrixFactory.hpp
         )
 set(SOURCES
         assfire/router/client/RouterClient.cpp
-        assfire/router/client/transport/GrpcClient.cpp
+        assfire/router/client/transport/GrpcProtobufClient.cpp
         assfire/router/client/GrpcRouteProviderEngine.cpp
         assfire/router/client/ClientDistanceMatrixFactory.cpp)
 
 
-add_library(assfire-router-client ${SOURCES})
+add_library(assfire-router-client ${SOURCES} ${HEADERS})
 
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(assfire-router-client PRIVATE assfire-router-api assfire-router-proto spdlog::spdlog)
+target_link_libraries(assfire-router-client PRIVATE assfire-router-proto assfire-router-api assfire-router-proto spdlog::spdlog)
 target_include_directories(assfire-router-client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 install(TARGETS assfire-router-client COMPONENT router-client)

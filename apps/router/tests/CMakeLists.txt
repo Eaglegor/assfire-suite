@@ -17,7 +17,10 @@ add_executable(assfire-router-engine-test
         engine/MockRouteProviderEngine.cpp
         engine/MockCache.cpp
         api/DirectRequestDistanceMatrixEngineTest.cpp
-        api/FullMatrixCacheDistanceMatrixEngineTest.cpp api/DistanceMatrixTest.cpp)
+        api/FullMatrixCacheDistanceMatrixEngineTest.cpp
+        api/DistanceMatrixTest.cpp
+        client/MockProtobufClient.hpp
+        client/MockProtobufClient.cpp)
 target_link_libraries(assfire-router-engine-test PRIVATE GTest::gtest GTest::gtest_main assfire-router-engine assfire-router-api)
 
 gtest_discover_tests(assfire-router-engine-test

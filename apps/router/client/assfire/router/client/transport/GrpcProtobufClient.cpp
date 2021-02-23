@@ -1,4 +1,4 @@
-#include "GrpcClient.hpp"
+#include "GrpcProtobufClient.hpp"
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
 #include <spdlog/spdlog.h>
@@ -6,7 +6,7 @@
 
 using namespace assfire::router;
 
-GrpcClient::GrpcClient(const std::string &server_host, Port server_port, bool use_ssl)
+GrpcProtobufClient::GrpcProtobufClient(const std::string &server_host, Port server_port, bool use_ssl)
 {
     std::shared_ptr<grpc::ChannelCredentials> credentials;
     if (use_ssl) {
@@ -19,7 +19,7 @@ GrpcClient::GrpcClient(const std::string &server_host, Port server_port, bool us
     stub = assfire::api::v1::service::router::RouterService::NewStub(channel);
 }
 
-GrpcClient::GetSingleRouteResponse GrpcClient::getRoute(const GetSingleRouteRequest &request) const
+GrpcProtobufClient::GetSingleRouteResponse GrpcProtobufClient::getRoute(const GetSingleRouteRequest &request) const
 {
     grpc::ClientContext client_context;
     GetSingleRouteResponse response;
@@ -34,7 +34,7 @@ GrpcClient::GetSingleRouteResponse GrpcClient::getRoute(const GetSingleRouteRequ
     return response;
 }
 
-void GrpcClient::getRoutesBatch(const GetRoutesBatchRequest &request, const RoutesBatchConsumer &consumer) const
+void GrpcProtobufClient::getRoutesBatch(const GetRoutesBatchRequest &request, const RoutesBatchConsumer &consumer) const
 {
     grpc::ClientContext client_context;
     GetRoutesBatchResponse response;
@@ -52,7 +52,7 @@ void GrpcClient::getRoutesBatch(const GetRoutesBatchRequest &request, const Rout
     }
 }
 
-void GrpcClient::getRoutesBatch(const RequestSupplier &request_supplier, const RoutesBatchConsumer &consumer) const
+void GrpcProtobufClient::getRoutesBatch(const RequestSupplier &request_supplier, const RoutesBatchConsumer &consumer) const
 {
     grpc::ClientContext client_context;
     GetRoutesBatchResponse response;

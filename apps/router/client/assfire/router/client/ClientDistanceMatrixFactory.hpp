@@ -9,7 +9,7 @@
 #include <atomic>
 #include <memory>
 #include <assfire/api/router/DistanceMatrixErrorPolicy.hpp>
-#include "transport/GrpcClient.hpp"
+#include "transport/GrpcProtobufClient.hpp"
 
 namespace assfire::router {
     class ClientDistanceMatrixFactory {
@@ -19,6 +19,6 @@ namespace assfire::router {
 
     private:
         mutable std::atomic_int tag_counter;
-        std::unique_ptr<GrpcClient> grpc_client;
+        std::unique_ptr<GrpcProtobufClient> grpc_client;
     };
 }
