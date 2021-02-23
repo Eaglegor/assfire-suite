@@ -13,7 +13,10 @@ namespace assfire::router {
         void addResponse(double distance, long duration);
         void addResponse(double distance, long duration, const RouteDetails::Waypoints& waypoints);
 
+        int getCallsCount() const;
+
     private:
         mutable std::queue<RouteDetails> route_details_responses;
+        mutable int calls_count = 0;
     };
 }

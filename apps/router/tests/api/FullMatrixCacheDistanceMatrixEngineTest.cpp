@@ -30,7 +30,9 @@ public:
 };
 
 TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsRouteInfoFromCacheForKnownLocation) {
-    FullMatrixCacheDistanceMatrixEngine engine(createMockRouteProviderEngine(), DistanceMatrixEngine::Tag(0));
+    auto mocked_engine = createMockRouteProviderEngine();
+    const auto& mocked_engine_ref = *mocked_engine;
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(mocked_engine), DistanceMatrixEngine::Tag(0));
 
     IndexedLocation indexed_loc1 = engine.addLocation(getOrigin(), assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
     IndexedLocation indexed_loc2 = engine.addLocation(getDestination(), assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
@@ -55,6 +57,8 @@ TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsRouteInfoFromCacheForKnow
 
     ASSERT_EQ(response5.getDistance().toMeters(), 30);
     ASSERT_EQ(response5.getDuration().toSeconds(), 30);
+
+    ASSERT_EQ(mocked_engine_ref.getCallsCount(), 5);
 }
 
 TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsRouteDetailsFromCacheForKnownLocation) {
@@ -106,7 +110,9 @@ TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsRouteDetailsFromCacheForK
 }
 
 TEST_F(FullMatrixCacheDistanceMatrixEngineTest, CacheIsUpdatedOnNewKnownLocationAdded) {
-    FullMatrixCacheDistanceMatrixEngine engine(createMockRouteProviderEngine(), DistanceMatrixEngine::Tag(0));
+    auto mocked_engine = createMockRouteProviderEngine();
+    const auto& mocked_engine_ref = *mocked_engine;
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(mocked_engine), DistanceMatrixEngine::Tag(0));
 
     IndexedLocation indexed_loc1 = engine.addLocation(getOrigin(), assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
     IndexedLocation indexed_loc2 = engine.addLocation(getDestination(), assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
@@ -130,6 +136,8 @@ TEST_F(FullMatrixCacheDistanceMatrixEngineTest, CacheIsUpdatedOnNewKnownLocation
 
     ASSERT_EQ(response3.getDistance().toMeters(), 30);
     ASSERT_EQ(response3.getDuration().toSeconds(), 30);
+
+    ASSERT_EQ(mocked_engine_ref.getCallsCount(), 5);
 
     IndexedLocation indexed_loc3 = engine.addLocation(unknown_location1, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
     IndexedLocation indexed_loc4 = engine.addLocation(unknown_location2, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
@@ -156,6 +164,8 @@ TEST_F(FullMatrixCacheDistanceMatrixEngineTest, CacheIsUpdatedOnNewKnownLocation
 
     ASSERT_EQ(response7.getDistance().toMeters(), 100);
     ASSERT_EQ(response7.getDuration().toSeconds(), 100);
+
+    ASSERT_EQ(mocked_engine_ref.getCallsCount(), 17);
 }
 
 TEST_F(FullMatrixCacheDistanceMatrixEngineTest, CacheIsNotUpdatedOnRepeatedUnknownLocationRequests) {

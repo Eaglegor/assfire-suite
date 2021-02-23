@@ -10,13 +10,15 @@ namespace assfire::router
     class RouteProviderEngine
     {
     public:
+        using Locations = std::vector<Location>;
+
         virtual ~RouteProviderEngine() = default;
 
         virtual RouteInfo getSingleRouteInfo(const Location &origin, const Location &destination) const = 0;
 
         virtual RouteDetails getSingleRouteDetails(const Location &origin, const Location &destination) const = 0;
 
-        virtual Matrix<RouteInfo> getRouteInfoMatrix(const std::vector <Location> &origins, const std::vector <Location> &destinations)
+        virtual Matrix<RouteInfo> getRouteInfoMatrix(const Locations &origins, const Locations &destinations)
         {
             return Matrix<RouteInfo>(origins.size(), destinations.size(),
                           [&](int i, int j) {
@@ -24,7 +26,7 @@ namespace assfire::router
                           });
         };
 
-        virtual Matrix<RouteDetails> getRouteDetailsMatrix(const std::vector <Location> &origins, const std::vector <Location> &destinations)
+        virtual Matrix<RouteDetails> getRouteDetailsMatrix(const Locations &origins, const Locations &destinations)
         {
             return Matrix<RouteDetails>(origins.size(), destinations.size(),
                           [&](int i, int j) {
