@@ -26,8 +26,20 @@ namespace assfire::router {
             return duration;
         }
 
+        bool isInfinity() const {
+            return distance.isInfinity() || duration.isInfinity();
+        }
+
+        bool isZero() const {
+            return distance.isZero() && duration.isZero();
+        }
+
         static RouteInfo zero() {
             return RouteInfo(Distance::zero(), TimeInterval::zero());
+        }
+
+        static RouteInfo infinity() {
+            return RouteInfo(Distance::infinity(), TimeInterval::infinity());
         }
 
     private:

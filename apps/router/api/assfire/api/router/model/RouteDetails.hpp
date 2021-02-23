@@ -38,6 +38,22 @@ namespace assfire::router {
             return waypoints;
         }
 
+        bool isInfinity() const {
+            return summary.isInfinity();
+        }
+
+        bool isZero() const {
+            return summary.isZero();
+        }
+
+        static const RouteDetails zero(const Location& from, const Location& to) {
+            return RouteDetails(RouteInfo::zero(), {from, to});
+        }
+
+        static const RouteDetails infinity(const Location& from, const Location& to) {
+            return RouteDetails(RouteInfo::infinity(), {from, to});
+        }
+
     private:
         RouteInfo summary;
         Waypoints waypoints;

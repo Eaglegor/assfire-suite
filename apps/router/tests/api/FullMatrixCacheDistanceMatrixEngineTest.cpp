@@ -249,3 +249,122 @@ TEST_F(FullMatrixCacheDistanceMatrixEngineTest, CacheIsNotUsedIfAnyLocationInReq
     ASSERT_EQ(response6.getDistance().toMeters(), 60);
     ASSERT_EQ(response6.getDuration().toSeconds(), 60);
 }
+
+TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsInfinityOnErrorWithDefaultErrorPolicyForUnknownLocation)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0));
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_ANY_THROW(backend_ref.getSingleRouteInfo(origin, destination));
+
+    RouteDetails response2 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_TRUE(response2.isInfinity());
+}
+
+TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsInfinityOnErrorWithCorrespondingErrorPolicyForUnknownLocation)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0), DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY);
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_ANY_THROW(backend_ref.getSingleRouteInfo(origin, destination));
+
+    RouteDetails response2 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_TRUE(response2.isInfinity());
+}
+
+TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ThrowsOnErrorWithCorrespondingErrorPolicyForUnknownLocation)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0), DistanceMatrixErrorPolicy::ON_ERROR_THROW);
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_ANY_THROW(backend_ref.getSingleRouteInfo(origin, destination));
+
+    ASSERT_ANY_THROW(engine.getRouteDetails(origin, destination));
+}
+
+TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsInfinityOnErrorWithDefaultErrorPolicyForKnownLocation)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0));
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    engine.addLocation(origin, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
+    engine.addLocation(destination, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination); // Succeeds
+    RouteDetails response2 = engine.getRouteDetails(origin, origin); // Succeeds as it's 0
+    RouteDetails response3 = engine.getRouteDetails(destination, origin); // Fails and is initialized to infinity
+    RouteDetails response4 = engine.getRouteDetails(destination, destination); // Succeeds as it's 0
+
+    ASSERT_EQ(response1.getDuration().toSeconds(), 10);
+    ASSERT_TRUE(response2.isZero());
+    ASSERT_TRUE(response3.isInfinity());
+    ASSERT_TRUE(response4.isZero());
+}
+
+TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ReturnsInfinityOnErrorWithCorrespondingErrorPolicyForKnownLocation)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0), assfire::router::DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY);
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    engine.addLocation(origin, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
+    engine.addLocation(destination, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination); // Succeeds
+    RouteDetails response2 = engine.getRouteDetails(origin, origin); // Succeeds as it's 0
+    RouteDetails response3 = engine.getRouteDetails(destination, origin); // Fails and is initialized to infinity
+    RouteDetails response4 = engine.getRouteDetails(destination, destination); // Succeeds as it's 0
+
+    ASSERT_EQ(response1.getDuration().toSeconds(), 10);
+    ASSERT_TRUE(response2.isZero());
+    ASSERT_TRUE(response3.isInfinity());
+    ASSERT_TRUE(response4.isZero());
+}
+
+TEST_F(FullMatrixCacheDistanceMatrixEngineTest, ThrowsOnErrorWithCorrespondingErrorPolicyForKnownLocation)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    FullMatrixCacheDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0), assfire::router::DistanceMatrixErrorPolicy::ON_ERROR_THROW);
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    engine.addLocation(origin, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
+    engine.addLocation(destination, assfire::router::DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION);
+
+    ASSERT_ANY_THROW(engine.getRouteDetails(origin, destination));
+}

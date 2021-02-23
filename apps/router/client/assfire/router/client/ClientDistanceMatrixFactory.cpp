@@ -14,13 +14,14 @@ namespace {
 }
 
 DistanceMatrix
-ClientDistanceMatrixFactory::createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings) const {
+ClientDistanceMatrixFactory::createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings,
+                                                  DistanceMatrixErrorPolicy error_policy) const {
     switch (caching_policy) {
         case DistanceMatrixCachingPolicy::NO_CACHING:
-            return DistanceMatrix(std::make_shared<DirectRequestDistanceMatrixEngine>(createEngine(*grpc_client, engine_type, routing_profile, settings), ++tag_counter));
+            return DistanceMatrix(std::make_shared<DirectRequestDistanceMatrixEngine>(createEngine(*grpc_client, engine_type, routing_profile, settings), ++tag_counter, error_policy));
         case DistanceMatrixCachingPolicy::FULL_MATRIX_PRECACHING:
         case DistanceMatrixCachingPolicy::AUTO:
-            return DistanceMatrix(std::make_shared<FullMatrixCacheDistanceMatrixEngine>(createEngine(*grpc_client, engine_type, routing_profile, settings), ++tag_counter));
+            return DistanceMatrix(std::make_shared<FullMatrixCacheDistanceMatrixEngine>(createEngine(*grpc_client, engine_type, routing_profile, settings), ++tag_counter, error_policy));
         default:
             throw std::runtime_error("Unknown distance matrix caching policy");
     }

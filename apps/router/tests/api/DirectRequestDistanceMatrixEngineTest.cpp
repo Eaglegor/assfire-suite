@@ -92,3 +92,57 @@ TEST_F(DirectRequestDistanceMatrixEngineTest, ReturnsRouteDetailsFromProvider)
     ASSERT_DOUBLE_EQ(response3.getWaypoints()[2].getLatitude().doubleValue(), 90);
 }
 
+TEST_F(DirectRequestDistanceMatrixEngineTest, ReturnsInfinityOnErrorWithDefaultErrorPolicy)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    DirectRequestDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0));
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_ANY_THROW(backend_ref.getSingleRouteInfo(origin, destination));
+
+    RouteDetails response2 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_TRUE(response2.isInfinity());
+}
+
+TEST_F(DirectRequestDistanceMatrixEngineTest, ReturnsInfinityOnErrorWithCorrespondingErrorPolicy)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    DirectRequestDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0), DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY);
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_ANY_THROW(backend_ref.getSingleRouteInfo(origin, destination));
+
+    RouteDetails response2 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_TRUE(response2.isInfinity());
+}
+
+TEST_F(DirectRequestDistanceMatrixEngineTest, ThrowsOnErrorWithCorrespondingErrorPolicy)
+{
+    std::unique_ptr<MockRouteProviderEngine> backend_engine = std::make_unique<MockRouteProviderEngine>();
+    const auto& backend_ref = *backend_engine;
+    backend_engine->addResponse(10, 10);
+    DirectRequestDistanceMatrixEngine engine(std::move(backend_engine), DistanceMatrixEngine::Tag(0), DistanceMatrixErrorPolicy::ON_ERROR_THROW);
+
+    Location origin = getOrigin();
+    Location destination = getDestination();
+
+    RouteDetails response1 = engine.getRouteDetails(origin, destination);
+
+    ASSERT_ANY_THROW(backend_ref.getSingleRouteInfo(origin, destination));
+
+    ASSERT_ANY_THROW(engine.getRouteDetails(origin, destination));
+}

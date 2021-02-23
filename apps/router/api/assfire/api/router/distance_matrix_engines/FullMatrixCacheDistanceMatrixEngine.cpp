@@ -1,4 +1,5 @@
 #include "FullMatrixCacheDistanceMatrixEngine.hpp"
+#include <spdlog/spdlog.h>
 #include <assert.h>
 
 using namespace assfire::router;
@@ -19,7 +20,11 @@ RouteInfo FullMatrixCacheDistanceMatrixEngine::getRouteInfo(const Location &orig
     if (origin_iter != known_locations_mapping.end() && destination_iter != known_locations_mapping.end()) {
         return getCachedRouteInfo(origin_iter->second, destination_iter->second);
     }
-    return engine->getSingleRouteInfo(origin, destination);
+    try {
+        return engine->getSingleRouteInfo(origin, destination);
+    } catch(const std::exception& e) {
+        return processError(origin, destination, e).getSummary();
+    }
 }
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const Location &origin, const Location &destination) const {
@@ -28,7 +33,11 @@ RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const Location
     if (origin_iter != known_locations_mapping.end() && destination_iter != known_locations_mapping.end()) {
         return getCachedRouteDetails(origin_iter->second, destination_iter->second);
     }
-    return engine->getSingleRouteDetails(origin, destination);
+    try {
+        return engine->getSingleRouteDetails(origin, destination);
+    } catch(const std::exception& e) {
+        return processError(origin, destination, e);
+    }
 }
 
 IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location &location, LocationType type) {
@@ -52,9 +61,13 @@ void FullMatrixCacheDistanceMatrixEngine::initialize() const {
             return route_details_cache->at(i, j);
         } else {
             if (i == j) {
-                return RouteDetails(RouteInfo::zero(), {known_locations.at(i), known_locations.at(j)});
+                return RouteDetails::zero(known_locations.at(i), known_locations.at(j));
             } else {
-                return engine->getSingleRouteDetails(known_locations.at(i), known_locations.at(j));
+                try {
+                    return engine->getSingleRouteDetails(known_locations.at(i), known_locations.at(j));
+                } catch (const std::exception &e) {
+                    return processError(known_locations.at(i), known_locations.at(j), e);
+                }
             }
         }
     });
@@ -68,11 +81,24 @@ std::string FullMatrixCacheDistanceMatrixEngine::encodeLocation(const Location &
 }
 
 RouteInfo FullMatrixCacheDistanceMatrixEngine::getCachedRouteInfo(int origin_id, int destination_id) const {
-    if (!is_initialized) initialize();
-    return route_details_cache->at(origin_id, destination_id).getSummary();
+    return getCachedRouteDetails(origin_id, destination_id).getSummary();
 }
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::getCachedRouteDetails(int origin_id, int destination_id) const {
     if (!is_initialized) initialize();
     return route_details_cache->at(origin_id, destination_id);
+}
+
+RouteDetails FullMatrixCacheDistanceMatrixEngine::processError(const Location& from, const Location& to, const std::exception &e) const {
+    switch(error_policy) {
+        case DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY:
+            SPDLOG_WARN("Error occurred when initializing cached route for ({},{})->({},{}): {}. Route will be set to INFINITY",
+                        from.getLatitude().doubleValue(), from.getLongitude().doubleValue(),
+                        to.getLatitude().doubleValue(), to.getLongitude().doubleValue(),
+                        e.what());
+            return RouteDetails::infinity(from, to);
+        case DistanceMatrixErrorPolicy::ON_ERROR_THROW:
+        default:
+            throw e;
+    }
 }

@@ -51,13 +51,13 @@ namespace {
 
 DistanceMatrix
 DistanceMatrixFactory::createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings,
-                                            const RoutingContext &context) {
+                                            const RoutingContext &context, DistanceMatrixErrorPolicy error_policy) {
     switch (caching_policy) {
         case DistanceMatrixCachingPolicy::NO_CACHING:
-            return DistanceMatrix(std::make_shared<DirectRequestDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter));
+            return DistanceMatrix(std::make_shared<DirectRequestDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter, error_policy));
         case DistanceMatrixCachingPolicy::FULL_MATRIX_PRECACHING:
         case DistanceMatrixCachingPolicy::AUTO:
-            return DistanceMatrix(std::make_shared<FullMatrixCacheDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter));
+            return DistanceMatrix(std::make_shared<FullMatrixCacheDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter, error_policy));
         default:
             throw std::runtime_error("Unknown distance matrix caching policy");
     }

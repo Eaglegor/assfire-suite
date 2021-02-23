@@ -8,12 +8,14 @@
 #include <assfire/api/router/RoutingContext.hpp>
 #include <atomic>
 #include <memory>
+#include <assfire/api/router/DistanceMatrixErrorPolicy.hpp>
 #include "transport/GrpcClient.hpp"
 
 namespace assfire::router {
     class ClientDistanceMatrixFactory {
     public:
-        DistanceMatrix createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings) const;
+        DistanceMatrix createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings,
+                                            DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY) const;
 
     private:
         mutable std::atomic_int tag_counter;

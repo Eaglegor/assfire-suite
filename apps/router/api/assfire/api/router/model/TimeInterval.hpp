@@ -10,19 +10,33 @@ namespace assfire::router {
 
         explicit TimeInterval(value_type seconds) : seconds(seconds) {}
 
+        static constexpr value_type INFINITE_TIME_INTERVAL = 3600000000;
+
     public:
         auto operator<=>(const TimeInterval& rhs) const = default;
 
-        long toSeconds() const {
+        std::int64_t toSeconds() const {
             return seconds;
         }
 
-        static TimeInterval fromSeconds(long seconds) {
+        static TimeInterval fromSeconds(std::int64_t seconds) {
             return TimeInterval(seconds);
+        }
+
+        bool isInfinity() const {
+            return seconds >= INFINITE_TIME_INTERVAL;
+        }
+
+        bool isZero() const {
+            return seconds == 0;
         }
 
         static TimeInterval zero() {
             return fromSeconds(0);
+        }
+
+        static TimeInterval infinity() {
+            return fromSeconds(INFINITE_TIME_INTERVAL);
         }
 
     private:

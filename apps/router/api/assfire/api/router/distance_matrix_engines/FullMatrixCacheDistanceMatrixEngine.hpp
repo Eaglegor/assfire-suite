@@ -7,15 +7,17 @@
 #include <mutex>
 #include <assfire/api/router/DistanceMatrixEngine.hpp>
 #include <assfire/api/router/RouteProviderEngine.hpp>
+#include <assfire/api/router/DistanceMatrixErrorPolicy.hpp>
 #include <assfire/api/router/Matrix.hpp>
 
 namespace assfire::router {
     class FullMatrixCacheDistanceMatrixEngine : public DistanceMatrixEngine {
     public:
-        FullMatrixCacheDistanceMatrixEngine(std::unique_ptr<RouteProviderEngine> engine, Tag tag)
+        FullMatrixCacheDistanceMatrixEngine(std::unique_ptr<RouteProviderEngine> engine, Tag tag, DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY)
                 :
                 matrix_tag(tag),
-                engine(std::move(engine)) {
+                engine(std::move(engine)),
+                error_policy(error_policy) {
         }
 
         RouteInfo getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const override;
@@ -30,9 +32,14 @@ namespace assfire::router {
 
     private:
         void initialize() const;
-        std::string encodeLocation(const Location& location) const;
+
+        std::string encodeLocation(const Location &location) const;
+
         RouteInfo getCachedRouteInfo(int origin_id, int destination_id) const;
+
         RouteDetails getCachedRouteDetails(int origin_id, int destination_id) const;
+
+        RouteDetails processError(const Location& from, const Location& to, const std::exception& e) const;
 
         mutable std::atomic_bool is_initialized = false;
         std::vector<Location> known_locations;
@@ -41,5 +48,6 @@ namespace assfire::router {
         mutable std::unique_ptr<Matrix<RouteDetails>> route_details_cache;
         std::unique_ptr<RouteProviderEngine> engine;
         mutable std::mutex cache_update_lock;
+        DistanceMatrixErrorPolicy error_policy;
     };
 }

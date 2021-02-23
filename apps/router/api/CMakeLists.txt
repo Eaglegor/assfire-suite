@@ -22,7 +22,7 @@ set(HEADERS
         assfire/api/router/model/TimePoint.hpp
         assfire/api/router/model/Speed.hpp
         assfire/api/router/RouteProviderSettings.hpp
-        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp)
+        assfire/api/router/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp assfire/api/router/DistanceMatrixErrorPolicy.hpp)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)
