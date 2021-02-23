@@ -3,7 +3,7 @@
 #include <assfire/api/v1/service/router/router.grpc.pb.h>
 #include <assfire/router/api/model/Location.hpp>
 
-namespace assfire::router {
+namespace assfire::router::proto_translation {
     class LocationTranslator {
     public:
         static Location fromProto(const assfire::api::v1::model::routing::Location &location) {

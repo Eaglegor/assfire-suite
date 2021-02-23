@@ -20,7 +20,8 @@ add_executable(assfire-router-engine-test
         api/FullMatrixCacheDistanceMatrixEngineTest.cpp
         api/DistanceMatrixTest.cpp
         client/MockProtobufClient.hpp
-        client/MockProtobufClient.cpp)
+        client/MockProtobufClient.cpp
+        client/GrpcRouteProviderEngineTest.cpp)
 target_link_libraries(assfire-router-engine-test PRIVATE GTest::gtest GTest::gtest_main assfire-router-engine assfire-router-api assfire-router-client)
 
 gtest_discover_tests(assfire-router-engine-test
