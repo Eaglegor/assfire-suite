@@ -16,7 +16,7 @@ namespace assfire::router {
     class RedisRouteProviderEngine : public RouteProviderEngine {
     public:
 
-        RedisRouteProviderEngine(const RoutingProfile &routingProfile, std::unique_ptr<RedisSerializer> serializer, std::unique_ptr<RouteProviderEngine> backend_engine, std::unique_ptr<CacheConnector> redis_connector, bool force_update = false);
+        RedisRouteProviderEngine(const RoutingProfile &routing_profile, std::unique_ptr<RedisSerializer> serializer, std::unique_ptr<RouteProviderEngine> backend_engine, std::unique_ptr<CacheConnector> redis_connector, bool force_update = false);
 
         RouteInfo getSingleRouteInfo(const Location &origin, const Location &destination) const override;
 

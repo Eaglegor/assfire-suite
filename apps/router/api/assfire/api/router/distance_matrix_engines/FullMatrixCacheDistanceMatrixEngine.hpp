@@ -34,7 +34,7 @@ namespace assfire::router {
         RouteInfo getCachedRouteInfo(int origin_id, int destination_id) const;
         RouteDetails getCachedRouteDetails(int origin_id, int destination_id) const;
 
-        mutable std::atomic_bool initialized = false;
+        mutable std::atomic_bool is_initialized = false;
         std::vector<Location> known_locations;
         std::unordered_map<std::string, int> known_locations_mapping;
         Tag matrix_tag;

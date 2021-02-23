@@ -8,12 +8,12 @@
 
 using namespace assfire::router;
 
-RedisRouteProviderEngine::RedisRouteProviderEngine(const RoutingProfile &routingProfile,
+RedisRouteProviderEngine::RedisRouteProviderEngine(const RoutingProfile &routing_profile,
                                                    std::unique_ptr<RedisSerializer> serializer,
                                                    std::unique_ptr<RouteProviderEngine> backend_engine,
                                                    std::unique_ptr<CacheConnector> redis_connector,
                                                    bool force_update) :
-        routing_profile(routingProfile),
+        routing_profile(routing_profile),
         redis_client(std::move(redis_connector)),
         serializer(std::move(serializer)),
         force_update(force_update),
@@ -28,6 +28,13 @@ RouteDetails RedisRouteProviderEngine::getSingleRouteDetails(const Location &ori
     SPDLOG_DEBUG("Requested route: ({},{})->({},{})",
                  origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
                  destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
+
+    if (origin == destination) {
+        SPDLOG_DEBUG("Returning empty route for: ({},{})->({},{})",
+                     origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
+                     destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
+        return RouteDetails(RouteInfo::zero(), {origin, destination});
+    }
 
     std::string key = serializer->serializeKey(origin, destination);
     CacheConnector::CacheEntry reply = redis_client->get(key);

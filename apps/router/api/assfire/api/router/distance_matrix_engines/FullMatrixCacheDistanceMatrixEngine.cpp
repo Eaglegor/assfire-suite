@@ -33,7 +33,11 @@ RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const Location
 
 IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location &location, LocationType type) {
     std::lock_guard<std::mutex> guard(cache_update_lock);
-    initialized = false;
+    is_initialized = false;
+    auto known_iter = known_locations_mapping.find(encodeLocation(location));
+    if (known_iter != known_locations_mapping.end()) {
+        return IndexedLocation(known_iter->second, matrix_tag, location);
+    }
     known_locations.push_back(location);
     int index = known_locations.size() - 1;
     known_locations_mapping.insert_or_assign(encodeLocation(location), index);
@@ -42,17 +46,21 @@ IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location 
 
 void FullMatrixCacheDistanceMatrixEngine::initialize() const {
     std::lock_guard<std::mutex> guard(cache_update_lock);
-    if (initialized) return;
+    if (is_initialized) return;
     std::unique_ptr<Matrix<RouteDetails>> new_cache = std::make_unique<Matrix<RouteDetails>>(known_locations.size(), known_locations.size(), [&](int i, int j) {
         if (route_details_cache && route_details_cache->getRowsCount() > i && route_details_cache->getColumnsCount() > j) {
             return route_details_cache->at(i, j);
         } else {
-            return engine->getSingleRouteDetails(known_locations.at(i), known_locations.at(j));
+            if (i == j) {
+                return RouteDetails(RouteInfo::zero(), {known_locations.at(i), known_locations.at(j)});
+            } else {
+                return engine->getSingleRouteDetails(known_locations.at(i), known_locations.at(j));
+            }
         }
     });
 
     route_details_cache.swap(new_cache);
-    initialized = true;
+    is_initialized = true;
 }
 
 std::string FullMatrixCacheDistanceMatrixEngine::encodeLocation(const Location &location) const {
@@ -60,11 +68,11 @@ std::string FullMatrixCacheDistanceMatrixEngine::encodeLocation(const Location &
 }
 
 RouteInfo FullMatrixCacheDistanceMatrixEngine::getCachedRouteInfo(int origin_id, int destination_id) const {
-    if (!initialized) initialize();
+    if (!is_initialized) initialize();
     return route_details_cache->at(origin_id, destination_id).getSummary();
 }
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::getCachedRouteDetails(int origin_id, int destination_id) const {
-    if (!initialized) initialize();
+    if (!is_initialized) initialize();
     return route_details_cache->at(origin_id, destination_id);
 }
