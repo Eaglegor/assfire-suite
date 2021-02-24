@@ -19,6 +19,9 @@ namespace assfire::router {
         RouteInfo getSingleRouteInfo(const Location &origin, const Location &destination) const override;
         RouteDetails getSingleRouteDetails(const Location &origin, const Location &destination) const override;
 
+        Matrix<RouteInfo> getRouteInfoMatrix(const Locations &origins, const Locations &destinations) override;
+
+
     private:
         const ProtobufClient& client;
         RouterEngineType engine_type;

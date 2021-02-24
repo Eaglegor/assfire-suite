@@ -27,6 +27,7 @@ RouteInfo GrpcRouteProviderEngine::getSingleRouteInfo(const Location &origin, co
     request.mutable_destination()->CopyFrom(LocationTranslator::toProto(destination));
     request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
     request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
+    request.mutable_options()->set_retrieve_waypoints(false); // We don't need waypoints for sole RouteInfo
 
     GetSingleRouteResponse response = client.getRoute(request);
 
@@ -51,5 +52,59 @@ RouteDetails GrpcRouteProviderEngine::getSingleRouteDetails(const Location &orig
     }
 
     return RouteInfoTranslator::fromProtoWithDetails(response.route_info());
+}
+
+namespace {
+    std::string buildLocationKey(const Location& location) {
+        return std::to_string(location.getLatitude().encodedValue()) + std::to_string(location.getLongitude().encodedValue());
+    }
+}
+
+Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProviderEngine::Locations &origins, const RouteProviderEngine::Locations &destinations) {
+    GetRoutesBatchRequest request;
+
+    int unique_locations_counter = 0;
+    std::unordered_map<std::string, int> locations_mapping;
+
+    for(const Location& location : origins) {
+        request.add_origins()->CopyFrom(LocationTranslator::toProto(location));
+        auto key = buildLocationKey(location);
+        if(!locations_mapping.contains(key)) {
+            locations_mapping.insert_or_assign(key, unique_locations_counter++);
+        }
+    }
+    for(const Location& location : destinations) {
+        request.add_destinations()->CopyFrom(LocationTranslator::toProto(location));
+        auto key = buildLocationKey(location);
+        if(!locations_mapping.contains(key)) {
+            locations_mapping.insert_or_assign(key, unique_locations_counter++);
+        }
+    }
+
+    request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
+    request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
+    request.mutable_options()->set_retrieve_waypoints(false); // We don't need waypoints for sole RouteInfo
+
+    GetRoutesBatchResponse response;
+    client.getRoutesBatch(request, [&](const GetRoutesBatchResponse& reply) {
+        response.CopyFrom(reply);
+    });
+
+    if(response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK){
+        throw std::runtime_error(response.status().message());
+    }
+
+    Matrix<RouteInfo> result(origins.size(), destinations.size(), [&](int i, int j){
+        return RouteInfo::infinity();
+    });
+
+    for(const auto& rinfo : response.route_infos()) {
+        auto from_key = buildLocationKey(LocationTranslator::fromProto(rinfo.origin()));
+        auto to_key = buildLocationKey(LocationTranslator::fromProto(rinfo.destination()));
+        assert(locations_mapping.contains(from_key) && locations_mapping.contains(to_key));
+        result.at(locations_mapping.at(from_key), locations_mapping.at(to_key)) = RouteInfoTranslator::fromProto(rinfo);
+    }
+
+    return result;
 }
 
