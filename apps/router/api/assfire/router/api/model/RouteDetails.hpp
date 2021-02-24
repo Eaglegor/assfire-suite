@@ -20,6 +20,13 @@ namespace assfire::router {
                 summary(summary),
                 waypoints(std::move(waypoints)) {}
 
+        RouteDetails(const Distance& distance,
+                     const TimeInterval& time_interval,
+                     Waypoints waypoints)
+                :
+                summary(distance, time_interval),
+                waypoints(std::move(waypoints)) {}
+
         RouteDetails(const RouteDetails &rhs) = default;
 
         const RouteInfo &getSummary() const {

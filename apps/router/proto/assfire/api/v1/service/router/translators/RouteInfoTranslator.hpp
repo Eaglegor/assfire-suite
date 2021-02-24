@@ -28,7 +28,7 @@ namespace assfire::router::proto_translation {
         toProto(const assfire::api::v1::model::routing::Location &origin, const assfire::api::v1::model::routing::Location &destination, const RouteInfo &info) {
             assfire::api::v1::model::routing::RouteInfo result;
             result.mutable_origin()->CopyFrom(origin);
-            result.mutable_origin()->CopyFrom(destination);
+            result.mutable_destination()->CopyFrom(destination);
             result.set_distance(info.getDistance().toMeters());
             result.set_duration(info.getDuration().toSeconds());
             return result;

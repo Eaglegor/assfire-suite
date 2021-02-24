@@ -34,10 +34,10 @@ public:
     }
 
     ProtobufClient::GetRoutesBatchRequest buildRoutesBatchRequest(const std::vector<int> &from_loc,
-                                                                 const std::vector<int> &to_loc,
-                                                                 RouterEngineType engine_type,
-                                                                 const RouteProviderSettings &settings,
-                                                                 const RoutingProfile &routing_profile) {
+                                                                  const std::vector<int> &to_loc,
+                                                                  RouterEngineType engine_type,
+                                                                  const RouteProviderSettings &settings,
+                                                                  const RoutingProfile &routing_profile) {
         ProtobufClient::GetRoutesBatchRequest request;
 
         for (int coord : from_loc) {
@@ -63,8 +63,31 @@ public:
         for (int i = 0; i < from_loc.size(); ++i) {
             for (int j = 0; j < to_loc.size(); ++j) {
                 auto *ri = response.add_route_infos();
-                ri->CopyFrom(RouteInfoTranslator::toProto(getLocation(from_loc[i], from_loc[i]), getLocation(to_loc[i], to_loc[i]),
+                ri->CopyFrom(RouteInfoTranslator::toProto(getLocation(from_loc[i], from_loc[i]), getLocation(to_loc[j], to_loc[j]),
                                                           RouteInfo(Distance::fromMeters(seconds[i][j]), TimeInterval::fromSeconds(seconds[i][j]))));
+            }
+        }
+
+        return response;
+    }
+
+    ProtobufClient::GetRoutesBatchResponse buildRoutesBatchResponse(const std::vector<int> &from_loc,
+                                                                    const std::vector<int> &to_loc,
+                                                                    const std::vector<std::vector<int>> &seconds,
+                                                                    const std::vector<std::vector<std::vector<int>>> &waypoints) {
+
+        ProtobufClient::GetRoutesBatchResponse response;
+        response.mutable_status()->set_code(assfire::api::v1::service::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
+
+        for (int i = 0; i < from_loc.size(); ++i) {
+            for (int j = 0; j < to_loc.size(); ++j) {
+                auto *ri = response.add_route_infos();
+                RouteDetails::Waypoints wps;
+                for (int wp : waypoints[i][j]) {
+                    wps.push_back(getLocation(wp, wp));
+                }
+                ri->CopyFrom(RouteInfoTranslator::toProto(getLocation(from_loc[i], from_loc[i]), getLocation(to_loc[j], to_loc[j]),
+                                                          RouteDetails(Distance::fromMeters(seconds[i][j]), TimeInterval::fromSeconds(seconds[i][j]), wps)));
             }
         }
 
@@ -73,7 +96,7 @@ public:
 
     std::vector<Location> buildLocations(const std::vector<int> coord) {
         std::vector<Location> result;
-        for(int c : coord) {
+        for (int c : coord) {
             result.push_back(getLocation(c, c));
         }
         return result;
@@ -98,7 +121,7 @@ TEST_F(GrpcRouteProviderEngineTest, RequestsSingleRouteInfo) {
     ASSERT_DOUBLE_EQ(response.getDistance().toMeters(), 50);
 }
 
-TEST_F(GrpcRouteProviderEngineTest, RequestsRoutesInfoMatrix) {
+TEST_F(GrpcRouteProviderEngineTest, RequestsRouteInfoMatrix) {
     MockProtobufClient protobuf_client;
     RouteProviderSettings settings;
     RoutingProfile routing_profile(Speed::fromKilometersPerHour(60));
@@ -111,11 +134,10 @@ TEST_F(GrpcRouteProviderEngineTest, RequestsRoutesInfoMatrix) {
 
     std::vector<std::vector<int>> seconds
             {
-                    {100, 10, 20}, // 100s must be ignored as they represent self-self route (0 must be returned by engine)
-                    {30, 100, 40},
-                    {50, 60, 100}
+                    {100, 10,  20}, // 100s must be ignored as they represent self-self route (0 must be returned by engine)
+                    {30,  100, 40},
+                    {50,  60,  100}
             };
-
 
 
     GrpcRouteProviderEngine engine(protobuf_client, assfire::router::RouterEngineType::CROWFLIGHT, settings, routing_profile);
@@ -128,13 +150,71 @@ TEST_F(GrpcRouteProviderEngineTest, RequestsRoutesInfoMatrix) {
     ASSERT_EQ(result.getRowsCount(), 3);
     ASSERT_EQ(result.getColumnsCount(), 3);
 
-    for(int c = 0; c < result.getColumnsCount(); ++c) {
-        for(int r = 0; r < result.getRowsCount(); ++r) {
-            if(c == r) {
+    for (int c = 0; c < result.getColumnsCount(); ++c) {
+        for (int r = 0; r < result.getRowsCount(); ++r) {
+            if (c == r) {
                 EXPECT_TRUE(result.at(r, c).isZero());
             } else {
                 EXPECT_EQ(result.at(r, c).getDuration().toSeconds(), seconds[r][c]);
                 EXPECT_DOUBLE_EQ(result.at(r, c).getDistance().toMeters(), seconds[r][c]);
+            }
+        }
+    }
+}
+
+TEST_F(GrpcRouteProviderEngineTest, RequestsRouteDetailsMatrix) {
+    MockProtobufClient protobuf_client;
+    RouteProviderSettings settings;
+    RoutingProfile routing_profile(Speed::fromKilometersPerHour(60));
+
+    std::vector<int> from
+            {1, 2, 3};
+
+    std::vector<int> to
+            {4, 2, 5};
+
+    std::vector<std::vector<int>> seconds
+            {
+                    {100, 10,  20}, // 100s must be ignored as they represent self-self route (0 must be returned by engine)
+                    {30,  100, 40},
+                    {50,  60,  100}
+            };
+
+    std::vector<std::vector<std::vector<int>>> waypoints
+            { // Diagonals must be ignored as well as 100s for seconds
+                    {{1,2,3}, {4,5,6}, {7,8,9}},
+                    {{10,11}, {12,13}, {14,15}},
+                    {{16,17,18}, {19,20}, {21,22}}
+            };
+
+    GrpcRouteProviderEngine engine(protobuf_client, assfire::router::RouterEngineType::CROWFLIGHT, settings, routing_profile);
+
+    protobuf_client.addResponse(buildRoutesBatchRequest(from, to, assfire::router::RouterEngineType::CROWFLIGHT, settings, routing_profile),
+                                buildRoutesBatchResponse(from, to, seconds, waypoints));
+
+    auto result = engine.getRouteDetailsMatrix(buildLocations(from), buildLocations(to));
+
+    ASSERT_EQ(result.getRowsCount(), 3);
+    ASSERT_EQ(result.getColumnsCount(), 3);
+
+    for (int c = 0; c < result.getColumnsCount(); ++c) {
+        for (int r = 0; r < result.getRowsCount(); ++r) {
+            Location origin = getLocation(from[r], from[r]);
+            Location destination = getLocation(to[c], to[c]);
+            if (c == r) {
+                EXPECT_TRUE(result.at(r, c).isZero());
+                EXPECT_EQ(result.at(r,c).getWaypoints().size(), 2);
+                EXPECT_EQ(result.at(r,c).getWaypoints()[0], origin);
+                EXPECT_EQ(result.at(r,c).getWaypoints()[1], destination);
+            } else {
+                EXPECT_EQ(result.at(r, c).getDuration().toSeconds(), seconds[r][c]);
+                EXPECT_DOUBLE_EQ(result.at(r, c).getDistance().toMeters(), seconds[r][c]);
+
+                const auto& wps = waypoints[r][c];
+                EXPECT_EQ(result.at(r,c).getWaypoints().size(), wps.size());
+                for(int i = 0; i < wps.size(); ++i) {
+                    EXPECT_EQ(result.at(r,c).getWaypoints()[i], getLocation(wps[i], wps[i]));
+                }
             }
         }
     }

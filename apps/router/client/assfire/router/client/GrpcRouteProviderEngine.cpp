@@ -3,6 +3,7 @@
 #include <assfire/api/v1/service/router/translators/RoutingOptionsTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/RoutingProfileTranslator.hpp>
 #include <assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp>
+#include <unordered_map>
 
 
 using namespace assfire::router;
@@ -31,7 +32,7 @@ RouteInfo GrpcRouteProviderEngine::getSingleRouteInfo(const Location &origin, co
 
     GetSingleRouteResponse response = client.getRoute(request);
 
-    if(response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK){
+    if (response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK) {
         throw std::runtime_error(response.status().message());
     }
 
@@ -47,7 +48,7 @@ RouteDetails GrpcRouteProviderEngine::getSingleRouteDetails(const Location &orig
 
     GetSingleRouteResponse response = client.getRoute(request);
 
-    if(response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK){
+    if (response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK) {
         throw std::runtime_error(response.status().message());
     }
 
@@ -55,30 +56,35 @@ RouteDetails GrpcRouteProviderEngine::getSingleRouteDetails(const Location &orig
 }
 
 namespace {
-    std::string buildLocationKey(const Location& location) {
-        return std::to_string(location.getLatitude().encodedValue()) + std::to_string(location.getLongitude().encodedValue());
+    std::string buildLocationKey(const Location &location) {
+        return std::to_string(location.getLatitude().encodedValue()) + " " + std::to_string(location.getLongitude().encodedValue());
     }
 }
 
 Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProviderEngine::Locations &origins, const RouteProviderEngine::Locations &destinations) {
     GetRoutesBatchRequest request;
 
-    int unique_locations_counter = 0;
-    std::unordered_map<std::string, int> locations_mapping;
+    std::unordered_multimap<std::string, int> origins_mapping;
+    std::unordered_multimap<std::string, int> destinations_mapping;
 
-    for(const Location& location : origins) {
-        request.add_origins()->CopyFrom(LocationTranslator::toProto(location));
+    int origins_index = 0;
+    for (const Location &location : origins) {
         auto key = buildLocationKey(location);
-        if(!locations_mapping.contains(key)) {
-            locations_mapping.insert_or_assign(key, unique_locations_counter++);
+        if (!origins_mapping.contains(key)) {
+            request.add_origins()->CopyFrom(LocationTranslator::toProto(location));
         }
+
+        origins_mapping.emplace(key, origins_index++);
     }
-    for(const Location& location : destinations) {
-        request.add_destinations()->CopyFrom(LocationTranslator::toProto(location));
+
+    int destinations_index = 0;
+    for (const Location &location : destinations) {
         auto key = buildLocationKey(location);
-        if(!locations_mapping.contains(key)) {
-            locations_mapping.insert_or_assign(key, unique_locations_counter++);
+        if (!destinations_mapping.contains(key)) {
+            request.add_destinations()->CopyFrom(LocationTranslator::toProto(location));
         }
+
+        destinations_mapping.emplace(key, destinations_index++);
     }
 
     request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
@@ -86,23 +92,102 @@ Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProvide
     request.mutable_options()->set_retrieve_waypoints(false); // We don't need waypoints for sole RouteInfo
 
     GetRoutesBatchResponse response;
-    client.getRoutesBatch(request, [&](const GetRoutesBatchResponse& reply) {
+    client.getRoutesBatch(request, [&](const GetRoutesBatchResponse &reply) {
         response.CopyFrom(reply);
     });
 
-    if(response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK){
+    if (response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK) {
         throw std::runtime_error(response.status().message());
     }
 
-    Matrix<RouteInfo> result(origins.size(), destinations.size(), [&](int i, int j){
+    Matrix<RouteInfo> result(origins.size(), destinations.size(), [&](int i, int j) {
         return RouteInfo::infinity();
     });
 
-    for(const auto& rinfo : response.route_infos()) {
+    for (const auto &rinfo : response.route_infos()) {
         auto from_key = buildLocationKey(LocationTranslator::fromProto(rinfo.origin()));
         auto to_key = buildLocationKey(LocationTranslator::fromProto(rinfo.destination()));
-        assert(locations_mapping.contains(from_key) && locations_mapping.contains(to_key));
-        result.at(locations_mapping.at(from_key), locations_mapping.at(to_key)) = RouteInfoTranslator::fromProto(rinfo);
+        assert(origins_mapping.contains(from_key) && destinations_mapping.contains(to_key));
+        auto origins_range = origins_mapping.equal_range(from_key);
+        auto destinations_range = destinations_mapping.equal_range(to_key);
+        for (auto origin_iter = origins_range.first; origin_iter != origins_range.second; ++origin_iter) {
+            for (auto destination_iter = destinations_range.first; destination_iter != destinations_range.second; ++destination_iter) {
+                int from_id = origin_iter->second;
+                int to_id = destination_iter->second;
+                if (from_id == to_id) {
+                    result.at(from_id, to_id) = RouteInfo::zero();
+                } else {
+                    result.at(from_id, to_id) = RouteInfoTranslator::fromProto(rinfo);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+Matrix<RouteDetails> GrpcRouteProviderEngine::getRouteDetailsMatrix(const RouteProviderEngine::Locations &origins, const RouteProviderEngine::Locations &destinations) {
+    GetRoutesBatchRequest request;
+
+    std::unordered_multimap<std::string, int> origins_mapping;
+    std::unordered_multimap<std::string, int> destinations_mapping;
+
+    int origins_index = 0;
+    for (const Location &location : origins) {
+        auto key = buildLocationKey(location);
+        if (!origins_mapping.contains(key)) {
+            request.add_origins()->CopyFrom(LocationTranslator::toProto(location));
+        }
+
+        origins_mapping.emplace(key, origins_index++);
+    }
+
+    int destinations_index = 0;
+    for (const Location &location : destinations) {
+        auto key = buildLocationKey(location);
+        if (!destinations_mapping.contains(key)) {
+            request.add_destinations()->CopyFrom(LocationTranslator::toProto(location));
+        }
+
+        destinations_mapping.emplace(key, destinations_index++);
+    }
+
+    request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
+    request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
+
+    GetRoutesBatchResponse response;
+    client.getRoutesBatch(request, [&](const GetRoutesBatchResponse &reply) {
+        response.CopyFrom(reply);
+    });
+
+    if (response.status().code() != ResponseStatus::RESPONSE_STATUS_CODE_OK) {
+        throw std::runtime_error(response.status().message());
+    }
+
+    Matrix<RouteDetails> result(origins.size(), destinations.size(), [&](int i, int j) {
+        return RouteDetails::infinity(origins[i], origins[j]);
+    });
+
+    for (const auto &rinfo : response.route_infos()) {
+        Location origin = LocationTranslator::fromProto(rinfo.origin());
+        Location destination = LocationTranslator::fromProto(rinfo.destination());
+
+        auto from_key = buildLocationKey(origin);
+        auto to_key = buildLocationKey(destination);
+        assert(origins_mapping.contains(from_key) && destinations_mapping.contains(to_key));
+        auto origins_range = origins_mapping.equal_range(from_key);
+        auto destinations_range = destinations_mapping.equal_range(to_key);
+        for (auto origin_iter = origins_range.first; origin_iter != origins_range.second; ++origin_iter) {
+            for (auto destination_iter = destinations_range.first; destination_iter != destinations_range.second; ++destination_iter) {
+                int from_id = origin_iter->second;
+                int to_id = destination_iter->second;
+                if (from_id == to_id) {
+                    result.at(from_id, to_id) = RouteDetails::zero(origin, destination);
+                } else {
+                    result.at(from_id, to_id) = RouteInfoTranslator::fromProtoWithDetails(rinfo);
+                }
+            }
+        }
     }
 
     return result;
