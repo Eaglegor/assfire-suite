@@ -15,6 +15,18 @@ public:
         return Location::fromDoubleLatLon(lat, lon);
     }
 
+    Location getLocation(double coord) const {
+        return getLocation(coord, coord);
+    }
+
+    std::vector<Location> buildLocations(const std::vector<int> coord) {
+        std::vector<Location> result;
+        for (int c : coord) {
+            result.push_back(getLocation(c));
+        }
+        return result;
+    }
+
     ProtobufClient::GetSingleRouteRequest
     buildSingleRouteRequest(const Location &from, const Location &to, RouterEngineType engine_type, const RouteProviderSettings &settings, const RoutingProfile &routing_profile) {
         ProtobufClient::GetSingleRouteRequest request;
@@ -27,6 +39,14 @@ public:
 
     ProtobufClient::GetSingleRouteResponse buildSingleRouteResponse(const Location &from, const Location &to, double meters, long seconds) {
         RouteDetails details(RouteInfo(Distance::fromMeters(meters), TimeInterval::fromSeconds(seconds)), {});
+        ProtobufClient::GetSingleRouteResponse response;
+        response.mutable_status()->set_code(assfire::api::v1::service::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
+        response.mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(from, to, details));
+        return response;
+    }
+
+    ProtobufClient::GetSingleRouteResponse buildSingleRouteResponse(const Location &from, const Location &to, double meters, long seconds, std::vector<int> waypoints) {
+        RouteDetails details(Distance::fromMeters(meters), TimeInterval::fromSeconds(seconds), buildLocations(waypoints));
         ProtobufClient::GetSingleRouteResponse response;
         response.mutable_status()->set_code(assfire::api::v1::service::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
         response.mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(from, to, details));
@@ -82,24 +102,12 @@ public:
         for (int i = 0; i < from_loc.size(); ++i) {
             for (int j = 0; j < to_loc.size(); ++j) {
                 auto *ri = response.add_route_infos();
-                RouteDetails::Waypoints wps;
-                for (int wp : waypoints[i][j]) {
-                    wps.push_back(getLocation(wp, wp));
-                }
                 ri->CopyFrom(RouteInfoTranslator::toProto(getLocation(from_loc[i], from_loc[i]), getLocation(to_loc[j], to_loc[j]),
-                                                          RouteDetails(Distance::fromMeters(seconds[i][j]), TimeInterval::fromSeconds(seconds[i][j]), wps)));
+                                                          RouteDetails(Distance::fromMeters(seconds[i][j]), TimeInterval::fromSeconds(seconds[i][j]), buildLocations(waypoints[i][j]))));
             }
         }
 
         return response;
-    }
-
-    std::vector<Location> buildLocations(const std::vector<int> coord) {
-        std::vector<Location> result;
-        for (int c : coord) {
-            result.push_back(getLocation(c, c));
-        }
-        return result;
     }
 };
 
@@ -119,6 +127,29 @@ TEST_F(GrpcRouteProviderEngineTest, RequestsSingleRouteInfo) {
 
     ASSERT_EQ(response.getDuration().toSeconds(), 50);
     ASSERT_DOUBLE_EQ(response.getDistance().toMeters(), 50);
+}
+
+TEST_F(GrpcRouteProviderEngineTest, RequestsSingleRouteDetails) {
+    MockProtobufClient protobuf_client;
+    Location from = getLocation(10, 10);
+    Location to = getLocation(20, 20);
+    RouteProviderSettings settings;
+    RoutingProfile routing_profile(Speed::fromKilometersPerHour(60));
+
+    GrpcRouteProviderEngine engine(protobuf_client, assfire::router::RouterEngineType::CROWFLIGHT, settings, routing_profile);
+
+    protobuf_client.addResponse(buildSingleRouteRequest(from, to, assfire::router::RouterEngineType::CROWFLIGHT, settings, routing_profile),
+                                buildSingleRouteResponse(from, to, 50, 50, {1,2,3}));
+
+    RouteDetails response = engine.getSingleRouteDetails(from, to);
+
+    ASSERT_EQ(response.getDuration().toSeconds(), 50);
+    ASSERT_DOUBLE_EQ(response.getDistance().toMeters(), 50);
+    ASSERT_EQ(response.getWaypoints().size(), 3);
+    ASSERT_EQ(response.getWaypoints()[0], getLocation(1));
+    ASSERT_EQ(response.getWaypoints()[1], getLocation(2));
+    ASSERT_EQ(response.getWaypoints()[2], getLocation(3));
+
 }
 
 TEST_F(GrpcRouteProviderEngineTest, RequestsRouteInfoMatrix) {
@@ -182,9 +213,9 @@ TEST_F(GrpcRouteProviderEngineTest, RequestsRouteDetailsMatrix) {
 
     std::vector<std::vector<std::vector<int>>> waypoints
             { // Diagonals must be ignored as well as 100s for seconds
-                    {{1,2,3}, {4,5,6}, {7,8,9}},
-                    {{10,11}, {12,13}, {14,15}},
-                    {{16,17,18}, {19,20}, {21,22}}
+                    {{1,  2,  3},  {4,  5, 6}, {7,  8, 9}},
+                    {{10, 11},     {12, 13},   {14, 15}},
+                    {{16, 17, 18}, {19, 20},   {21, 22}}
             };
 
     GrpcRouteProviderEngine engine(protobuf_client, assfire::router::RouterEngineType::CROWFLIGHT, settings, routing_profile);
@@ -203,17 +234,17 @@ TEST_F(GrpcRouteProviderEngineTest, RequestsRouteDetailsMatrix) {
             Location destination = getLocation(to[c], to[c]);
             if (c == r) {
                 EXPECT_TRUE(result.at(r, c).isZero());
-                EXPECT_EQ(result.at(r,c).getWaypoints().size(), 2);
-                EXPECT_EQ(result.at(r,c).getWaypoints()[0], origin);
-                EXPECT_EQ(result.at(r,c).getWaypoints()[1], destination);
+                EXPECT_EQ(result.at(r, c).getWaypoints().size(), 2);
+                EXPECT_EQ(result.at(r, c).getWaypoints()[0], origin);
+                EXPECT_EQ(result.at(r, c).getWaypoints()[1], destination);
             } else {
                 EXPECT_EQ(result.at(r, c).getDuration().toSeconds(), seconds[r][c]);
                 EXPECT_DOUBLE_EQ(result.at(r, c).getDistance().toMeters(), seconds[r][c]);
 
-                const auto& wps = waypoints[r][c];
-                EXPECT_EQ(result.at(r,c).getWaypoints().size(), wps.size());
-                for(int i = 0; i < wps.size(); ++i) {
-                    EXPECT_EQ(result.at(r,c).getWaypoints()[i], getLocation(wps[i], wps[i]));
+                const auto &wps = waypoints[r][c];
+                EXPECT_EQ(result.at(r, c).getWaypoints().size(), wps.size());
+                for (int i = 0; i < wps.size(); ++i) {
+                    EXPECT_EQ(result.at(r, c).getWaypoints()[i], getLocation(wps[i], wps[i]));
                 }
             }
         }

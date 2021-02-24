@@ -73,7 +73,6 @@ Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProvide
         if (!origins_mapping.contains(key)) {
             request.add_origins()->CopyFrom(LocationTranslator::toProto(location));
         }
-
         origins_mapping.emplace(key, origins_index++);
     }
 
@@ -83,7 +82,6 @@ Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProvide
         if (!destinations_mapping.contains(key)) {
             request.add_destinations()->CopyFrom(LocationTranslator::toProto(location));
         }
-
         destinations_mapping.emplace(key, destinations_index++);
     }
 
@@ -138,7 +136,6 @@ Matrix<RouteDetails> GrpcRouteProviderEngine::getRouteDetailsMatrix(const RouteP
         if (!origins_mapping.contains(key)) {
             request.add_origins()->CopyFrom(LocationTranslator::toProto(location));
         }
-
         origins_mapping.emplace(key, origins_index++);
     }
 
@@ -148,7 +145,6 @@ Matrix<RouteDetails> GrpcRouteProviderEngine::getRouteDetailsMatrix(const RouteP
         if (!destinations_mapping.contains(key)) {
             request.add_destinations()->CopyFrom(LocationTranslator::toProto(location));
         }
-
         destinations_mapping.emplace(key, destinations_index++);
     }
 
