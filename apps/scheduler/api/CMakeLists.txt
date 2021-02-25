@@ -1,30 +1,15 @@
-find_package(protobuf CONFIG REQUIRED)
-find_package(gRPC CONFIG REQUIRED)
-get_target_property(gRPC_CPP_PLUGIN_EXECUTABLE gRPC::grpc_cpp_plugin LOCATION)
-
-set(IMPORT_DIRS
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/api-model
-        ${GOOGLE_PROTOBUF_IMPORT_DIR})
-set(PROTOS
-        assfire/api/v1/service/scheduler/transport/transport.proto
+set(SOURCES
+        assfire/scheduler/api/main.cpp
         )
+set(HEADERS
+        assfire/scheduler/api/model/WaybillSchedulable.hpp
+        assfire/scheduler/api/model/WaybillRepresentable.hpp)
 
-add_library(assfire-scheduler-api)
+find_package(spdlog CONFIG REQUIRED)
+find_package(cpprestsdk CONFIG REQUIRED)
+include(pkg_utils)
+vcpkg_find_cpp_redis()
 
-protobuf_generate(TARGET assfire-scheduler-api
-        LANGUAGE cpp
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp)
-
-protobuf_generate(TARGET assfire-scheduler-api
-        LANGUAGE grpc
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp
-        PLUGIN protoc-gen-grpc=${gRPC_CPP_PLUGIN_EXECUTABLE}
-        GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc)
-
-target_include_directories(assfire-scheduler-api PUBLIC ${CMAKE_BINARY_DIR}/api/cpp)
-target_link_libraries(assfire-scheduler-api PUBLIC gRPC::grpc++ protobuf::libprotobuf assfire-api-model)
+add_library(assfire-scheduler-api ${SOURCES} ${HEADERS})
+target_link_libraries(assfire-scheduler-api PUBLIC spdlog::spdlog assfire-router-api)
+target_include_directories(assfire-scheduler-api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

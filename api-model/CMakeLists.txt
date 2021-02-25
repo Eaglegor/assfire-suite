@@ -1,7 +1,7 @@
 find_package(protobuf CONFIG REQUIRED)
 get_target_property(GOOGLE_PROTOBUF_IMPORT_DIR protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
 
-add_library(assfire-api-model)
+add_library(assfire-api-model ../apps/scheduler/api/assfire/scheduler/api/model/WaybillSchedulable.hpp)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/proto/cpp)
 protobuf_generate(
         LANGUAGE cpp
