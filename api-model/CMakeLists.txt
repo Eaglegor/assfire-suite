@@ -1,7 +1,7 @@
 find_package(protobuf CONFIG REQUIRED)
 get_target_property(GOOGLE_PROTOBUF_IMPORT_DIR protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
 
-add_library(assfire-api-model ../apps/scheduler/api/assfire/scheduler/api/model/WaybillSchedulable.hpp)
+add_library(assfire-api-model ../apps/scheduler/api/assfire/scheduler/api/model/WaybillSchedulable.hpp ../libs/route_optimization_concepts/assfire/concepts/TimePoint.hpp ../libs/route_optimization_concepts/assfire/concepts/TimePoint.cpp ../libs/route_optimization_concepts/assfire/concepts/TimeInterval.cpp)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/proto/cpp)
 protobuf_generate(
         LANGUAGE cpp

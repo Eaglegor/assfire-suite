@@ -7,37 +7,31 @@ import "assfire/api/v1/model/optimization/transport/transport.proto";
 import "assfire/api/v1/model/routing/routing.proto";
 import "google/api/annotations.proto";
 
-enum SchedulingAlgorithm {
-  SCHEDULING_ALGORITHM_UNSPECIFIED = 0;
-  SCHEDULING_ALGORITHM_LINEAR = 1;
-  SCHEDULING_ALGORITHM_BILINEAR = 2;
+enum WaybillSchedulingAlgorithm {
+  WAYBILL_SCHEDULING_ALGORITHM_UNSPECIFIED = 0;
+  WAYBILL_SCHEDULING_ALGORITHM_LINEAR = 1;
+  WAYBILL_SCHEDULING_ALGORITHM_BILINEAR = 2;
 }
 
-message Allocation {
+message WaybillAllocation {
   int32 job_id = 1;
   assfire.api.v1.model.optimization.transport.TimeWindow allocated_time = 2;
   assfire.api.v1.model.routing.RouteInfo route_to_next = 3;
 }
 
-message Schedule {
+message Waybill {
   repeated Allocation allocations = 1;
 }
 
-message SchedulerTask {
-  repeated assfire.api.v1.model.optimization.transport.Job jobs = 1;
-  assfire.api.v1.model.optimization.transport.Resource resource = 2;
-  SchedulingAlgorithm algorithm = 3;
+message ScheduleWaybillRequest {
+  string request_id = 1;
+  repeated assfire.api.v1.model.optimization.transport.Job jobs = 2;
+  repeated assfire.api.v1.model.optimization.transport.WaybillAllocation allocations = 3;
+  assfire.api.v1.model.optimization.transport.Resource resource = 4;
+  WaybillSchedulingAlgorithm algorithm = 5;
 }
 
-message SchedulerResult {
-  Schedule schedule = 1;
-}
-
-message BuildScheduleRequest {
-  SchedulerTask task = 1;
-}
-
-message BuildScheduleResponse {
+message ScheduleWaybillResponse {
   message Status {
     enum Code {
       STATUS_CODE_UNSPECIFIED = 0;
@@ -47,14 +41,14 @@ message BuildScheduleResponse {
     Code code = 1;
     string message = 2;
   }
-  SchedulerResult schedule = 1;
+  Waybill waybill = 1;
   Status status = 2;
 }
 
 service SchedulerService {
-  rpc BuildSchedule(BuildScheduleRequest) returns (BuildScheduleResponse) {
+  rpc ScheduleWaybill(ScheduleWaybillRequest) returns (ScheduleWaybillResponse) {
     option (google.api.http) = {
-      get: "/v1/transport/schedule"
+      get: "/v1/transport/waybill"
     };
   }
 }

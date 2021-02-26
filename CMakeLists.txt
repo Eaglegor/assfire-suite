@@ -64,6 +64,6 @@ enable_testing()
 include_directories(utils)
 
 
-
 add_subdirectory(api-model)
+add_subdirectory(libs)
 add_subdirectory(apps)
