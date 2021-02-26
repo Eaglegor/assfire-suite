@@ -3,6 +3,7 @@
 #include "../engine/MockRouteProviderEngine.hpp"
 #include <memory>
 
+using namespace assfire;
 using namespace assfire::router;
 
 class DirectRequestDistanceMatrixEngineTest : public ::testing::Test {

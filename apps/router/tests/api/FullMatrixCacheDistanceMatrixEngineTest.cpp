@@ -2,6 +2,7 @@
 #include <assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp>
 #include "../engine/MockRouteProviderEngine.hpp"
 
+using namespace assfire;
 using namespace assfire::router;
 
 class FullMatrixCacheDistanceMatrixEngineTest : public ::testing::Test {

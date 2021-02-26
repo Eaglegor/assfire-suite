@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 
+using namespace assfire;
 using namespace assfire::router;
 using namespace assfire::router::proto_translation;
 

@@ -5,6 +5,7 @@
 #include "OsrmReplies.hpp"
 #include "MockOsrmConnector.hpp"
 
+using namespace assfire;
 using namespace assfire::router;
 
 namespace assfire::router {

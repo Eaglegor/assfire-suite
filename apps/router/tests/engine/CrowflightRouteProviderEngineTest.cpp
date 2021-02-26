@@ -3,6 +3,7 @@
 #include "RouteProviderEngineTestFixtureBase.hpp"
 #include <iostream>
 
+using namespace assfire;
 using namespace assfire::router;
 
 namespace assfire::router {

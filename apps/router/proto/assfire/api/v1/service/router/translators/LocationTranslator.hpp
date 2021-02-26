@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assfire/api/v1/service/router/router.grpc.pb.h>
-#include <assfire/router/api/model/Location.hpp>
+#include "../../../../../../../../../libs/route_optimization_concepts/assfire/concepts/Location.hpp"
 
 namespace assfire::router::proto_translation {
     class LocationTranslator {

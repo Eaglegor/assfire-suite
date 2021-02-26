@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <assfire/router/api/DistanceMatrix.hpp>
 
+using namespace assfire;
 using namespace assfire::router;
 
 class MockDistanceMatrixEngine : public DistanceMatrixEngine {

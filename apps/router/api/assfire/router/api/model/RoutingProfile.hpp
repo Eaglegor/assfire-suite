@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Speed.hpp"
+#include "../../../../../../../libs/route_optimization_concepts/assfire/concepts/Speed.hpp"
 
 namespace assfire::router {
     class RoutingProfile {

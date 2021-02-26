@@ -6,6 +6,7 @@
 #include "MockCacheConnector.hpp"
 #include <memory>
 
+using namespace assfire;
 using namespace assfire::router;
 
 namespace assfire::router {

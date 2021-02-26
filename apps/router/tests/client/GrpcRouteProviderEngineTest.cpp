@@ -6,6 +6,7 @@
 #include <assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp>
 #include "MockProtobufClient.hpp"
 
+using namespace assfire;
 using namespace assfire::router;
 using namespace assfire::router::proto_translation;
 

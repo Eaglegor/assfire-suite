@@ -1,7 +1,8 @@
 set(SOURCES
         assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.cpp
         assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.cpp
-        assfire/router/api/RoutingContext.hpp assfire/router/api/RedisSerializer.hpp)
+        assfire/router/api/RoutingContext.hpp
+        assfire/router/api/RedisSerializer.hpp)
 set(HEADERS
         assfire/router/api/model/RoutingProfile.hpp
         assfire/router/api/RouterEngineType.hpp
@@ -11,18 +12,12 @@ set(HEADERS
         assfire/router/api/DistanceMatrix.hpp
         assfire/router/api/RouteProviderEngine.hpp
         assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp
-        assfire/router/api/model/Coordinate.hpp
-        assfire/router/api/model/Distance.hpp
         assfire/router/api/model/IndexedLocation.hpp
-        assfire/router/api/model/TimeInterval.hpp
-        assfire/router/api/model/Location.hpp
         assfire/router/api/model/RouteDetails.hpp
         assfire/router/api/model/RouteInfo.hpp
-        assfire/router/api/model/Router.hpp
-        assfire/router/api/model/TimePoint.hpp
-        assfire/router/api/model/Speed.hpp
         assfire/router/api/RouteProviderSettings.hpp
-        assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp assfire/router/api/DistanceMatrixErrorPolicy.hpp)
+        assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp
+        assfire/router/api/DistanceMatrixErrorPolicy.hpp)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)
@@ -31,5 +26,5 @@ include(pkg_utils)
 vcpkg_find_cpp_redis()
 
 add_library(assfire-router-api ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-router-api PUBLIC spdlog::spdlog)
+target_link_libraries(assfire-router-api PUBLIC assfire-route-optimization-concepts spdlog::spdlog)
 target_include_directories(assfire-router-api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Location.hpp"
+#include "../../../../../../../libs/route_optimization_concepts/assfire/concepts/Location.hpp"
 
 namespace assfire::router
 {

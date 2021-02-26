@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Distance.hpp"
-#include "TimeInterval.hpp"
+#include "assfire/concepts/Distance.hpp"
+#include "assfire/concepts/TimeInterval.hpp"
 
 namespace assfire::router {
     class RouteInfo {
