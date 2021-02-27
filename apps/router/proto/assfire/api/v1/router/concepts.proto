@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package assfire.api.v1.router;
+option go_package = "assfire.org/api/v1/router";
+
+import public "assfire/api/v1/concepts/concepts.proto";
+
+message RoutingProfile {
+  assfire.api.v1.concepts.Speed speed = 1;
+}
+
+enum RouterEngineType {
+  ROUTER_ENGINE_TYPE_EUCLIDEAN = 0;
+  ROUTER_ENGINE_TYPE_RANDOM = 1;
+  ROUTER_ENGINE_TYPE_CROWFLIGHT = 2;
+  ROUTER_ENGINE_TYPE_OSRM = 3;
+}
+
+enum OsrmGeometry {
+  OSRM_GEOMETRY_SIMPLIFIED = 0;
+  OSRM_GEOMETRY_FULL = 1;
+  OSRM_GEOMETRY_STRAIGHT_LINE = 2;
+}
+
+message OsrmSettings {
+  OsrmGeometry geometry = 1;
+}
+
+message RouteProviderSettings {
+  RouterEngineType routing_type = 1;
+  bool force_update = 2;
+  bool retrieve_waypoints = 3;
+  OsrmSettings osrm_settings = 4;
+}
+
+message RouteInfo {
+  assfire.api.v1.concepts.Location origin = 1;
+  assfire.api.v1.concepts.Location destination = 2;
+  assfire.api.v1.concepts.TimeInterval duration = 3;
+  assfire.api.v1.concepts.Distance distance = 4;
+  repeated assfire.api.v1.concepts.Location waypoints = 5;
+}
+

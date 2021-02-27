@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assfire/router/api/model/RouteInfo.hpp>
-#include "../../../../../../../../libs/route_optimization_concepts/assfire/concepts/Location.hpp"
+#include "assfire/concepts/Location.hpp"
 #include <assfire/router/api/model/RouteDetails.hpp>
 #include "assfire/router/api/RouteProviderEngine.hpp"
 #include "assfire/router/api/model/RoutingProfile.hpp"
@@ -17,14 +17,14 @@ namespace web::http::client {
 namespace assfire::router {
     class OsrmRouteProviderEngine : public RouteProviderEngine {
     public:
-        OsrmRouteProviderEngine(const RoutingProfile &routingProfile, const RouteProviderSettings::Osrm::Geometry& geometry, std::unique_ptr<OsrmConnector> connector);
+        OsrmRouteProviderEngine(const RoutingProfile &routingProfile, const OsrmGeometry& geometry, std::unique_ptr<OsrmConnector> connector);
 
         RouteInfo getSingleRouteInfo(const Location &origin, const Location &destination) const override;
         RouteDetails getSingleRouteDetails(const Location &origin, const Location &destination) const override;
 
     private:
         RoutingProfile routing_profile;
-        RouteProviderSettings::Osrm::Geometry geometry;
+        OsrmGeometry geometry;
         std::unique_ptr<OsrmConnector> client;
     };
 }

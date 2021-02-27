@@ -2,7 +2,7 @@
 
 #include <utility>
 #include <vector>
-#include "../../../../../../../libs/route_optimization_concepts/assfire/concepts/Location.hpp"
+#include "assfire/concepts/Location.hpp"
 #include "RouteInfo.hpp"
 
 namespace assfire::router {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Matrix.hpp"
-#include "../../../../../../libs/route_optimization_concepts/assfire/concepts/Location.hpp"
+#include "assfire/concepts/Location.hpp"
 #include "model/RouteInfo.hpp"
 #include "model/RouteDetails.hpp"
 

@@ -1,4 +1,4 @@
-add_library(assfire-route-optimization-concepts
+add_library(assfire-concepts
         assfire/concepts/TimeInterval.hpp assfire/concepts/TimeInterval.cpp
         assfire/concepts/TimePoint.hpp assfire/concepts/TimePoint.cpp
         assfire/concepts/Speed.hpp assfire/concepts/Speed.cpp
@@ -6,4 +6,4 @@ add_library(assfire-route-optimization-concepts
         assfire/concepts/Distance.hpp assfire/concepts/Distance.cpp
         assfire/concepts/Coordinate.hpp assfire/concepts/Coordinate.cpp)
 
-target_include_directories(assfire-route-optimization-concepts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(assfire-concepts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package assfire.api.v1.concepts;
+option go_package = "assfire.org/api/v1/concepts";
+
+message Location {
+  int32 encoded_latitude = 1;
+  int32 encoded_longitude = 2;
+}
+
+message Distance {
+  double meters = 1;
+}
+
+message Speed {
+  int32 meters_per_second = 1;
+}
+
+message TimeInterval {
+  int32 seconds = 1;
+}
+
+message TimePoint {
+  int32 epoch_seconds = 1;
+}
+

@@ -1,9 +1,11 @@
 set(SOURCES
-        assfire/scheduler/api/main.cpp
+        assfire/scheduler/api/WaybillScheduler.cpp
         )
 set(HEADERS
-        assfire/scheduler/api/model/WaybillSchedulable.hpp
-        assfire/scheduler/api/model/WaybillRepresentable.hpp assfire/scheduler/api/WaybillScheduler.hpp assfire/scheduler/api/model/Waybill.hpp assfire/scheduler/api/WaybillSchedulingAlgorithm.hpp assfire/scheduler/api/WaybillScheduler.cpp assfire/scheduler/api/model/WaybillAllocation.hpp)
+        assfire/scheduler/api/WaybillScheduler.hpp
+        assfire/scheduler/api/model/Waybill.hpp
+        assfire/scheduler/api/WaybillSchedulingAlgorithm.hpp
+        assfire/scheduler/api/model/WaybillAllocation.hpp)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(cpprestsdk CONFIG REQUIRED)

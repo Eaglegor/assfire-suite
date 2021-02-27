@@ -1,6 +1,6 @@
 #pragma once
 
-#include <assfire/api/v1/service/router/router.grpc.pb.h>
+#include <assfire/api/v1/router/service.grpc.pb.h>
 #include <assfire/router/engine/DistanceMatrixFactory.hpp>
 #include "ServerMetricsCollector.hpp"
 #include <memory>
@@ -9,14 +9,14 @@
 
 namespace assfire::router
 {
-    class RouterService final : public assfire::api::v1::service::router::RouterService::Service
+    class RouterService final : public assfire::api::v1::router::RouterService::Service
     {
     public:
-        using GetSingleRouteRequest = assfire::api::v1::service::router::GetSingleRouteRequest;
-        using GetSingleRouteResponse = assfire::api::v1::service::router::GetSingleRouteResponse;
-        using GetRoutesBatchRequest = assfire::api::v1::service::router::GetRoutesBatchRequest;
-        using GetRoutesBatchResponse = assfire::api::v1::service::router::GetRoutesBatchResponse;
-        using ResponseStatus = assfire::api::v1::service::router::ResponseStatus;
+        using GetSingleRouteRequest = assfire::api::v1::router::GetSingleRouteRequest;
+        using GetSingleRouteResponse = assfire::api::v1::router::GetSingleRouteResponse;
+        using GetRoutesBatchRequest = assfire::api::v1::router::GetRoutesBatchRequest;
+        using GetRoutesBatchResponse = assfire::api::v1::router::GetRoutesBatchResponse;
+        using ResponseStatus = assfire::api::v1::router::ResponseStatus;
 
         struct Options {
             std::shared_ptr<MetricsCollector> metrics_collector;

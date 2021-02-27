@@ -1,15 +1,19 @@
 #include "RouterService.hpp"
 #include <spdlog/spdlog.h>
-#include <assfire/api/v1/service/router/translators/RoutingEngineTypeTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RoutingProfileTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RoutingOptionsTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/LocationTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp>
+#include <assfire/api/v1/router/translators/RouterEngineTypeTranslator.hpp>
+#include <assfire/api/v1/router/translators/RoutingProfileTranslator.hpp>
+#include <assfire/api/v1/router/translators/RouteProviderSettingsTranslator.hpp>
+#include <assfire/api/v1/router/translators/LocationTranslator.hpp>
+#include <assfire/api/v1/router/translators/RouteInfoTranslator.hpp>
 #include "assfire/router/engine/DefaultRedisSerializer.hpp"
 #include <random>
 
 using namespace assfire::router;
-using namespace assfire::router::proto_translation;
+using RouterEngineTypeTranslator = assfire::api::v1::router::RouterEngineTypeTranslator;
+using RoutingProfileTranslator = assfire::api::v1::router::RoutingProfileTranslator;
+using RouteProviderSettingsTranslator = assfire::api::v1::router::RouteProviderSettingsTranslator;
+using LocationTranslator = assfire::api::v1::router::LocationTranslator;
+using RouteInfoTranslator = assfire::api::v1::router::RouteInfoTranslator;
 
 namespace {
     constexpr const char* UNIDENTIFIED_REQUEST_ID = "?";
@@ -28,19 +32,19 @@ RouterService::RouterService(const Options &options) :
 
 grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const GetSingleRouteRequest *request, GetSingleRouteResponse *response) {
     try {
-        const auto &request_id = !request->request_id().empty() ? request->request_id() : UNIDENTIFIED_REQUEST_ID;
+        const auto &request_id = UNIDENTIFIED_REQUEST_ID;
         SPDLOG_INFO("Single route request received, id = {}", request_id);
         DistanceMatrix distance_matrix = distance_matrix_factory.createDistanceMatrix(
-                RoutingEngineTypeTranslator::fromProto(request->options().routing_type()),
+                RouterEngineTypeTranslator::fromProto(request->settings().routing_type()),
                 DistanceMatrixCachingPolicy::NO_CACHING,
                 RoutingProfileTranslator::fromProto(request->routing_profile()),
-                RoutingOptionsTranslator::fromProto(request->options()),
+                RouteProviderSettingsTranslator::fromProto(request->settings()),
                 routing_context
         );
 
         RouteDetails route_details = distance_matrix.getRouteDetails(LocationTranslator::fromProto(request->origin()), LocationTranslator::fromProto(request->destination()));
 
-        response->mutable_status()->set_code(api::v1::service::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
+        response->mutable_status()->set_code(api::v1::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
         response->mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(request->origin(), request->destination(), route_details));
 
         SPDLOG_INFO("Route request {} processing finished", request_id);
@@ -53,7 +57,7 @@ grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const G
 
 grpc::Status RouterService::GetRoutesBatch(grpc::ServerContext *context, const GetRoutesBatchRequest *request, grpc::ServerWriter<GetRoutesBatchResponse> *stream) {
     try {
-        const auto &request_id = !request->request_id().empty() ? request->request_id() : UNIDENTIFIED_REQUEST_ID;
+        const auto &request_id = UNIDENTIFIED_REQUEST_ID;
         SPDLOG_INFO("Routes batch request received, id = {}", request_id);
 
         processBatchRequest(*request, [&](const auto &response) { stream->Write(response); });
@@ -71,7 +75,7 @@ grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context
         SPDLOG_INFO("Streaming routes batch request initiated");
         GetRoutesBatchRequest request;
         while (stream->Read(&request)) {
-            const auto &request_id = !request.request_id().empty() ? request.request_id() : UNIDENTIFIED_REQUEST_ID;
+            const auto &request_id = UNIDENTIFIED_REQUEST_ID;
 
             SPDLOG_INFO("Streaming routes batch request received, id = {}", request_id);
 
@@ -89,10 +93,10 @@ grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context
 
 void RouterService::processBatchRequest(const RouterService::GetRoutesBatchRequest &request, const std::function<void(const GetRoutesBatchResponse &)> &consumeResponse) {
     DistanceMatrix distance_matrix = distance_matrix_factory.createDistanceMatrix(
-            RoutingEngineTypeTranslator::fromProto(request.options().routing_type()),
+            RouterEngineTypeTranslator::fromProto(request.settings().routing_type()),
             DistanceMatrixCachingPolicy::AUTO,
             RoutingProfileTranslator::fromProto(request.routing_profile()),
-            RoutingOptionsTranslator::fromProto(request.options()),
+            RouteProviderSettingsTranslator::fromProto(request.settings()),
             routing_context
     );
 
@@ -120,8 +124,8 @@ void RouterService::processBatchRequest(const RouterService::GetRoutesBatchReque
 
             GetRoutesBatchResponse response;
 
-            response.mutable_status()->set_code(api::v1::service::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
-            api::v1::model::routing::RouteInfo *route_info = response.add_route_infos();
+            response.mutable_status()->set_code(api::v1::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
+            api::v1::router::RouteInfo *route_info = response.add_route_infos();
             route_info->CopyFrom(RouteInfoTranslator::toProto(from_loc.getLocation(), to_loc.getLocation(), route_details));
 
             consumeResponse(response);

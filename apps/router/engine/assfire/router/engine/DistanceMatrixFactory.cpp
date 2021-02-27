@@ -22,7 +22,7 @@ namespace {
                 return std::make_unique<EuclideanRouteProviderEngine>(routing_profile);
             case assfire::router::RouterEngineType::OSRM:
                 return std::make_unique<OsrmRouteProviderEngine>(routing_profile,
-                                                                 settings.isRetrieveWaypoints() ? RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE : settings.getOsrmSettings().getGeometry(),
+                                                                 settings.isRetrieveWaypoints() ? OsrmGeometry::STRAIGHT_LINE : settings.getOsrmSettings().getGeometry(),
                                                                  std::make_unique<RestSdkOsrmConnector>(context.getOsrmContext().getEndpoint()));
             case assfire::router::RouterEngineType::RANDOM:
                 return std::make_unique<RandomRouteProviderEngine>(routing_profile);

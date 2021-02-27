@@ -22,6 +22,7 @@ namespace assfire
         bool operator!=(const Location &rhs) const;
 
         static Location fromDoubleLatLon(double lat, double lon);
+        static Location fromEncodedLatLon(Coordinate::encoded_type lat, Coordinate::encoded_type lon);
 
     private:
         Coordinate latitude;

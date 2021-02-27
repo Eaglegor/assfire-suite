@@ -4,35 +4,37 @@
 #include <functional>
 
 namespace assfire::router {
-    class RouteProviderSettings {
+    enum class OsrmGeometry {
+        UNSPECIFIED = 0,
+        STRAIGHT_LINE = 1,
+        SIMPLIFIED = 2,
+        FULL = 3
+    };
+
+    class OsrmSettings {
     public:
-        class Osrm {
-        public:
-            enum class Geometry {
-                UNSPECIFIED = 0,
-                STRAIGHT_LINE = 1,
-                SIMPLIFIED = 2,
-                FULL = 3
-            };
-
-            Geometry getGeometry() const {
-                return geometry;
-            }
-
-            void setGeometry(Geometry geometry) {
-                Osrm::geometry = geometry;
-            }
-
-        private:
-            Geometry geometry = Geometry::STRAIGHT_LINE;
-        };
-
-        const Osrm &getOsrmSettings() const {
-            return osrmSettings;
+        OsrmGeometry getGeometry() const {
+            return geometry;
         }
 
-        void setOsrmSettings(const Osrm &osrmSettings) {
-            RouteProviderSettings::osrmSettings = osrmSettings;
+        void setGeometry(OsrmGeometry geometry) {
+            this->geometry = geometry;
+        }
+
+    private:
+        OsrmGeometry geometry = OsrmGeometry::STRAIGHT_LINE;
+    };
+
+    class RouteProviderSettings {
+    public:
+
+
+        const OsrmSettings &getOsrmSettings() const {
+            return osrm_settings;
+        }
+
+        void setOsrmSettings(const OsrmSettings &osrm_settings) {
+            RouteProviderSettings::osrm_settings = osrm_settings;
         }
 
         bool isForceUpdate() const {
@@ -52,7 +54,7 @@ namespace assfire::router {
         }
 
     private:
-        Osrm osrmSettings;
+        OsrmSettings osrm_settings;
         bool force_update = false;
         bool retrieve_waypoints = false;
     };

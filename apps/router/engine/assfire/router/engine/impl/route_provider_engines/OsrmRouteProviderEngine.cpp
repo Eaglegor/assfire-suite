@@ -10,7 +10,7 @@ using namespace web;
 using namespace web::http;
 using namespace web::http::client;
 
-OsrmRouteProviderEngine::OsrmRouteProviderEngine(const RoutingProfile &routingProfile, const RouteProviderSettings::Osrm::Geometry &geometry, std::unique_ptr<OsrmConnector> connector) :
+OsrmRouteProviderEngine::OsrmRouteProviderEngine(const RoutingProfile &routingProfile, const OsrmGeometry &geometry, std::unique_ptr<OsrmConnector> connector) :
         routing_profile(routingProfile),
         geometry(geometry),
         client(std::move(connector)){}
@@ -38,9 +38,9 @@ RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &orig
             convert(std::to_string(destination.getLatitude().doubleValue())));
 
     bool waypoints_expected = false;
-    if (geometry != RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE) {
+    if (geometry != OsrmGeometry::STRAIGHT_LINE) {
         std::string geometry_format;
-        if (geometry == RouteProviderSettings::Osrm::Geometry::SIMPLIFIED) geometry_format = "simplified";
+        if (geometry == OsrmGeometry::SIMPLIFIED) geometry_format = "simplified";
         else geometry_format = "full";
 
         builder.append_query(U("overview"), convert(geometry_format), true)

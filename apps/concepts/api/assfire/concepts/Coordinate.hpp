@@ -7,17 +7,17 @@ namespace assfire
     class Coordinate
     {
     public:
-        using value_type = std::int64_t;
+        using encoded_type = std::int64_t;
 
     private:
-        explicit Coordinate(value_type value);
+        explicit Coordinate(encoded_type value);
 
     public:
         Coordinate();
 
         Coordinate(const Coordinate &rhs) = default;
 
-        value_type encodedValue() const;
+        encoded_type encodedValue() const;
 
         double doubleValue() const;
 
@@ -25,11 +25,11 @@ namespace assfire
 
         bool operator!=(const Coordinate &rhs) const;
 
-        static Coordinate fromEncodedValue(value_type v);
+        static Coordinate fromEncodedValue(encoded_type v);
 
         static Coordinate fromDoubleValue(double v);
 
     private:
-        value_type data;
+        encoded_type data;
     };
 }

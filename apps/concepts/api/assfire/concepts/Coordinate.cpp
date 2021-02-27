@@ -6,13 +6,13 @@ namespace {
     constexpr static double ENCODE_MULTIPLIER = 1e6;
 }
 
-Coordinate::Coordinate(Coordinate::value_type value)
+Coordinate::Coordinate(Coordinate::encoded_type value)
         : data(value) {}
 
 Coordinate::Coordinate()
         : data(0) {}
 
-Coordinate::value_type Coordinate::encodedValue() const
+Coordinate::encoded_type Coordinate::encodedValue() const
 {
     return data;
 }
@@ -32,12 +32,12 @@ bool Coordinate::operator!=(const Coordinate &rhs) const
     return !(rhs == *this);
 }
 
-Coordinate Coordinate::fromEncodedValue(Coordinate::value_type v)
+Coordinate Coordinate::fromEncodedValue(Coordinate::encoded_type v)
 {
     return Coordinate(v);
 }
 
 Coordinate Coordinate::fromDoubleValue(double v)
 {
-    return Coordinate(static_cast<value_type>(v * ENCODE_MULTIPLIER));
+    return Coordinate(static_cast<encoded_type>(v * ENCODE_MULTIPLIER));
 }

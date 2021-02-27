@@ -1,17 +1,16 @@
 syntax="proto3";
 
-package assfire.api.v1.service.router;
-option go_package = "assfire.org/api/v1/service/router";
+package assfire.api.v1.router;
+option go_package = "assfire.org/api/v1/router";
 
-import "assfire/api/v1/model/routing/routing.proto";
+import public "assfire/api/v1/router/concepts.proto";
 import "google/api/annotations.proto";
 
 message GetSingleRouteRequest {
-  string request_id = 1;
-  assfire.api.v1.model.routing.Location origin = 2;
-  assfire.api.v1.model.routing.Location destination = 3;
-  assfire.api.v1.model.routing.RoutingOptions options = 4;
-  assfire.api.v1.model.routing.RoutingProfile routing_profile = 5;
+  assfire.api.v1.concepts.Location origin = 1;
+  assfire.api.v1.concepts.Location destination = 2;
+  RouteProviderSettings settings = 3;
+  RoutingProfile routing_profile = 4;
 }
 
 message ResponseStatus {
@@ -25,20 +24,19 @@ message ResponseStatus {
 }
 
 message GetSingleRouteResponse {
-  assfire.api.v1.model.routing.RouteInfo route_info = 1;
+  RouteInfo route_info = 1;
   ResponseStatus status = 2;
 }
 
 message GetRoutesBatchRequest {
-  string request_id = 1;
-  repeated assfire.api.v1.model.routing.Location origins = 2;
-  repeated assfire.api.v1.model.routing.Location destinations = 3;
-  assfire.api.v1.model.routing.RoutingOptions options = 4;
-  assfire.api.v1.model.routing.RoutingProfile routing_profile = 5;
+  repeated assfire.api.v1.concepts.Location origins = 1;
+  repeated assfire.api.v1.concepts.Location destinations = 2;
+  RouteProviderSettings settings = 3;
+  RoutingProfile routing_profile = 4;
 }
 
 message GetRoutesBatchResponse {
-  repeated assfire.api.v1.model.routing.RouteInfo route_infos = 1;
+  repeated RouteInfo route_infos = 1;
   ResponseStatus status = 2;
 }
 

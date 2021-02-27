@@ -33,3 +33,8 @@ Location Location::fromDoubleLatLon(double lat, double lon)
 {
     return Location(Coordinate::fromDoubleValue(lat), Coordinate::fromDoubleValue(lon));
 }
+
+Location Location::fromEncodedLatLon(Coordinate::encoded_type lat, Coordinate::encoded_type lon)
+{
+    return Location(Coordinate::fromEncodedValue(lat), Coordinate::fromEncodedValue(lon));
+}
