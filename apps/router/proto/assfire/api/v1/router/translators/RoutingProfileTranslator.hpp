@@ -15,11 +15,6 @@ namespace assfire::api::v1::router {
         static ApiRoutingProfile fromProto(const ProtoRoutingProfile& profile);
 
         static ProtoRoutingProfile toProto(const ApiRoutingProfile& profile);
-
-    private:
-        static ApiSpeed fromProtoSpeed(const ProtoSpeed& speed);
-
-        static ProtoSpeed toProtoSpeed(const ApiSpeed& speed);
     };
 }
 

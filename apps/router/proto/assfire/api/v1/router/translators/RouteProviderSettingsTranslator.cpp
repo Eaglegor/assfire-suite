@@ -14,7 +14,7 @@ RouteProviderSettingsTranslator::ApiRouteProviderSettings RouteProviderSettingsT
 RouteProviderSettingsTranslator::ProtoRouteProviderSettings RouteProviderSettingsTranslator::toProto(const ApiRouteProviderSettings &settings, ApiRouterEngineType engine_type)
 {
     ProtoRouteProviderSettings result;
-    result.set_routing_type(RouterEngineTypeTranslator::toProto(engine_type));
+    result.set_router_engine_type(RouterEngineTypeTranslator::toProto(engine_type));
     result.set_force_update(settings.isForceUpdate());
     result.set_retrieve_waypoints(settings.isRetrieveWaypoints());
     result.mutable_osrm_settings()->CopyFrom(toProtoOsrmSettings(settings.getOsrmSettings()));

@@ -1,27 +1,18 @@
 #include "RoutingProfileTranslator.hpp"
 
+#include <assfire/api/v1/concepts/translators/SpeedTranslator.hpp>
+
 using namespace assfire::api::v1::router;
+using namespace assfire::api::v1::concepts;
 
 RoutingProfileTranslator::ApiRoutingProfile RoutingProfileTranslator::fromProto(const RoutingProfileTranslator::ProtoRoutingProfile &profile)
 {
-    return ApiRoutingProfile(fromProtoSpeed(profile.speed()));
+    return ApiRoutingProfile(SpeedTranslator::fromProto(profile.speed()));
 }
 
 RoutingProfileTranslator::ProtoRoutingProfile RoutingProfileTranslator::toProto(const RoutingProfileTranslator::ApiRoutingProfile &profile)
 {
     ProtoRoutingProfile result;
-    result.mutable_speed()->CopyFrom(toProtoSpeed(profile.getSpeed()));
-    return result;
-}
-
-RoutingProfileTranslator::ApiSpeed RoutingProfileTranslator::fromProtoSpeed(const ProtoSpeed &velocity)
-{
-    return ApiSpeed::fromMetersPerSecond(velocity.meters_per_second());
-}
-
-RoutingProfileTranslator::ProtoSpeed RoutingProfileTranslator::toProtoSpeed(const ApiSpeed &speed)
-{
-    ProtoSpeed result;
-    result.set_meters_per_second(speed.toMetersPerSecond());
+    result.mutable_speed()->CopyFrom(SpeedTranslator::toProto(profile.getSpeed()));
     return result;
 }

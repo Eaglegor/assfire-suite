@@ -27,7 +27,7 @@ message OsrmSettings {
 }
 
 message RouteProviderSettings {
-  RouterEngineType routing_type = 1;
+  RouterEngineType router_engine_type = 1;
   bool force_update = 2;
   bool retrieve_waypoints = 3;
   OsrmSettings osrm_settings = 4;

@@ -1,22 +1,25 @@
 #include "RouteInfoTranslator.hpp"
+#include <assfire/api/v1/concepts/translators/DistanceTranslator.hpp>
+#include <assfire/api/v1/concepts/translators/TimeIntervalTranslator.hpp>
 
 using namespace assfire::api::v1::router;
+using namespace assfire::api::v1::concepts;
 
 using LocationTranslator = assfire::api::v1::concepts::LocationTranslator;
 
 RouteInfoTranslator::ApiRouteInfo RouteInfoTranslator::fromProto(const ProtoRouteInfo &info)
 {
-    return ApiRouteInfo(Distance::fromMeters(info.distance().meters()), TimeInterval::fromSeconds(info.duration().seconds()));
+    return ApiRouteInfo(DistanceTranslator::fromProto(info.distance()), TimeIntervalTranslator::fromProto(info.duration()));
 }
 
 RouteInfoTranslator::ApiRouteDetails RouteInfoTranslator::fromProtoWithDetails(const ProtoRouteInfo &info)
 {
-    ApiRouteInfo summary(Distance::fromMeters(info.distance().meters()), TimeInterval::fromSeconds(info.duration().seconds()));
+    ApiRouteInfo summary(DistanceTranslator::fromProto(info.distance()), TimeIntervalTranslator::fromProto(info.duration()));
 
     ApiRouteDetails::Waypoints waypoints;
     waypoints.reserve(info.waypoints().size());
     for (const auto &wp : info.waypoints()) {
-        waypoints.emplace_back(Coordinate::fromEncodedValue(wp.encoded_latitude()), Coordinate::fromEncodedValue(wp.encoded_longitude()));
+        waypoints.emplace_back(LocationTranslator::fromProto(wp));
     }
 
     return ApiRouteDetails(summary, waypoints);
@@ -27,8 +30,8 @@ RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const ProtoLoca
     ProtoRouteInfo result;
     result.mutable_origin()->CopyFrom(origin);
     result.mutable_destination()->CopyFrom(destination);
-    result.mutable_distance()->set_meters(info.getDistance().toMeters());
-    result.mutable_duration()->set_seconds(info.getDuration().toSeconds());
+    result.mutable_distance()->CopyFrom(DistanceTranslator::toProto(info.getDistance()));
+    result.mutable_duration()->CopyFrom(TimeIntervalTranslator::toProto(info.getDuration()));
     return result;
 }
 
@@ -41,9 +44,7 @@ RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const ProtoLoca
 {
     ProtoRouteInfo result = toProto(origin, destination, details.getSummary());
     for (const ApiRouteDetails::Waypoint &waypoint : details.getWaypoints()) {
-        auto *wp = result.add_waypoints();
-        wp->set_encoded_latitude(waypoint.getLatitude().encodedValue());
-        wp->set_encoded_longitude(waypoint.getLongitude().encodedValue());
+        result.add_waypoints()->CopyFrom(LocationTranslator::toProto(waypoint));
     }
     return result;
 }

@@ -13,8 +13,16 @@ define_proto_cpp_api_translation_target(
         API_TARGET assfire-concepts-api
         HEADERS
         assfire/api/v1/concepts/translators/LocationTranslator.hpp
+        assfire/api/v1/concepts/translators/TimePointTranslator.hpp
+        assfire/api/v1/concepts/translators/TimeIntervalTranslator.hpp
+        assfire/api/v1/concepts/translators/SpeedTranslator.hpp
+        assfire/api/v1/concepts/translators/DistanceTranslator.hpp
         SOURCES
         assfire/api/v1/concepts/translators/LocationTranslator.cpp
+        assfire/api/v1/concepts/translators/TimePointTranslator.cpp
+        assfire/api/v1/concepts/translators/TimeIntervalTranslator.cpp
+        assfire/api/v1/concepts/translators/SpeedTranslator.cpp
+        assfire/api/v1/concepts/translators/DistanceTranslator.cpp
         PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
 )

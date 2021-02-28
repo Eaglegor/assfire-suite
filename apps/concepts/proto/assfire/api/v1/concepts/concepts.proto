@@ -13,7 +13,7 @@ message Distance {
 }
 
 message Speed {
-  int32 meters_per_second = 1;
+  double meters_per_second = 1;
 }
 
 message TimeInterval {

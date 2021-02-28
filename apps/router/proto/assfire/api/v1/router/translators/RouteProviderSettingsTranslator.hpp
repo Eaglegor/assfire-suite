@@ -16,7 +16,7 @@ namespace assfire::api::v1::router {
         using ApiRouteProviderSettings = assfire::router::RouteProviderSettings;
         using ApiOsrmGeometry = assfire::router::OsrmGeometry;
         using ApiOsrmSettings = assfire::router::OsrmSettings;
-        using ApiRouterEngineType = RouterEngineTypeTranslator::ApiRouterEngineType;
+        using ApiRouterEngineType = assfire::router::RouterEngineType;
 
         static ApiRouteProviderSettings fromProto(const ProtoRouteProviderSettings &proto);
 

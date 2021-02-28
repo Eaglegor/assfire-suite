@@ -12,7 +12,7 @@ namespace assfire::api::v1::router
     {
     public:
         using ProtoRouteInfo = assfire::api::v1::router::RouteInfo;
-        using ProtoLocation = assfire::api::v1::concepts::LocationTranslator::ProtoLocation;
+        using ProtoLocation = assfire::api::v1::concepts::Location;
 
         using ApiRouteInfo = assfire::router::RouteInfo;
         using ApiRouteDetails = assfire::router::RouteDetails;
