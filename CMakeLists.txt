@@ -8,6 +8,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 string(TOUPPER ${PROJECT_NAME} PROJECT_PREFIX)
 
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/proto/cpp)
+
 if(MSVC)
 	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True) # To avoid declspec(dllexport) for each symbol
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -65,5 +67,4 @@ enable_testing()
 
 include_directories(utils)
 
-#add_subdirectory(api-model)
 add_subdirectory(apps)

@@ -8,7 +8,7 @@ define_proto_target(
 )
 
 define_grpc_target(
-        TARGET_NAME assifre-router-grpc
+        TARGET_NAME assfire-router-grpc
         PROTO_IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS assfire-router-proto assfire-google-annotations
         PROTOS assfire/api/v1/router/service.proto
