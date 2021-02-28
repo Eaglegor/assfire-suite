@@ -4,7 +4,7 @@
 #include <assfire/router/api/model/RoutingProfile.hpp>
 #include <assfire/router/api/model/RouteInfo.hpp>
 #include <assfire/router/api/model/RouteDetails.hpp>
-#include "LocationTranslator.hpp"
+#include "assfire/api/v1/concepts/translators/LocationTranslator.hpp"
 
 namespace assfire::api::v1::router
 {
@@ -12,11 +12,10 @@ namespace assfire::api::v1::router
     {
     public:
         using ProtoRouteInfo = assfire::api::v1::router::RouteInfo;
-        using ProtoLocation = LocationTranslator::ProtoLocation;
+        using ProtoLocation = assfire::api::v1::concepts::LocationTranslator::ProtoLocation;
 
         using ApiRouteInfo = assfire::router::RouteInfo;
         using ApiRouteDetails = assfire::router::RouteDetails;
-        using ApiLocation = LocationTranslator::ApiLocation;
 
         static ApiRouteInfo fromProto(const ProtoRouteInfo &info);
 

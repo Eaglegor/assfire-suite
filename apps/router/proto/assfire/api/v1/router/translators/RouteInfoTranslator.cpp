@@ -2,6 +2,8 @@
 
 using namespace assfire::api::v1::router;
 
+using LocationTranslator = assfire::api::v1::concepts::LocationTranslator;
+
 RouteInfoTranslator::ApiRouteInfo RouteInfoTranslator::fromProto(const ProtoRouteInfo &info)
 {
     return ApiRouteInfo(Distance::fromMeters(info.distance().meters()), TimeInterval::fromSeconds(info.duration().seconds()));

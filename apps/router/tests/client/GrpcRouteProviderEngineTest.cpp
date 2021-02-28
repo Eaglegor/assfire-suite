@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <assfire/router/client/GrpcRouteProviderEngine.hpp>
 #include <assfire/api/v1/router/translators/RoutingProfileTranslator.hpp>
-#include <assfire/api/v1/router/translators/LocationTranslator.hpp>
+#include "../../../concepts/proto/assfire/api/v1/concepts/translators/LocationTranslator.hpp"
 #include <assfire/api/v1/router/translators/RouteProviderSettingsTranslator.hpp>
 #include <assfire/api/v1/router/translators/RouteInfoTranslator.hpp>
 #include "MockProtobufClient.hpp"
@@ -12,7 +12,7 @@ using namespace assfire::router;
 using RouterEngineTypeTranslator = assfire::api::v1::router::RouterEngineTypeTranslator;
 using RoutingProfileTranslator = assfire::api::v1::router::RoutingProfileTranslator;
 using RouteProviderSettingsTranslator = assfire::api::v1::router::RouteProviderSettingsTranslator;
-using LocationTranslator = assfire::api::v1::router::LocationTranslator;
+using LocationTranslator = assfire::api::v1::concepts::LocationTranslator;
 using RouteInfoTranslator = assfire::api::v1::router::RouteInfoTranslator;
 
 

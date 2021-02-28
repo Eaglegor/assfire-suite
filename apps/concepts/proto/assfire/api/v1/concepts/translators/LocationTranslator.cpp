@@ -1,6 +1,6 @@
 #include "LocationTranslator.hpp"
 
-using namespace assfire::api::v1::router;
+using namespace assfire::api::v1::concepts;
 
 LocationTranslator::ApiLocation LocationTranslator::fromProto(const ProtoLocation &location)
 {

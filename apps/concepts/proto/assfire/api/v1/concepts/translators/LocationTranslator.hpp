@@ -3,7 +3,7 @@
 #include <assfire/api/v1/router/concepts.pb.h>
 #include "assfire/concepts/Location.hpp"
 
-namespace assfire::api::v1::router {
+namespace assfire::api::v1::concepts {
     class LocationTranslator {
     public:
         using ProtoLocation = assfire::api::v1::concepts::Location;
