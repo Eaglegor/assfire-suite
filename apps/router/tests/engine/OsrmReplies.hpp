@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <assfire/router/api/model/RouteDetails.hpp>
+#include <assfire/router/api/RouteDetails.hpp>
 #include <assfire/router/engine/impl/route_provider_engines/CpprestWstringConvert.hpp>
 #include <cpprest/json.h>
 

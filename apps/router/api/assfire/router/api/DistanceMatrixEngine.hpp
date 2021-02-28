@@ -1,8 +1,8 @@
 #pragma once
 
-#include "model/RouteInfo.hpp"
-#include "model/RouteDetails.hpp"
-#include "model/IndexedLocation.hpp"
+#include "RouteInfo.hpp"
+#include "RouteDetails.hpp"
+#include "IndexedLocation.hpp"
 
 namespace assfire::router
 {

@@ -23,6 +23,8 @@ namespace assfire {
 
         bool isZero() const;
 
+        bool isPositive() const;
+
         static TimeInterval zero();
 
         static TimeInterval infinity();

@@ -4,7 +4,7 @@ set(SOURCES
         assfire/router/api/RoutingContext.hpp
         assfire/router/api/RedisSerializer.hpp)
 set(HEADERS
-        assfire/router/api/model/RoutingProfile.hpp
+        assfire/router/api/RoutingProfile.hpp
         assfire/router/api/RouterEngineType.hpp
         assfire/router/api/Matrix.hpp
         assfire/router/api/DistanceMatrixEngine.hpp
@@ -12,9 +12,9 @@ set(HEADERS
         assfire/router/api/DistanceMatrix.hpp
         assfire/router/api/RouteProviderEngine.hpp
         assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp
-        assfire/router/api/model/IndexedLocation.hpp
-        assfire/router/api/model/RouteDetails.hpp
-        assfire/router/api/model/RouteInfo.hpp
+        assfire/router/api/IndexedLocation.hpp
+        assfire/router/api/RouteDetails.hpp
+        assfire/router/api/RouteInfo.hpp
         assfire/router/api/RouteProviderSettings.hpp
         assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp
         assfire/router/api/DistanceMatrixErrorPolicy.hpp)

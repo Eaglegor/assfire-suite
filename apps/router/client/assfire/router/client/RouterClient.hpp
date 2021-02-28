@@ -5,7 +5,7 @@
 #include <assfire/router/api/DistanceMatrix.hpp>
 #include <assfire/router/api/DistanceMatrixCachingPolicy.hpp>
 #include <assfire/router/api/RouterEngineType.hpp>
-#include <assfire/router/api/model/RoutingProfile.hpp>
+#include <assfire/router/api/RoutingProfile.hpp>
 #include <assfire/router/api/RouteProviderSettings.hpp>
 #include "ClientDistanceMatrixFactory.hpp"
 

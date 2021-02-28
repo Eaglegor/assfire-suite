@@ -1,5 +1,5 @@
 #pragma once
-#include "model/Waybill.hpp"
+#include "Waybill.hpp"
 #include "WaybillSchedulingAlgorithm.hpp"
 #include <memory>
 

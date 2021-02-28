@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assfire/api/v1/router/concepts.pb.h>
-#include <assfire/router/api/model/RoutingProfile.hpp>
+#include <assfire/router/api/RoutingProfile.hpp>
 
 namespace assfire::api::v1::router {
     class RoutingProfileTranslator {

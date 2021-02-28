@@ -2,8 +2,8 @@
 
 #include "Matrix.hpp"
 #include "assfire/concepts/Location.hpp"
-#include "model/RouteInfo.hpp"
-#include "model/RouteDetails.hpp"
+#include "RouteInfo.hpp"
+#include "RouteDetails.hpp"
 
 namespace assfire::router
 {

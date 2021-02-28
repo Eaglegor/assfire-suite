@@ -44,6 +44,10 @@ TimeInterval &TimeInterval::operator-=(const TimeInterval &rhs) {
     return *this;
 }
 
+bool TimeInterval::isPositive() const {
+    return seconds > 0;
+}
+
 TimePoint &TimePoint::operator+=(const TimeInterval &rhs) {
     epoch_seconds += rhs.toSeconds();
     return *this;
@@ -54,10 +58,16 @@ TimePoint &TimePoint::operator-=(const TimeInterval &rhs) {
     return *this;
 }
 
-TimePoint TimePoint::operator+(const TimeInterval &rhs) {
+TimePoint TimePoint::operator+(const TimeInterval &rhs) const {
     return TimePoint::fromEpochSeconds(epoch_seconds + rhs.toSeconds());
 }
 
-TimePoint TimePoint::operator-(const TimeInterval &rhs) {
+TimePoint TimePoint::operator-(const TimeInterval &rhs) const {
     return TimePoint::fromEpochSeconds(epoch_seconds - rhs.toSeconds());
 }
+
+TimeInterval TimePoint::operator-(const TimePoint &rhs) const {
+    return TimeInterval::fromSeconds(rhs.toEpochSeconds() - toEpochSeconds());
+}
+
+

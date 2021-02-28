@@ -1,30 +1,32 @@
-find_package(protobuf CONFIG REQUIRED)
-find_package(gRPC CONFIG REQUIRED)
-get_target_property(gRPC_CPP_PLUGIN_EXECUTABLE gRPC::grpc_cpp_plugin LOCATION)
+include(proto_utils)
 
-set(IMPORT_DIRS
+define_proto_target(
+        TARGET_NAME assfire-scheduler-proto
+        PROTO_IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+        DEPENDS assfire-concepts-proto assfire-router-proto
+        PROTOS assfire/api/v1/scheduler/concepts.proto
+)
+
+define_grpc_target(
+        TARGET_NAME assfire-scheduler-grpc
+        PROTO_IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+        DEPENDS assfire-scheduler-proto assfire-google-annotations
+        PROTOS assfire/api/v1/scheduler/service.proto
+)
+
+define_proto_cpp_api_translation_target(
+        TARGET_NAME assfire-scheduler-proto-cpp-translation
+        PROTO_TARGET assfire-scheduler-proto
+        API_TARGET assfire-scheduler-api
+        DEPENDS assfire-concepts-proto-cpp-translation assfire-router-proto-cpp-translation
+        HEADERS
+        assfire/api/v1/scheduler/translators/WaybillTranslator.hpp
+        assfire/api/v1/scheduler/translators/WaybillAllocationTranslator.hpp
+        assfire/api/v1/scheduler/translators/TimeWindowTranslator.hpp
+        SOURCES
+        assfire/api/v1/scheduler/translators/WaybillTranslator.cpp
+        assfire/api/v1/scheduler/translators/WaybillAllocationTranslator.cpp
+        assfire/api/v1/scheduler/translators/TimeWindowTranslator.cpp
+        PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/api-model
-        ${GOOGLE_PROTOBUF_IMPORT_DIR})
-set(PROTOS
-        assfire/api/v1/service/scheduler/transport/transport.proto
-        )
-
-add_library(assfire-scheduler-api)
-
-protobuf_generate(TARGET assfire-scheduler-api
-        LANGUAGE cpp
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp)
-
-protobuf_generate(TARGET assfire-scheduler-api
-        LANGUAGE grpc
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp
-        PLUGIN protoc-gen-grpc=${gRPC_CPP_PLUGIN_EXECUTABLE}
-        GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc)
-
-target_include_directories(assfire-scheduler-api PUBLIC ${CMAKE_BINARY_DIR}/api/cpp)
-target_link_libraries(assfire-scheduler-api PUBLIC gRPC::grpc++ protobuf::libprotobuf assfire-api-model)
+)

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <assfire/router/api/model/RouteInfo.hpp>
+#include <assfire/router/api/RouteInfo.hpp>
 #include "assfire/concepts/Location.hpp"
-#include <assfire/router/api/model/RouteDetails.hpp>
+#include <assfire/router/api/RouteDetails.hpp>
 #include "assfire/router/api/RouteProviderEngine.hpp"
-#include "assfire/router/api/model/RoutingProfile.hpp"
+#include "assfire/router/api/RoutingProfile.hpp"
 #include "assfire/router/api/RouterEngineType.hpp"
 #include "assfire/router/api/RouteProviderSettings.hpp"
-#include "assfire/router/api/model/RoutingProfile.hpp"
+#include "assfire/router/api/RoutingProfile.hpp"
 #include "transport/ProtobufClient.hpp"
 
 namespace assfire::router {

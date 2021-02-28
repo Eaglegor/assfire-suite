@@ -22,11 +22,18 @@ namespace assfire {
 
         TimePoint& operator+=(const TimeInterval& rhs);
         TimePoint& operator-=(const TimeInterval& rhs);
-        TimePoint operator+(const TimeInterval& rhs);
-        TimePoint operator-(const TimeInterval& rhs);
+        TimePoint operator+(const TimeInterval& rhs) const;
+        TimePoint operator-(const TimeInterval& rhs) const;
+        TimeInterval operator-(const TimePoint& rhs) const;
 
     private:
         value_type epoch_seconds;
     };
 
+}
+
+namespace std
+{
+    assfire::TimePoint min(const assfire::TimePoint& lhs, const assfire::TimePoint& rhs);
+    assfire::TimePoint max(const assfire::TimePoint& lhs, const assfire::TimePoint& rhs);
 }

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <assfire/api/v1/router/concepts.pb.h>
-#include <assfire/router/api/model/RoutingProfile.hpp>
-#include <assfire/router/api/model/RouteInfo.hpp>
-#include <assfire/router/api/model/RouteDetails.hpp>
+#include <assfire/router/api/RoutingProfile.hpp>
+#include <assfire/router/api/RouteInfo.hpp>
+#include <assfire/router/api/RouteDetails.hpp>
 #include "assfire/api/v1/concepts/translators/LocationTranslator.hpp"
 
 namespace assfire::api::v1::router
@@ -28,6 +28,8 @@ namespace assfire::api::v1::router
         static ProtoRouteInfo toProto(const ProtoLocation &origin, const ProtoLocation &destination, const ApiRouteDetails &details);
 
         static ProtoRouteInfo toProto(const Location &origin, const Location &destination, const ApiRouteDetails &details);
+
+        static ProtoRouteInfo toProto(const ApiRouteInfo &info);
     };
 }
 

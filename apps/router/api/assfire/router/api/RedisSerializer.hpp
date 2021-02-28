@@ -2,7 +2,7 @@
 
 #include <string>
 #include "assfire/concepts/Location.hpp"
-#include "model/RouteDetails.hpp"
+#include "RouteDetails.hpp"
 
 namespace assfire::router {
     class RedisSerializer {

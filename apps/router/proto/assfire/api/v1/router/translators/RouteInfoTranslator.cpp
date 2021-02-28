@@ -53,3 +53,10 @@ RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const Location 
 {
     return toProto(LocationTranslator::toProto(origin), LocationTranslator::toProto(destination), info);
 }
+
+RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const RouteInfoTranslator::ApiRouteInfo &info) {
+    ProtoRouteInfo result;
+    result.mutable_distance()->CopyFrom(DistanceTranslator::toProto(info.getDistance()));
+    result.mutable_duration()->CopyFrom(TimeIntervalTranslator::toProto(info.getDuration()));
+    return result;
+}

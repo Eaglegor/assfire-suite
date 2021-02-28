@@ -1,7 +1,7 @@
 #pragma once
 
-#include "model/RouteInfo.hpp"
-#include "model/RouteDetails.hpp"
+#include "RouteInfo.hpp"
+#include "RouteDetails.hpp"
 #include "DistanceMatrixEngine.hpp"
 #include <memory>
 

@@ -9,8 +9,8 @@ namespace assfire::api::v1::concepts {
         using ProtoTimePoint = assfire::api::v1::concepts::TimePoint;
         using ApiTimePoint = assfire::TimePoint;
 
-        static ApiTimePoint fromProto(const ProtoTimePoint &location);
+        static ApiTimePoint fromProto(const ProtoTimePoint &obj);
 
-        static ProtoTimePoint toProto(const ApiTimePoint &location);
+        static ProtoTimePoint toProto(const ApiTimePoint &obj);
     };
 }
