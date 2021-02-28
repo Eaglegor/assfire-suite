@@ -1,14 +1,19 @@
 #include "GrpcRouteProviderEngine.hpp"
-#include <assfire/api/v1/service/router/translators/LocationTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RoutingOptionsTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RoutingProfileTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp>
+#include <assfire/api/v1/router/translators/LocationTranslator.hpp>
+#include <assfire/api/v1/router/translators/RouteProviderSettingsTranslator.hpp>
+#include <assfire/api/v1/router/translators/RoutingProfileTranslator.hpp>
+#include <assfire/api/v1/router/translators/RouteInfoTranslator.hpp>
 #include <unordered_map>
 
 
 using namespace assfire;
 using namespace assfire::router;
-using namespace assfire::router::proto_translation;
+
+using RouterEngineTypeTranslator = assfire::api::v1::router::RouterEngineTypeTranslator;
+using RoutingProfileTranslator = assfire::api::v1::router::RoutingProfileTranslator;
+using RouteProviderSettingsTranslator = assfire::api::v1::router::RouteProviderSettingsTranslator;
+using LocationTranslator = assfire::api::v1::router::LocationTranslator;
+using RouteInfoTranslator = assfire::api::v1::router::RouteInfoTranslator;
 
 using GetSingleRouteRequest = ProtobufClient::GetSingleRouteRequest;
 using GetSingleRouteResponse = ProtobufClient::GetSingleRouteResponse;
@@ -28,8 +33,8 @@ RouteInfo GrpcRouteProviderEngine::getSingleRouteInfo(const Location &origin, co
     request.mutable_origin()->CopyFrom(LocationTranslator::toProto(origin));
     request.mutable_destination()->CopyFrom(LocationTranslator::toProto(destination));
     request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
-    request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
-    request.mutable_options()->set_retrieve_waypoints(false); // We don't need waypoints for sole RouteInfo
+    request.mutable_settings()->CopyFrom(RouteProviderSettingsTranslator::toProto(settings, engine_type));
+    request.mutable_settings()->set_retrieve_waypoints(false); // We don't need waypoints for sole RouteInfo
 
     GetSingleRouteResponse response = client.getRoute(request);
 
@@ -45,7 +50,7 @@ RouteDetails GrpcRouteProviderEngine::getSingleRouteDetails(const Location &orig
     request.mutable_origin()->CopyFrom(LocationTranslator::toProto(origin));
     request.mutable_destination()->CopyFrom(LocationTranslator::toProto(destination));
     request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
-    request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
+    request.mutable_settings()->CopyFrom(RouteProviderSettingsTranslator::toProto(settings, engine_type));
 
     GetSingleRouteResponse response = client.getRoute(request);
 
@@ -87,8 +92,8 @@ Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProvide
     }
 
     request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
-    request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
-    request.mutable_options()->set_retrieve_waypoints(false); // We don't need waypoints for sole RouteInfo
+    request.mutable_settings()->CopyFrom(RouteProviderSettingsTranslator::toProto(settings, engine_type));
+    request.mutable_settings()->set_retrieve_waypoints(false); // We don't need waypoints for sole RouteInfo
 
     GetRoutesBatchResponse response;
     client.getRoutesBatch(request, [&](const GetRoutesBatchResponse &reply) {
@@ -150,7 +155,7 @@ Matrix<RouteDetails> GrpcRouteProviderEngine::getRouteDetailsMatrix(const RouteP
     }
 
     request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
-    request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
+    request.mutable_settings()->CopyFrom(RouteProviderSettingsTranslator::toProto(settings, engine_type));
 
     GetRoutesBatchResponse response;
     client.getRoutesBatch(request, [&](const GetRoutesBatchResponse &reply) {

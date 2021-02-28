@@ -20,6 +20,6 @@ namespace assfire::router
 
     private:
         std::shared_ptr<grpc::ChannelInterface> channel;
-        std::unique_ptr<assfire::api::v1::service::router::RouterService::Stub> stub;
+        std::unique_ptr<assfire::api::v1::router::RouterService::Stub> stub;
     };
 }

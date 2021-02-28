@@ -15,7 +15,7 @@ set(SOURCES
 add_library(assfire-router-client ${SOURCES} ${HEADERS})
 
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(assfire-router-client PUBLIC assfire-router-proto assfire-router-api PRIVATE spdlog::spdlog)
+target_link_libraries(assfire-router-client PUBLIC assfire-router-grpc assfire-router-api assfire-router-proto-cpp-translation PRIVATE spdlog::spdlog)
 target_include_directories(assfire-router-client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 install(TARGETS assfire-router-client COMPONENT router-client)

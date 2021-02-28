@@ -1,14 +1,20 @@
 #include <gtest/gtest.h>
 #include <assfire/router/client/GrpcRouteProviderEngine.hpp>
-#include <assfire/api/v1/service/router/translators/RoutingProfileTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/LocationTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RoutingOptionsTranslator.hpp>
-#include <assfire/api/v1/service/router/translators/RouteInfoTranslator.hpp>
+#include <assfire/api/v1/router/translators/RoutingProfileTranslator.hpp>
+#include <assfire/api/v1/router/translators/LocationTranslator.hpp>
+#include <assfire/api/v1/router/translators/RouteProviderSettingsTranslator.hpp>
+#include <assfire/api/v1/router/translators/RouteInfoTranslator.hpp>
 #include "MockProtobufClient.hpp"
 
 using namespace assfire;
 using namespace assfire::router;
-using namespace assfire::router::proto_translation;
+
+using RouterEngineTypeTranslator = assfire::api::v1::router::RouterEngineTypeTranslator;
+using RoutingProfileTranslator = assfire::api::v1::router::RoutingProfileTranslator;
+using RouteProviderSettingsTranslator = assfire::api::v1::router::RouteProviderSettingsTranslator;
+using LocationTranslator = assfire::api::v1::router::LocationTranslator;
+using RouteInfoTranslator = assfire::api::v1::router::RouteInfoTranslator;
+
 
 class GrpcRouteProviderEngineTest : public ::testing::Test {
 public:
@@ -33,7 +39,7 @@ public:
         ProtobufClient::GetSingleRouteRequest request;
         request.mutable_origin()->CopyFrom(LocationTranslator::toProto(from));
         request.mutable_destination()->CopyFrom(LocationTranslator::toProto(to));
-        request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
+        request.mutable_settings()->CopyFrom(RouteProviderSettingsTranslator::toProto(settings, engine_type));
         request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
         return request;
     }
@@ -41,7 +47,7 @@ public:
     ProtobufClient::GetSingleRouteResponse buildSingleRouteResponse(const Location &from, const Location &to, double meters, long seconds) {
         RouteDetails details(RouteInfo(Distance::fromMeters(meters), TimeInterval::fromSeconds(seconds)), {});
         ProtobufClient::GetSingleRouteResponse response;
-        response.mutable_status()->set_code(assfire::api::v1::service::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
+        response.mutable_status()->set_code(assfire::api::v1::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
         response.mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(from, to, details));
         return response;
     }
@@ -49,7 +55,7 @@ public:
     ProtobufClient::GetSingleRouteResponse buildSingleRouteResponse(const Location &from, const Location &to, double meters, long seconds, std::vector<int> waypoints) {
         RouteDetails details(Distance::fromMeters(meters), TimeInterval::fromSeconds(seconds), buildLocations(waypoints));
         ProtobufClient::GetSingleRouteResponse response;
-        response.mutable_status()->set_code(assfire::api::v1::service::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
+        response.mutable_status()->set_code(assfire::api::v1::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
         response.mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(from, to, details));
         return response;
     }
@@ -69,7 +75,7 @@ public:
             request.add_destinations()->CopyFrom(LocationTranslator::toProto(getLocation(coord, coord)));
         }
 
-        request.mutable_options()->CopyFrom(RoutingOptionsTranslator::toProto(settings, engine_type));
+        request.mutable_settings()->CopyFrom(RouteProviderSettingsTranslator::toProto(settings, engine_type));
         request.mutable_routing_profile()->CopyFrom(RoutingProfileTranslator::toProto(routing_profile));
         return request;
     }
@@ -79,7 +85,7 @@ public:
                                                                     const std::vector<std::vector<int>> &seconds) {
 
         ProtobufClient::GetRoutesBatchResponse response;
-        response.mutable_status()->set_code(assfire::api::v1::service::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
+        response.mutable_status()->set_code(assfire::api::v1::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
 
         for (int i = 0; i < from_loc.size(); ++i) {
             for (int j = 0; j < to_loc.size(); ++j) {
@@ -98,7 +104,7 @@ public:
                                                                     const std::vector<std::vector<std::vector<int>>> &waypoints) {
 
         ProtobufClient::GetRoutesBatchResponse response;
-        response.mutable_status()->set_code(assfire::api::v1::service::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
+        response.mutable_status()->set_code(assfire::api::v1::router::ResponseStatus_Code_RESPONSE_STATUS_CODE_OK);
 
         for (int i = 0; i < from_loc.size(); ++i) {
             for (int j = 0; j < to_loc.size(); ++j) {

@@ -115,7 +115,7 @@ namespace assfire::router {
 }
 
 TEST_F(OsrmRouteProviderEngineTest, ReturnsRouteInfo) {
-    OsrmRouteProviderEngine engine(getRoutingProfile(60), RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE, std::move(connector));
+    OsrmRouteProviderEngine engine(getRoutingProfile(60), OsrmGeometry::STRAIGHT_LINE, std::move(connector));
 
     RouteInfo result = engine.getSingleRouteInfo(getOrigin(), getDestination());
 
@@ -125,7 +125,7 @@ TEST_F(OsrmRouteProviderEngineTest, ReturnsRouteInfo) {
 
 
 TEST_F(OsrmRouteProviderEngineTest, ReturnsRouteDetails) {
-    OsrmRouteProviderEngine engine(getRoutingProfile(60), RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE, std::move(connector));
+    OsrmRouteProviderEngine engine(getRoutingProfile(60), OsrmGeometry::STRAIGHT_LINE, std::move(connector));
 
     RouteDetails result = engine.getSingleRouteDetails(getOrigin(), getDestination());
 
@@ -138,7 +138,7 @@ TEST_F(OsrmRouteProviderEngineTest, ReturnsRouteDetails) {
 }
 
 TEST_F(OsrmRouteProviderEngineTest, ReturnsRouteInfoMatrix) {
-    OsrmRouteProviderEngine engine(getRoutingProfile(60), RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE, std::move(connector));
+    OsrmRouteProviderEngine engine(getRoutingProfile(60), OsrmGeometry::STRAIGHT_LINE, std::move(connector));
 
     Matrix<RouteInfo> result = engine.getRouteInfoMatrix(getOriginsGroup(), getDestinationsGroup());
 
@@ -157,7 +157,7 @@ TEST_F(OsrmRouteProviderEngineTest, ReturnsRouteInfoMatrix) {
 }
 
 TEST_F(OsrmRouteProviderEngineTest, ReturnsRouteDetailsMatrix) {
-    OsrmRouteProviderEngine engine(getRoutingProfile(60), RouteProviderSettings::Osrm::Geometry::STRAIGHT_LINE, std::move(connector));
+    OsrmRouteProviderEngine engine(getRoutingProfile(60), OsrmGeometry::STRAIGHT_LINE, std::move(connector));
 
     std::vector<Location> origins = getOriginsGroup();
     std::vector<Location> destinations = getDestinationsGroup();

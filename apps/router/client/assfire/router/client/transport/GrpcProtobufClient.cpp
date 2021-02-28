@@ -16,7 +16,7 @@ GrpcProtobufClient::GrpcProtobufClient(const std::string &server_host, Port serv
     }
 
     channel = grpc::CreateChannel(server_host + ": " + std::to_string(server_port), credentials);
-    stub = assfire::api::v1::service::router::RouterService::NewStub(channel);
+    stub = assfire::api::v1::router::RouterService::NewStub(channel);
 }
 
 GrpcProtobufClient::GetSingleRouteResponse GrpcProtobufClient::getRoute(const GetSingleRouteRequest &request) const
