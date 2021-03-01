@@ -7,10 +7,10 @@ import (
   "log"
   "strings"
 
-  "github.com/grpc-ecosystem/grpc-gateway/runtime"
+  "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
   "google.golang.org/grpc"
 
-  gw "assfire.org/api/v1/service/scheduler/transport"
+  gw "@ASSFIRE_GRPC_GATEWAY_MODULE@"
 )
 
 var (
@@ -53,15 +53,13 @@ func run() error {
 
   // Register gRPC server endpoint
   // Note: Make sure the gRPC server is running properly and accessible
-  mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: true, EmitDefaults: true}))
+  mux := runtime.NewServeMux()
   opts := []grpc.DialOption{grpc.WithInsecure()}
-  err := gw.RegisterSchedulerServiceHandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
-  if err != nil {
-    return err
-  }
+
+  @ASSFIRE_REGISTER_GRPC_SERVICE_ENDPOINTS@
 
   // Start HTTP server (and proxy calls to gRPC server endpoint)
-  if @ASSFIRE_ALLOW_CORS_IN_GRPC_GATEWAY@ {
+  if @ENABLE_CORS@ {
     return http.ListenAndServe(*bindAddress, allowCORS(mux))
   } else {
     return http.ListenAndServe(*bindAddress, mux)
