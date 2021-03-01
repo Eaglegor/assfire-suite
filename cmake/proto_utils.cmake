@@ -142,3 +142,103 @@ function(define_proto_cpp_api_translation_target)
     target_link_libraries(${TARGET_NAME} PUBLIC ${API_TARGET} ${PROTO_TARGET})
     target_include_directories(${TARGET_NAME} PUBLIC ${PUBLIC_INCLUDE_DIRS})
 endfunction()
+
+function(generate_protobuf_include_strings out_var includes_list)
+    foreach(inc ${includes_list})
+        list(APPEND tmp_string "--proto_path=${inc}")
+    endforeach()
+    set(${out_var} ${tmp_string} PARENT_SCOPE)
+endfunction()
+
+function(define_go_grpc_proxy_target)
+    set(_options "")
+    set(_singleargs TARGET_NAME)
+    set(_multiargs DEPENDS PROTO_IMPORT_DIRS PROTOS)
+    cmake_parse_arguments(define_go_grpc_proxy_target "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
+
+    set(TARGET_NAME ${define_go_grpc_proxy_target_TARGET_NAME})
+    set(DEPENDS ${define_go_grpc_proxy_target_DEPENDS})
+    set(PROTO_IMPORT_DIRS ${define_go_grpc_proxy_target_PROTO_IMPORT_DIRS})
+    set(PROTOS ${define_go_grpc_proxy_target_PROTOS})
+
+    message(STATUS "[Gateway] Generating grpc-gateway target: ${TARGET_NAME}")
+    message(STATUS "[Gateway]   Depends on: ${DEPENDS}")
+    message(STATUS "[Gateway]   Additional proto import dirs: ${PROTO_IMPORT_DIRS}")
+    message(STATUS "[Gateway]   Protos: ${PROTOS}")
+
+    find_package(protobuf CONFIG REQUIRED)
+    get_target_property(GOOGLE_PROTOBUF_IMPORT_DIR protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
+
+    list(APPEND IMPORTED_IMPORT_DIRS ${GOOGLE_PROTOBUF_IMPORT_DIR})
+
+    foreach(dep ${DEPENDS})
+        get_target_property(${dep}_IMPORTED_DIRS ${dep} PROTO_IMPORT_DIRS)
+        list(APPEND IMPORTED_IMPORT_DIRS ${${dep}_IMPORTED_DIRS})
+    endforeach()
+
+    set(FINAL_IMPORT_DIRS ${PROTO_IMPORT_DIRS} ${IMPORTED_IMPORT_DIRS})
+    list(REMOVE_DUPLICATES FINAL_IMPORT_DIRS)
+
+    message(STATUS "[Gateway]   Summarized import dirs: ${FINAL_IMPORT_DIRS}")
+
+    generate_protobuf_include_strings(PROTO_INCLUDE_STRINGS "${FINAL_IMPORT_DIRS}")
+
+    set(PROTO_SUFFIX "proto/go")
+
+    foreach(proto ${PROTOS})
+        find_file(full_proto_path ${proto} ${FINAL_IMPORT_DIRS})
+        list(APPEND FULL_PROTOS "${full_proto_path}")
+        string(REPLACE ".proto" ".pb.go" proto_go ${proto})
+        list(APPEND GO_SOURCE_OUTPUTS "${CMAKE_BINARY_DIR}/${PROTO_SUFFIX}/${proto_go}")
+        string(REPLACE ".proto" ".pb.gw.go" proto_gw ${proto})
+        list(APPEND GO_GW_SOURCE_OUTPUTS "${CMAKE_BINARY_DIR}/${PROTO_SUFFIX}/${proto_gw}")
+        string(REPLACE ".proto" ".json" proto_sw ${proto})
+        list(APPEND GO_SW_SOURCE_OUTPUTS "${CMAKE_BINARY_DIR}/${PROTO_SUFFIX}/${proto_sw}")
+    endforeach()
+
+    add_custom_command(
+            OUTPUT ${GO_SOURCE_OUTPUTS}
+            COMMAND protobuf::protoc
+            ARGS
+            ${PROTO_INCLUDE_STRINGS}
+            --go_out ${CMAKE_BINARY_DIR}/${PROTO_SUFFIX}
+            --go_opt plugins=grpc
+            ${PROTOS}
+            DEPENDS ${FULL_PROTOS}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "[Gateway] Generating go sources for ${TARGET_NAME}"
+            VERBATIM
+    )
+
+    add_custom_command(
+            OUTPUT ${GO_GW_SOURCE_OUTPUTS}
+            COMMAND protobuf::protoc
+            ARGS
+            ${PROTO_INCLUDE_STRINGS}
+            --grpc-gateway_out ${CMAKE_BINARY_DIR}/${PROTO_SUFFIX}
+            ${PROTOS}
+            DEPENDS ${FULL_PROTOS}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "[Gateway] Generating go gateway sources for ${TARGET_NAME}"
+            VERBATIM
+    )
+
+    add_custom_command(
+            OUTPUT ${GO_SW_SOURCE_OUTPUTS}
+            COMMAND protobuf::protoc
+            ARGS
+            ${PROTO_INCLUDE_STRINGS}
+            --openapiv2_out ${CMAKE_BINARY_DIR}/${PROTO_SUFFIX}
+            ${PROTOS}
+            DEPENDS ${FULL_PROTOS}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "[Gateway] Generating openapi annotations for ${TARGET_NAME}"
+            VERBATIM
+    )
+
+    add_custom_target(${TARGET_NAME} ALL
+            COMMAND go build
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            DEPENDS ${GO_SOURCE_OUTPUTS} ${GO_GW_SOURCE_OUTPUTS} ${GO_SW_SOURCE_OUTPUTS})
+
+endfunction()
