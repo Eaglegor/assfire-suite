@@ -190,6 +190,7 @@ function(define_go_grpc_proxy_target)
     set(PROTO_IMPORT_DIRS ${define_go_grpc_proxy_target_PROTO_IMPORT_DIRS})
     set(PROTOS ${define_go_grpc_proxy_target_PROTOS})
     set(GW_MODULE ${define_go_grpc_proxy_target_GW_MODULE})
+    set(RPM_COMPONENT_NAME ${define_go_grpc_proxy_target_RPM_COMPONENT_NAME})
 
     message(STATUS "[Gateway] Generating grpc-gateway target: ${TARGET_NAME}")
     message(STATUS "[Gateway]   Depends on: ${DEPENDS}")
