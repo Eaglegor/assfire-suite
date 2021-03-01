@@ -5,12 +5,13 @@
 using namespace assfire::scheduler;
 
 WaybillAllocation::WaybillAllocation(const assfire::TimePoint &start_time, const assfire::TimePoint &end_time, const assfire::TimeInterval &planned_duration,
-                                     WaybillAllocation::TimeWindows time_windows, const WaybillAllocation::RouteInfo &next_route) :
+                                     WaybillAllocation::TimeWindows time_windows, const WaybillAllocation::RouteInfo &next_route, const Location &location) :
         start_time(start_time),
         end_time(end_time),
         planned_duration(planned_duration),
         time_windows(std::move(time_windows)),
-        next_route(next_route) {
+        next_route(next_route),
+        location(location) {
 }
 
 assfire::TimePoint WaybillAllocation::getStartTime() const {
@@ -52,4 +53,8 @@ void WaybillAllocation::shiftStartTime(const assfire::TimeInterval &time_interva
 
 const WaybillAllocation::TimeWindows &WaybillAllocation::getTimeWindows() const {
     return time_windows;
+}
+
+const assfire::Location &WaybillAllocation::getLocation() const {
+    return location;
 }

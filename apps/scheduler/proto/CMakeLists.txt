@@ -20,6 +20,7 @@ define_proto_cpp_api_translation_target(
         API_TARGET assfire-scheduler-api
         DEPENDS assfire-concepts-proto-cpp-translation assfire-router-proto-cpp-translation
         HEADERS
+        assfire/api/v1/scheduler/translators/Translators.hpp
         assfire/api/v1/scheduler/translators/WaybillTranslator.hpp
         assfire/api/v1/scheduler/translators/WaybillAllocationTranslator.hpp
         assfire/api/v1/scheduler/translators/TimeWindowTranslator.hpp

@@ -20,6 +20,7 @@ define_proto_cpp_api_translation_target(
         API_TARGET assfire-router-api
         DEPENDS assfire-concepts-proto-cpp-translation
         HEADERS
+        assfire/api/v1/router/translators/Translators.hpp
         assfire/api/v1/router/translators/RouteInfoTranslator.hpp
         assfire/api/v1/router/translators/RouterEngineTypeTranslator.hpp
         assfire/api/v1/router/translators/RouteProviderSettingsTranslator.hpp

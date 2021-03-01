@@ -12,6 +12,7 @@ define_proto_cpp_api_translation_target(
         PROTO_TARGET assfire-concepts-proto
         API_TARGET assfire-concepts-api
         HEADERS
+        assfire/api/v1/concepts/translators/Translators.hpp
         assfire/api/v1/concepts/translators/LocationTranslator.hpp
         assfire/api/v1/concepts/translators/TimePointTranslator.hpp
         assfire/api/v1/concepts/translators/TimeIntervalTranslator.hpp

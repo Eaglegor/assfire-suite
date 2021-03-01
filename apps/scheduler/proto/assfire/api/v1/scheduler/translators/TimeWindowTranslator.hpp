@@ -13,5 +13,3 @@ namespace assfire::api::v1::scheduler {
         static ProtoTimeWindow toProto(const ApiTimeWindow& obj);
     };
 }
-
-

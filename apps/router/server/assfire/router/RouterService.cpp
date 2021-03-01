@@ -1,19 +1,12 @@
 #include "RouterService.hpp"
 #include <spdlog/spdlog.h>
-#include <assfire/api/v1/router/translators/RouterEngineTypeTranslator.hpp>
-#include <assfire/api/v1/router/translators/RoutingProfileTranslator.hpp>
-#include <assfire/api/v1/router/translators/RouteProviderSettingsTranslator.hpp>
-#include "../../../../concepts/proto/assfire/api/v1/concepts/translators/LocationTranslator.hpp"
-#include <assfire/api/v1/router/translators/RouteInfoTranslator.hpp>
+#include <assfire/api/v1/router/translators/Translators.hpp>
+#include <assfire/api/v1/concepts/translators/Translators.hpp>
 #include "assfire/router/engine/DefaultRedisSerializer.hpp"
 #include <random>
 
+using namespace assfire;
 using namespace assfire::router;
-using RouterEngineTypeTranslator = assfire::api::v1::router::RouterEngineTypeTranslator;
-using RoutingProfileTranslator = assfire::api::v1::router::RoutingProfileTranslator;
-using RouteProviderSettingsTranslator = assfire::api::v1::router::RouteProviderSettingsTranslator;
-using LocationTranslator = assfire::api::v1::concepts::LocationTranslator;
-using RouteInfoTranslator = assfire::api::v1::router::RouteInfoTranslator;
 
 namespace {
     constexpr const char* UNIDENTIFIED_REQUEST_ID = "?";
