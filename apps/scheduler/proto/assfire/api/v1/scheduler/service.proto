@@ -11,9 +11,7 @@ message ScheduleWaybillRequest {
   Waybill waybill = 1;
   WaybillSchedulingAlgorithmType algorithm_type = 2;
   WaybillSchedulerSettings settings = 3;
-
   assfire.api.v1.router.RoutingProfile routing_profile = 4;
-  assfire.api.v1.router.RouteProviderSettings route_provider_settings = 5;
 }
 
 message ScheduleWaybillResponseStatus {

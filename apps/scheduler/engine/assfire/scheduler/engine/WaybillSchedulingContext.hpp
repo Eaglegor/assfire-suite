@@ -1,17 +1,24 @@
 #pragma once
 #include "assfire/router/api/DistanceMatrix.hpp"
+#include "assfire/router/api/RoutingProfile.hpp"
+#include "assfire/router/api/RouteProviderSettings.hpp"
+#include "assfire/router/api/RouterEngineType.hpp"
+#include <functional>
 
 namespace assfire::scheduler {
     class WaybillSchedulingContext {
     public:
-        WaybillSchedulingContext(const router::DistanceMatrix &distance_matrix) : distance_matrix(distance_matrix) {}
+        using DistanceMatrixProvider = std::function<router::DistanceMatrix(router::RouterEngineType, const router::RouteProviderSettings&, const router::RoutingProfile&)>;
 
-        const router::DistanceMatrix& getDistanceMatrix() const
+        WaybillSchedulingContext(const DistanceMatrixProvider &distance_matrix_provider) :
+        distance_matrix_provider(distance_matrix_provider) {}
+
+        const DistanceMatrixProvider& getDistanceMatrixProvider() const
         {
-            return distance_matrix;
+            return distance_matrix_provider;
         }
 
     private:
-        router::DistanceMatrix distance_matrix;
+        DistanceMatrixProvider distance_matrix_provider;
     };
 }

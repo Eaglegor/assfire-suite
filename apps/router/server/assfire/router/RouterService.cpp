@@ -12,8 +12,8 @@ namespace {
     constexpr const char* UNIDENTIFIED_REQUEST_ID = "?";
 }
 
-RouterService::RouterService(const Options &options) :
-        metrics_collector(options.metrics_collector) {
+RouterService::RouterService(const Options &options) {
+    RoutingContext routing_context;
     routing_context.getOsrmContext().setEndpoint(options.osrm_endpoint);
     routing_context.getRedisContext().setCacheEnabled(options.use_redis);
     routing_context.getRedisContext().setHost(options.redis_host);
@@ -21,18 +21,19 @@ RouterService::RouterService(const Options &options) :
     routing_context.getRedisContext().setSerializerSupplier([](RouterEngineType engine_type, const RoutingProfile &profile, const RouteProviderSettings &settings) {
         return std::make_unique<DefaultRedisSerializer>(engine_type, profile, settings);
     });
+
+    router_engine = std::make_unique<RouterEngine>(std::move(routing_context));
 }
 
 grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const GetSingleRouteRequest *request, GetSingleRouteResponse *response) {
     try {
         const auto &request_id = UNIDENTIFIED_REQUEST_ID;
         SPDLOG_INFO("Single route request received, id = {}", request_id);
-        DistanceMatrix distance_matrix = router_engine.createDistanceMatrix(
+        DistanceMatrix distance_matrix = router_engine->createDistanceMatrix(
                 RouterEngineTypeTranslator::fromProto(request->settings().router_engine_type()),
                 DistanceMatrixCachingPolicy::NO_CACHING,
                 RoutingProfileTranslator::fromProto(request->routing_profile()),
-                RouteProviderSettingsTranslator::fromProto(request->settings()),
-                routing_context
+                RouteProviderSettingsTranslator::fromProto(request->settings())
         );
 
         RouteDetails route_details = distance_matrix.getRouteDetails(LocationTranslator::fromProto(request->origin()), LocationTranslator::fromProto(request->destination()));
@@ -85,12 +86,11 @@ grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context
 }
 
 void RouterService::processBatchRequest(const RouterService::GetRoutesBatchRequest &request, const std::function<void(const GetRoutesBatchResponse &)> &consumeResponse) {
-    DistanceMatrix distance_matrix = router_engine.createDistanceMatrix(
+    DistanceMatrix distance_matrix = router_engine->createDistanceMatrix(
             RouterEngineTypeTranslator::fromProto(request.settings().router_engine_type()),
             DistanceMatrixCachingPolicy::AUTO,
             RoutingProfileTranslator::fromProto(request.routing_profile()),
-            RouteProviderSettingsTranslator::fromProto(request.settings()),
-            routing_context
+            RouteProviderSettingsTranslator::fromProto(request.settings())
     );
 
     std::vector<IndexedLocation> indexed_origins;

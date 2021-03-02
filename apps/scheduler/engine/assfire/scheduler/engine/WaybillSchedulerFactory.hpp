@@ -14,6 +14,6 @@ namespace assfire::scheduler {
         using AlgorithmType = WaybillSchedulingAlgorithmType;
         using AlgorithmPtr = std::unique_ptr<WaybillSchedulingAlgorithm>;
 
-        WaybillScheduler createWaybillScheduler(AlgorithmType type, const WaybillSchedulerSettings& settings, const WaybillSchedulingContext& context) const;
+        WaybillScheduler createWaybillScheduler(AlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile, const WaybillSchedulingContext& context) const;
     };
 }

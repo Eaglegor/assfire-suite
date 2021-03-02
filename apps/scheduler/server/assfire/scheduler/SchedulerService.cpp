@@ -4,28 +4,25 @@
 
 using namespace assfire::scheduler;
 
-SchedulerService::SchedulerService(const SchedulerService::Options &options)
-{
+SchedulerService::SchedulerService(const SchedulerService::Options &options) {
     router_client = std::make_unique<RouterClient>(options.router_host, options.router_port, options.use_ssl_for_router);
+    scheduler_engine = std::make_unique<SchedulerEngine>(
+            WaybillSchedulingContext(
+                    [&](const router::RouterEngineType engine_type, const router::RouteProviderSettings &settings, const router::RoutingProfile &routing_profile) {
+                        return router_client->createDistanceMatrix(engine_type, router::DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings);
+                    })
+    );
 }
 
 grpc::Status SchedulerService::ScheduleWaybill(::grpc::ServerContext *context, const SchedulerService::ScheduleWaybillRequest *request, SchedulerService::ScheduleWaybillResponse *response) {
     try {
         Waybill waybill = WaybillTranslator::fromProto(request->waybill());
 
-        router::DistanceMatrix distance_matrix = router_client->createDistanceMatrix(
-                RouterEngineTypeTranslator::fromProto(request->route_provider_settings().router_engine_type()),
-                router::DistanceMatrixCachingPolicy::NO_CACHING,
-                RoutingProfileTranslator::fromProto(request->routing_profile()),
-                RouteProviderSettingsTranslator::fromProto(request->route_provider_settings())
-                );
-
-        scheduler_engine.scheduleWaybillInPlace(waybill,
-                WaybillSchedulingAlgorithmTypeTranslator::fromProto(request->algorithm_type()),
-                WaybillSchedulerSettingsTranslator::fromProto(request->settings()),
-                WaybillSchedulingContext(distance_matrix)
-                );
-
+        scheduler_engine->scheduleWaybillInPlace(waybill,
+                                                WaybillSchedulingAlgorithmTypeTranslator::fromProto(request->algorithm_type()),
+                                                WaybillSchedulerSettingsTranslator::fromProto(request->settings()),
+                                                RoutingProfileTranslator::fromProto(request->routing_profile())
+        );
 
         response->mutable_waybill()->CopyFrom(WaybillTranslator::toProto(waybill));
         response->mutable_status()->set_code(api::v1::scheduler::ScheduleWaybillResponseStatus::SCHEDULE_WAYBILL_RESPONSE_STATUS_CODE_OK);

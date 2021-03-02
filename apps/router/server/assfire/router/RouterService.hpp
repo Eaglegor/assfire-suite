@@ -40,8 +40,6 @@ namespace assfire::router
     private:
         void processBatchRequest(const GetRoutesBatchRequest& request, const std::function<void(const GetRoutesBatchResponse&)> &consumeResponse);
 
-        RouterEngine router_engine;
-        RoutingContext routing_context;
-        std::shared_ptr<MetricsCollector> metrics_collector;
+        std::unique_ptr<RouterEngine> router_engine;
     };
 }

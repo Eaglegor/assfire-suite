@@ -23,7 +23,7 @@ namespace assfire::scheduler {
         grpc::Status ScheduleWaybill(::grpc::ServerContext *context, const ScheduleWaybillRequest *request, ScheduleWaybillResponse *response) override;
 
     private:
-        SchedulerEngine scheduler_engine;
         std::unique_ptr<RouterClient> router_client;
+        std::unique_ptr<SchedulerEngine> scheduler_engine;
     };
 }

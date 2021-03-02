@@ -14,7 +14,7 @@ enum WaybillSchedulingAlgorithmType {
 }
 
 message WaybillSchedulerSettings {
-
+  assfire.api.v1.router.RouteProviderSettings route_provider_settings = 1;
 }
 
 message TimeWindow {
