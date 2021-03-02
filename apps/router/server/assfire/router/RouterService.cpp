@@ -27,7 +27,7 @@ grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const G
     try {
         const auto &request_id = UNIDENTIFIED_REQUEST_ID;
         SPDLOG_INFO("Single route request received, id = {}", request_id);
-        DistanceMatrix distance_matrix = distance_matrix_factory.createDistanceMatrix(
+        DistanceMatrix distance_matrix = router_engine.createDistanceMatrix(
                 RouterEngineTypeTranslator::fromProto(request->settings().router_engine_type()),
                 DistanceMatrixCachingPolicy::NO_CACHING,
                 RoutingProfileTranslator::fromProto(request->routing_profile()),
@@ -85,7 +85,7 @@ grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context
 }
 
 void RouterService::processBatchRequest(const RouterService::GetRoutesBatchRequest &request, const std::function<void(const GetRoutesBatchResponse &)> &consumeResponse) {
-    DistanceMatrix distance_matrix = distance_matrix_factory.createDistanceMatrix(
+    DistanceMatrix distance_matrix = router_engine.createDistanceMatrix(
             RouterEngineTypeTranslator::fromProto(request.settings().router_engine_type()),
             DistanceMatrixCachingPolicy::AUTO,
             RoutingProfileTranslator::fromProto(request.routing_profile()),

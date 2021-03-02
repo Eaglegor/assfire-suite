@@ -11,7 +11,6 @@
 namespace assfire::scheduler {
     class WaybillSchedulerFactory {
     public:
-        static constexpr WaybillSchedulingAlgorithmType DEFAULT_ALGORITHM_TYPE = WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_AUTO;
         using AlgorithmType = WaybillSchedulingAlgorithmType;
         using AlgorithmPtr = std::unique_ptr<WaybillSchedulingAlgorithm>;
 

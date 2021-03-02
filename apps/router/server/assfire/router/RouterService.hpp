@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assfire/api/v1/router/service.grpc.pb.h>
-#include <assfire/router/engine/DistanceMatrixFactory.hpp>
+#include <assfire/router/engine/RouterEngine.hpp>
 #include "ServerMetricsCollector.hpp"
 #include <memory>
 #include <atomic>
@@ -40,7 +40,7 @@ namespace assfire::router
     private:
         void processBatchRequest(const GetRoutesBatchRequest& request, const std::function<void(const GetRoutesBatchResponse&)> &consumeResponse);
 
-        DistanceMatrixFactory distance_matrix_factory;
+        RouterEngine router_engine;
         RoutingContext routing_context;
         std::shared_ptr<MetricsCollector> metrics_collector;
     };

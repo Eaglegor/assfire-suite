@@ -13,9 +13,9 @@ namespace assfire::router {
     class DistanceMatrixFactory {
     public:
         DistanceMatrix createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings, const RoutingContext& context,
-                                            DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY);
+                                            DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY) const;
 
     private:
-        std::atomic_int tag_counter;
+        mutable std::atomic_int tag_counter;
     };
 }

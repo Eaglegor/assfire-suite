@@ -8,7 +8,7 @@ assfire::router::RouterClient::RouterClient(const std::string &server_host, Port
 {
 }
 
-assfire::router::RouterClient::RouterClient(std::unique_ptr<GrpcProtobufClient> client)
+assfire::router::RouterClient::RouterClient(std::unique_ptr<ProtobufClient> client)
         : transport_client(std::move(client))
 {
 }

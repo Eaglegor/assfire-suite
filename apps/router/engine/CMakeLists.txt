@@ -1,5 +1,6 @@
 set(SOURCES
         assfire/router/engine/DistanceMatrixFactory.cpp
+        assfire/router/engine/RouterEngine.cpp
         assfire/router/engine/impl/route_provider_engines/CrowflightRouteProviderEngine.cpp
         assfire/router/engine/impl/route_provider_engines/EuclideanRouteProviderEngine.cpp
         assfire/router/engine/impl/route_provider_engines/RandomRouteProviderEngine.cpp
@@ -10,6 +11,7 @@ set(SOURCES
         assfire/router/engine/impl/route_provider_engines/RestSdkOsrmConnector.cpp)
 set(HEADERS
         assfire/router/engine/MetricsCollector.hpp
+        assfire/router/engine/RouterEngine.hpp
         assfire/router/engine/DistanceMatrixFactory.hpp
         assfire/router/engine/impl/route_provider_engines/CrowflightRouteProviderEngine.hpp
         assfire/router/engine/impl/route_provider_engines/EuclideanRouteProviderEngine.hpp

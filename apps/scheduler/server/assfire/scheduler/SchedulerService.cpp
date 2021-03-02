@@ -20,11 +20,11 @@ grpc::Status SchedulerService::ScheduleWaybill(::grpc::ServerContext *context, c
                 RouteProviderSettingsTranslator::fromProto(request->route_provider_settings())
                 );
 
-        waybill_scheduler_factory.createWaybillScheduler(
+        scheduler_engine.scheduleWaybillInPlace(waybill,
                 WaybillSchedulingAlgorithmTypeTranslator::fromProto(request->algorithm_type()),
                 WaybillSchedulerSettingsTranslator::fromProto(request->settings()),
                 WaybillSchedulingContext(distance_matrix)
-                ).scheduleWaybillInPlace(waybill);
+                );
 
 
         response->mutable_waybill()->CopyFrom(WaybillTranslator::toProto(waybill));

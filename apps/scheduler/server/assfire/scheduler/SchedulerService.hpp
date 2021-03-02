@@ -3,7 +3,7 @@
 #include <memory>
 #include "assfire/router/client/RouterClient.hpp"
 #include "assfire/api/v1/scheduler/service.grpc.pb.h"
-#include "assfire/scheduler/engine/WaybillSchedulerFactory.hpp"
+#include "assfire/scheduler/engine/SchedulerEngine.hpp"
 
 namespace assfire::scheduler {
     class SchedulerService : public assfire::api::v1::scheduler::SchedulerService::Service {
@@ -23,7 +23,7 @@ namespace assfire::scheduler {
         grpc::Status ScheduleWaybill(::grpc::ServerContext *context, const ScheduleWaybillRequest *request, ScheduleWaybillResponse *response) override;
 
     private:
-        WaybillSchedulerFactory waybill_scheduler_factory;
+        SchedulerEngine scheduler_engine;
         std::unique_ptr<RouterClient> router_client;
     };
 }

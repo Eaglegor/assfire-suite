@@ -10,14 +10,14 @@
 #include "ClientDistanceMatrixFactory.hpp"
 
 namespace assfire::router {
-    class GrpcProtobufClient;
+    class ProtobufClient;
 
     class RouterClient final {
     public:
         using Port = std::size_t;
 
         RouterClient(const std::string &server_host, Port server_port, bool use_ssl);
-        RouterClient(std::unique_ptr<GrpcProtobufClient> client);
+        RouterClient(std::unique_ptr<ProtobufClient> client);
 
         ~RouterClient();
 
@@ -39,7 +39,7 @@ namespace assfire::router {
                                      const RouteProviderSettings &settings) const;
 
     private:
-        std::unique_ptr<GrpcProtobufClient> transport_client;
+        std::unique_ptr<ProtobufClient> transport_client;
         ClientDistanceMatrixFactory distance_matrix_factory;
     };
 }

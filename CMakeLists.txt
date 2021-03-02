@@ -44,11 +44,8 @@ if(ASSFIRE_GENERATE_GRPC_GATEWAYS)
 endif()
 
 option(ASSFIRE_APPS_BUILD_ALL "Build all applications" ON)
-option(ASSFIRE_APPS_BUILD_SAMPLE "Build Assfire Sample Application" OFF)
-option(ASSFIRE_APPS_BUILD_TSP "Build Assfire TSP Application" OFF)
 option(ASSFIRE_APPS_BUILD_ROUTER "Build Assfire Router Application" OFF)
 option(ASSFIRE_APPS_BUILD_SCHEDULER "Build Assfire Scheduler Application" OFF)
-option(ASSFIRE_APPS_BUILD_ESTIMATOR "Build Assfire Estimator Application" OFF)
 
 if(ASSFIRE_DEBUG_MODE)
 	message(STATUS "Debug mode enabled")
