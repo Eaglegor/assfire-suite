@@ -5,17 +5,17 @@
 
 using namespace assfire::scheduler;
 
-std::unique_ptr<WaybillSchedulingAlgorithm> WaybillSchedulerFactory::createWaybillSchedulingAlgorithm(WaybillSchedulingAlgorithmType algorithm_type) const {
-    if(algorithm_type == WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_AUTO) {
-        algorithm_type = WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_BILINEAR;
+WaybillScheduler WaybillSchedulerFactory::createWaybillScheduler(AlgorithmType type, const WaybillSchedulerSettings& settings, const WaybillSchedulingContext& context) const {
+    if(type == WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_AUTO) {
+        type = WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_BILINEAR;
     }
 
-    switch(algorithm_type) {
+    switch(type) {
         case WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_LINEAR:
-            return std::make_unique<LinearWaybillSchedulingAlgorithm>();
+            return WaybillScheduler(std::make_unique<LinearWaybillSchedulingAlgorithm>(context.getDistanceMatrix()));
         case WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_BILINEAR:
-            return std::make_unique<BilinearWaybillSchedulingAlgorithm>();
+            return WaybillScheduler(std::make_unique<BilinearWaybillSchedulingAlgorithm>(context.getDistanceMatrix()));
         default:
-            throw std::runtime_error("Unknown waybill scheduling algorithm");
+            throw std::invalid_argument("Unknown waybill scheduling algorithm type");
     }
 }

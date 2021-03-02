@@ -14,5 +14,5 @@ include(pkg_utils)
 vcpkg_find_cpp_redis()
 
 add_library(assfire-scheduler-engine ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-scheduler-engine PUBLIC spdlog::spdlog assfire-scheduler-api)
+target_link_libraries(assfire-scheduler-engine PUBLIC spdlog::spdlog assfire-scheduler-api assfire-router-api)
 target_include_directories(assfire-scheduler-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

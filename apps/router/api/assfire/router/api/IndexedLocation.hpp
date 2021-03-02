@@ -9,6 +9,7 @@ namespace assfire::router
     public:
         using Id = int;
         using IndexTag = int;
+        static constexpr IndexTag INVALID_TAG = -1;
 
         IndexedLocation(Id id, IndexTag index_tag, const Location &location)
                 :
@@ -28,6 +29,8 @@ namespace assfire::router
         bool operator!=(const IndexedLocation &rhs) const {
             return !(rhs == *this);
         }
+
+        IndexedLocation& operator=(const IndexedLocation& rhs) = default;
 
         Id getId() const
         {

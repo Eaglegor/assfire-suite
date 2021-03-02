@@ -13,6 +13,10 @@ enum WaybillSchedulingAlgorithmType {
   WAYBILL_SCHEDULING_ALGORITHM_TYPE_AUTO = 3;
 }
 
+message WaybillSchedulerSettings {
+
+}
+
 message TimeWindow {
   assfire.api.v1.concepts.TimePoint start_time = 1;
   assfire.api.v1.concepts.TimePoint end_time = 2;

@@ -15,7 +15,7 @@ if(ASSFIRE_APPS_BUILD_SCHEDULER OR ASSFIRE_APPS_BUILD_ALL)
     add_subdirectory(engine)
     add_subdirectory(gateway)
 #    add_subdirectory(helm)
-#    add_subdirectory(server)
+    add_subdirectory(server)
 #    add_subdirectory(tools)
 
     configure_file(Dockerfile ${CMAKE_CURRENT_BINARY_DIR}/Dockerfile)

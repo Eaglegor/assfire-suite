@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <assfire/router/api/DistanceMatrixErrorPolicy.hpp>
+#include <cassert>
 #include "assfire/router/api/DistanceMatrixEngine.hpp"
 #include "assfire/router/api/RouteProviderEngine.hpp"
 
@@ -12,6 +13,7 @@ namespace assfire::router {
                 : matrix_tag(tag),
                   engine(std::move(engine)),
                   error_policy(error_policy) {
+            assert(tag != IndexedLocation::INVALID_TAG);
         }
 
         RouteInfo getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const override;

@@ -5,12 +5,12 @@
 using namespace assfire::router;
 
 RouteInfo FullMatrixCacheDistanceMatrixEngine::getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const {
-    assert(origin.getIndexTag() == matrix_tag && destination.getIndexTag() == matrix_tag);
+    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteInfo(origin.getLocation(), destination.getLocation());
     return getCachedRouteInfo(origin.getId(), destination.getId());
 }
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::getRouteDetails(const IndexedLocation &origin, const IndexedLocation &destination) const {
-    assert(origin.getIndexTag() == matrix_tag && destination.getIndexTag() == matrix_tag);
+    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteDetails(origin.getLocation(), destination.getLocation());
     return getCachedRouteDetails(origin.getId(), destination.getId());
 }
 

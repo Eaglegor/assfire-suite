@@ -9,6 +9,7 @@
 #include <assfire/router/api/RouteProviderEngine.hpp>
 #include <assfire/router/api/DistanceMatrixErrorPolicy.hpp>
 #include <assfire/router/api/Matrix.hpp>
+#include <cassert>
 
 namespace assfire::router {
     class FullMatrixCacheDistanceMatrixEngine : public DistanceMatrixEngine {
@@ -18,6 +19,7 @@ namespace assfire::router {
                 matrix_tag(tag),
                 engine(std::move(engine)),
                 error_policy(error_policy) {
+            assert(tag != IndexedLocation::INVALID_TAG);
         }
 
         RouteInfo getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const override;

@@ -2,15 +2,24 @@
 
 #include <utility>
 
+using namespace assfire::router;
 using namespace assfire::scheduler;
 
 WaybillAllocation::WaybillAllocation(const assfire::TimePoint &start_time, const assfire::TimePoint &end_time, const assfire::TimeInterval &planned_duration,
-                                     WaybillAllocation::TimeWindows time_windows, const WaybillAllocation::RouteInfo &next_route, const Location &location) :
+                                     WaybillAllocation::TimeWindows time_windows, const assfire::Location &location) :
         start_time(start_time),
         end_time(end_time),
         planned_duration(planned_duration),
         time_windows(std::move(time_windows)),
-        next_route(next_route),
+        location(-1, IndexedLocation::INVALID_TAG, location){
+}
+
+WaybillAllocation::WaybillAllocation(const assfire::TimePoint &start_time, const assfire::TimePoint &end_time, const assfire::TimeInterval &planned_duration,
+                                     WaybillAllocation::TimeWindows time_windows, const IndexedLocation &location) :
+        start_time(start_time),
+        end_time(end_time),
+        planned_duration(planned_duration),
+        time_windows(std::move(time_windows)),
         location(location) {
 }
 
@@ -35,7 +44,7 @@ TimeWindow WaybillAllocation::getNearestNextTimeWindow(assfire::TimePoint &tp) c
 }
 
 WaybillAllocation::RouteInfo WaybillAllocation::getNextRouteInfo() const {
-    return next_route;
+    return next_route_info;
 }
 
 void WaybillAllocation::setStartTime(const assfire::TimePoint &tp) {
@@ -55,6 +64,19 @@ const WaybillAllocation::TimeWindows &WaybillAllocation::getTimeWindows() const 
     return time_windows;
 }
 
-const assfire::Location &WaybillAllocation::getLocation() const {
+const WaybillAllocation::Location &WaybillAllocation::getLocation() const {
     return location;
 }
+
+void WaybillAllocation::setNextRouteInfo(const WaybillAllocation::RouteInfo &route_info) {
+    this->next_route_info = route_info;
+}
+
+void WaybillAllocation::setLocation(const assfire::Location &loc) {
+    location = IndexedLocation(-1, IndexedLocation::INVALID_TAG, loc);
+}
+
+void WaybillAllocation::setLocation(const IndexedLocation &loc) {
+    location = loc;
+}
+

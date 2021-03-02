@@ -5,7 +5,7 @@
 using namespace assfire::router;
 
 RouteInfo DirectRequestDistanceMatrixEngine::getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const {
-    assert(origin.getIndexTag() == matrix_tag && destination.getIndexTag() == matrix_tag);
+    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteInfo(origin.getLocation(), destination.getLocation());
     try {
         return engine->getSingleRouteInfo(origin.getLocation(), destination.getLocation());
     } catch (const std::exception& e) {
@@ -14,7 +14,7 @@ RouteInfo DirectRequestDistanceMatrixEngine::getRouteInfo(const IndexedLocation 
 }
 
 RouteDetails DirectRequestDistanceMatrixEngine::getRouteDetails(const IndexedLocation &origin, const IndexedLocation &destination) const {
-    assert(origin.getIndexTag() == matrix_tag && destination.getIndexTag() == matrix_tag);
+    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteDetails(origin.getLocation(), destination.getLocation());
     try {
         return engine->getSingleRouteDetails(origin.getLocation(), destination.getLocation());
     } catch(const std::exception& e) {

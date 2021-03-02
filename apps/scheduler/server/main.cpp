@@ -1,4 +1,4 @@
-#include "assfire/scheduler/transport/TransportSchedulerService.hpp"
+#include "assfire/scheduler/transport/SchedulerService.hpp"
 #include <grpc++/server_builder.h>
 #include <cxxopts.hpp>
 #include <memory>
@@ -13,7 +13,7 @@
 
 #endif
 
-using namespace assfire::scheduler::transport;
+using namespace assfire::scheduler;
 using namespace grpc;
 
 int main(int argc, char **argv)
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
     assfire::log::initializeSpdlog(options[LOG_LEVEL].as<std::string>());
 
-    TransportSchedulerService::Options transport_scheduler_server_options;
+    SchedulerService::Options transport_scheduler_server_options;
     transport_scheduler_server_options.router_host = options[ROUTER_HOST].as<std::string>();
     transport_scheduler_server_options.router_port = options[ROUTER_PORT].as<int>();
     transport_scheduler_server_options.use_ssl_for_router = options[ROUTER_USE_SSL].as<bool>();
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
                 options[METRICS_EXPOSER_THREADS_COUNT].as<std::size_t>()));
     }
 
-    TransportSchedulerService service(transport_scheduler_server_options);
+    SchedulerService service(transport_scheduler_server_options);
 
     ServerBuilder serverBuilder;
     serverBuilder.AddListeningPort(options[BIND_ADDRESS].as<std::string>(), grpc::InsecureServerCredentials());

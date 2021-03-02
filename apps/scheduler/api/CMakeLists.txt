@@ -5,6 +5,7 @@ set(SOURCES
         assfire/scheduler/api/WaybillScheduler.cpp
         )
 set(HEADERS
+        assfire/scheduler/api/WaybillSchedulerSettings.hpp
         assfire/scheduler/api/TimeWindow.hpp
         assfire/scheduler/api/WaybillScheduler.hpp
         assfire/scheduler/api/Waybill.hpp
