@@ -1,11 +1,10 @@
-#include "assfire/scheduler/transport/SchedulerService.hpp"
+#include "assfire/scheduler/SchedulerService.hpp"
 #include <grpc++/server_builder.h>
 #include <cxxopts.hpp>
 #include <memory>
 #include <numeric>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
-#include <prometheus/exposer.h>
 
 #ifdef _WIN32
 
@@ -67,13 +66,6 @@ int main(int argc, char **argv)
     transport_scheduler_server_options.router_host = options[ROUTER_HOST].as<std::string>();
     transport_scheduler_server_options.router_port = options[ROUTER_PORT].as<int>();
     transport_scheduler_server_options.use_ssl_for_router = options[ROUTER_USE_SSL].as<bool>();
-
-    if (options[METRICS_ENABLED].as<bool>()) {
-        transport_scheduler_server_options.metrics_collector = MetricsCollector(std::make_shared<prometheus::Exposer>(
-                options[METRICS_EXPOSER_BIND_ADDRESS].as<std::string>(),
-                options[METRICS_EXPOSER_URI].as<std::string>(),
-                options[METRICS_EXPOSER_THREADS_COUNT].as<std::size_t>()));
-    }
 
     SchedulerService service(transport_scheduler_server_options);
 
