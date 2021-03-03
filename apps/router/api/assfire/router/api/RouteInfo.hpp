@@ -18,6 +18,8 @@ namespace assfire::router {
 
         RouteInfo(const RouteInfo &rhs) = default;
 
+        bool operator==(const RouteInfo& ri) const = default;
+
         const Distance &getDistance() const {
             return distance;
         }

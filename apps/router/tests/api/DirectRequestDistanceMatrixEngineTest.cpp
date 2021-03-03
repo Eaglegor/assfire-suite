@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp>
-#include "../engine/MockRouteProviderEngine.hpp"
+#include "assfire/router/tests/MockRouteProviderEngine.hpp"
 #include <memory>
 
 using namespace assfire;

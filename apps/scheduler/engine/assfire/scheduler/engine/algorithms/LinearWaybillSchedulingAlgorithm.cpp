@@ -1,4 +1,4 @@
-#include "LinearWaybillSchedulingAlgorithm.hpp"
+#include "LinearWaybillSchedulingAlgorithmTest.hpp"
 #include "assfire/scheduler/api/Waybill.hpp"
 
 using namespace assfire::router;
@@ -16,6 +16,6 @@ void LinearWaybillSchedulingAlgorithm::scheduleWaybill(Waybill &waybill) const {
         TimeWindow tw = allocation.getNearestNextTimeWindow(current_time);
         allocation.setStartTime(std::max(current_time, tw.getStartTime()));
         allocation.setEndTime(allocation.getStartTime() + allocation.getPlannedDuration());
-        current_time = allocation.getStartTime() + allocation.getNextRouteInfo().getDuration();
+        current_time = allocation.getEndTime() + allocation.getNextRouteInfo().getDuration();
     }
 }

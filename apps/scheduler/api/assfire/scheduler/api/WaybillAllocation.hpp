@@ -26,6 +26,8 @@ namespace assfire::scheduler
         WaybillAllocation(const assfire::TimePoint &start_time, const assfire::TimePoint &end_time, const assfire::TimeInterval &planned_duration,
                           WaybillAllocation::TimeWindows time_windows, const router::IndexedLocation &location);
 
+        bool operator==(const WaybillAllocation& rhs) const = default;
+
         TimePoint getStartTime() const;
         TimePoint getEndTime() const;
         TimeInterval getActualDuration() const;

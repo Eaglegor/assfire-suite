@@ -26,6 +26,10 @@ namespace assfire {
         TimePoint operator-(const TimeInterval& rhs) const;
         TimeInterval operator-(const TimePoint& rhs) const;
 
+        static TimePoint zero() {
+            return TimePoint::fromEpochSeconds(0);
+        }
+
     private:
         value_type epoch_seconds;
     };

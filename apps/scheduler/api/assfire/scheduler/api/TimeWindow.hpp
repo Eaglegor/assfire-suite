@@ -8,6 +8,8 @@ namespace assfire::scheduler {
     public:
         TimeWindow(const TimePoint& start_time, const TimePoint& end_time);
 
+        bool operator==(const TimeWindow& tw) const = default;
+
         TimePoint getStartTime() const;
         TimePoint getEndTime() const;
 
