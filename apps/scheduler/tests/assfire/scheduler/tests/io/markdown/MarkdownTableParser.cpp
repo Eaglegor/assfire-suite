@@ -2,6 +2,7 @@
 #include <cassert>
 #include <regex>
 #include <iostream>
+#include <sstream>
 
 namespace {
     static const std::regex MD_REGEX("\\|\\s*(.*?)\\s*(?=\\|)");
@@ -42,6 +43,18 @@ const assfire::MarkdownTableParser::Entry& assfire::MarkdownTableParser::process
 const assfire::MarkdownTableParser::Entries &assfire::MarkdownTableParser::getEntrires() const
 {
     return entries;
+}
+
+void assfire::MarkdownTableParser::parseTable(const std::string &table)
+{
+    std::stringstream ss(table);
+    std::string to;
+
+    int index = 0;
+    while(std::getline(ss,to,'\n')){
+        if(index++ == 0) parseHeader(to);
+        else processEntry(to);
+    }
 }
 
 void assfire::MarkdownTableParser::Entry::insert(const std::string &key, const std::string &value)

@@ -10,12 +10,14 @@ using namespace assfire::router;
 using namespace assfire::scheduler;
 using namespace std;
 
-class LinearWaybillSchedulingAlgorithmTest : public WaybillSchedulingAlgorithmFixtureBase {
+class LinearWaybillSchedulingAlgorithmTest : public WaybillSchedulingAlgorithmFixtureBase
+{
 public:
 
 };
 
-TEST_F(LinearWaybillSchedulingAlgorithmTest, Test1) {
+TEST_F(LinearWaybillSchedulingAlgorithmTest, Test1)
+{
 
     DistanceMatrix distance_matrix = createDistanceMatrix({
                                                                   "00:10",
@@ -44,14 +46,19 @@ TEST_F(LinearWaybillSchedulingAlgorithmTest, Test1) {
     checkEquality(scheduled_waybill, expected_waybill);
 }
 
-TEST_F(LinearWaybillSchedulingAlgorithmTest, Test2) {
+TEST_F(LinearWaybillSchedulingAlgorithmTest, Test2)
+{
     MarkdownTableParser parser;
 
-    std::string test_header = "| Entry1 | Entry2 | Entry3 | Entry4 | Entry5 |";
-    std::string test_entry =  "| Value1 | Value2 | Value3 | Value4 | Value5 |";
+    std::string test_table = R"(| Field1  | Field2  | Field3  | Field4  | Field5  |
+                                | ------- | ------- | ------- | ------- | ------- |
+                                | 11      | 12      | 13      | 14      | 15      |
+                                | 21      | 22      | 23      | 24      | 25      |
+                                | 31      | 32      | 33      | 34      | 35      |
+                                | 41      | 42      | 43      | 44      | 45      |
+                                | 51      | 52      | 53      | 54      | 55      |)";
 
-    parser.parseHeader(test_header);
-    MarkdownTableParser::Entry entry = parser.processEntry(test_entry);
+    parser.parseTable(test_table);
 
     std::cout << "End!" << std::endl;
 }
