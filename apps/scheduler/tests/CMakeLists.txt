@@ -3,7 +3,10 @@ include(GoogleTest)
 find_package(GTest CONFIG REQUIRED)
 add_executable(assfire-scheduler-test
         engine/WaybillSchedulingAlgorithmFixtureBase.hpp
-        engine/LinearWaybillSchedulingAlgorithmTest.cpp)
+        engine/LinearWaybillSchedulingAlgorithmTest.cpp
+        assfire/scheduler/tests/io/markdown/MarkdownTableParser.hpp
+        assfire/scheduler/tests/io/markdown/MarkdownTableParser.cpp)
+
 target_link_libraries(assfire-scheduler-test PRIVATE GTest::gtest GTest::gtest_main assfire-scheduler-engine assfire-scheduler-api assfire-scheduler-client assfire-router-test-base)
 
 gtest_discover_tests(assfire-scheduler-test

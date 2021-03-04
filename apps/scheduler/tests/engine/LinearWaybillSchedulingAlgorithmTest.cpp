@@ -3,7 +3,9 @@
 #include "WaybillSchedulingAlgorithmFixtureBase.hpp"
 #include "assfire/scheduler/engine/algorithms/LinearWaybillSchedulingAlgorithmTest.hpp"
 #include "assfire/router/tests/MockRouteProviderEngine.hpp"
+#include "assfire/scheduler/tests/io/markdown/MarkdownTableParser.hpp"
 
+using namespace assfire;
 using namespace assfire::router;
 using namespace assfire::scheduler;
 using namespace std;
@@ -40,4 +42,16 @@ TEST_F(LinearWaybillSchedulingAlgorithmTest, Test1) {
     algorithm.scheduleWaybill(scheduled_waybill);
 
     checkEquality(scheduled_waybill, expected_waybill);
+}
+
+TEST_F(LinearWaybillSchedulingAlgorithmTest, Test2) {
+    MarkdownTableParser parser;
+
+    std::string test_header = "| Entry1 | Entry2 | Entry3 | Entry4 | Entry5 |";
+    std::string test_entry =  "| Value1 | Value2 | Value3 | Value4 | Value5 |";
+
+    parser.parseHeader(test_header);
+    MarkdownTableParser::Entry entry = parser.processEntry(test_entry);
+
+    std::cout << "End!" << std::endl;
 }
