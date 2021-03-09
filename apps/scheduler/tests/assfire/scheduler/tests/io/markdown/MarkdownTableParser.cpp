@@ -40,7 +40,7 @@ const assfire::MarkdownTableParser::Entry& assfire::MarkdownTableParser::process
     return entries.back();
 }
 
-const assfire::MarkdownTableParser::Entries &assfire::MarkdownTableParser::getEntrires() const
+const assfire::MarkdownTableParser::Entries &assfire::MarkdownTableParser::getEntries() const
 {
     return entries;
 }
@@ -60,4 +60,12 @@ void assfire::MarkdownTableParser::parseTable(const std::string &table)
 void assfire::MarkdownTableParser::Entry::insert(const std::string &key, const std::string &value)
 {
     data.insert_or_assign(key, value);
+}
+
+bool assfire::MarkdownTableParser::Entry::contains(const std::string &key) const {
+    return data.contains(key);
+}
+
+const std::string &assfire::MarkdownTableParser::Entry::at(const std::string &key) const {
+    return data.at(key);
 }

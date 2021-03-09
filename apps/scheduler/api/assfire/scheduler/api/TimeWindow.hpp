@@ -16,6 +16,7 @@ namespace assfire::scheduler {
         TimeInterval getWidth() const;
 
         static TimeWindow fromEpochSecondsPair(std::int64_t start_epoch_seconds, std::int64_t end_epoch_seconds);
+        static TimeWindow infinity();
 
     private:
         TimePoint start_time;

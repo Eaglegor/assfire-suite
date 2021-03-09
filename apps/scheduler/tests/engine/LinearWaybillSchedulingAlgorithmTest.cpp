@@ -3,6 +3,7 @@
 #include "WaybillSchedulingAlgorithmFixtureBase.hpp"
 #include "assfire/scheduler/engine/algorithms/LinearWaybillSchedulingAlgorithmTest.hpp"
 #include "assfire/router/tests/MockRouteProviderEngine.hpp"
+#include "assfire/scheduler/tests/WaybillBuilder.hpp"
 #include "assfire/scheduler/tests/io/markdown/MarkdownTableParser.hpp"
 
 using namespace assfire;
@@ -19,22 +20,18 @@ public:
 TEST_F(LinearWaybillSchedulingAlgorithmTest, Test1)
 {
 
-    DistanceMatrix distance_matrix = createDistanceMatrix({
-                                                                  "00:10",
-                                                                  "00:10",
-                                                                  "00:10"
-                                                          });
+    DistanceMatrix distance_matrix = createDistanceMatrix({"00:10", "00:10", "00:10"});
 
     Waybill::Allocations jobs = {
-            a(0, d("00:15"), tw("00:00", "02:00")),
-            a(1, d("00:15"), tw("00:00", "02:00")),
-            a(2, d("00:15"), tw("00:00", "02:00"))
+            allocation(0, d("00:15"), tw("00:00", "02:00")),
+            allocation(1, d("00:15"), tw("00:00", "02:00")),
+            allocation(2, d("00:15"), tw("00:00", "02:00"))
     };
 
     Waybill expected_waybill(tw("00:00", "23:59"), {
-            a(jobs[0], t("00:00"), t("00:15"), r("00:10")),
-            a(jobs[1], t("00:25"), t("00:40"), r("00:10")),
-            a(jobs[2], t("00:50"), t("01:05"), r("00:00")),
+            allocation(jobs[0], t("00:00"), t("00:15"), route("00:10")),
+            allocation(jobs[1], t("00:25"), t("00:40"), route("00:10")),
+            allocation(jobs[2], t("00:50"), t("01:05"), route("00:00")),
     });
 
     Waybill scheduled_waybill(tw("00:00", "23:59"), jobs);
@@ -46,19 +43,28 @@ TEST_F(LinearWaybillSchedulingAlgorithmTest, Test1)
     checkEquality(scheduled_waybill, expected_waybill);
 }
 
-TEST_F(LinearWaybillSchedulingAlgorithmTest, Test2)
-{
-    MarkdownTableParser parser;
+TEST_F(LinearWaybillSchedulingAlgorithmTest, DISABLED_Test2) {
 
-    std::string test_table = R"(| Field1  | Field2  | Field3  | Field4  | Field5  |
-                                | ------- | ------- | ------- | ------- | ------- |
-                                | 11      | 12      | 13      | 14      | 15      |
-                                | 21      | 22      | 23      | 24      | 25      |
-                                | 31      | 32      | 33      | 34      | 35      |
-                                | 41      | 42      | 43      | 44      | 45      |
-                                | 51      | 52      | 53      | 54      | 55      |)";
+    std::string schedule = R"(| Type                   | Allocated time  | Time window     |
+                              | --------------------   | --------------- | --------------- |
+                              | ### SHIFT_START ###### | 00:00           |                 |
+                              | ALLOCATION             | 00:00 - 00:15   | [00:00 - 02:00] |
+                              | ROUTE                  | 00:15 - 00:25   |                 |
+                              | ALLOCATION             | 00:25 - 00:40   | [00:00 - 02:00] |
+                              | ROUTE                  | 00:40 - 00:50   |                 |
+                              | ALLOCATION             | 00:50 - 01:05   | [00:00 - 02:00] |
+                              | ROUTE                  | 01:05           |                 |
+                              | ### SHIFT_END ######## | 23:59           |                 |)";
 
-    parser.parseTable(test_table);
+    WaybillBuilder waybill_builder;
+    waybill_builder.parse(schedule);
 
-    std::cout << "End!" << std::endl;
+    Waybill scheduled_waybill(waybill_builder.buildCollapsedWaybill());
+    Waybill expected_waybill(waybill_builder.buildWaybill());
+
+    LinearWaybillSchedulingAlgorithm algorithm(waybill_builder.buildDistanceMatrix());
+
+    algorithm.scheduleWaybill(scheduled_waybill);
+
+    checkEquality(scheduled_waybill, expected_waybill);
 }

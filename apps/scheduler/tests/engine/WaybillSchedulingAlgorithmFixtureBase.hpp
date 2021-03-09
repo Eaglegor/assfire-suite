@@ -50,25 +50,25 @@ namespace assfire::scheduler {
             return TimeInterval::fromSeconds(seconds);
         }
 
-        static router::RouteInfo r(const char *tp) {
+        static router::RouteInfo route(const char *tp) {
             TimeInterval duration = d(tp);
             Distance distance = Distance::fromMeters(duration.toSeconds());
 
             return router::RouteInfo(distance, duration);
         }
 
-        static WaybillAllocation a(const WaybillAllocation &prototype, const TimePoint &start_time, const TimePoint &end_time, router::RouteInfo next_route_duration) {
+        static WaybillAllocation allocation(const WaybillAllocation &prototype, const TimePoint &start_time, const TimePoint &end_time, router::RouteInfo next_route_duration) {
             WaybillAllocation result(start_time, end_time, prototype.getPlannedDuration(), prototype.getTimeWindows(), prototype.getLocation());
             result.setNextRouteInfo(next_route_duration);
             return result;
         }
 
-        static WaybillAllocation a(int location, const TimeInterval &duration, const TimeWindow &time_window) {
+        static WaybillAllocation allocation(int location, const TimeInterval &duration, const TimeWindow &time_window) {
             return WaybillAllocation(TimePoint::zero(), TimePoint::zero(), duration, {time_window},
                                      router::IndexedLocation(location, 0, getLocation(location, location)));
         }
 
-        static WaybillAllocation a(int location, const TimePoint &start, const TimePoint &end, const TimeInterval &duration, const TimeWindow &time_window) {
+        static WaybillAllocation allocation(int location, const TimePoint &start, const TimePoint &end, const TimeInterval &duration, const TimeWindow &time_window) {
             return WaybillAllocation(start, end, duration, {time_window},
                                      router::IndexedLocation(location, 0, getLocation(location, location)));
         }

@@ -9,6 +9,8 @@ namespace assfire
     public:
         class Entry {
         public:
+            bool contains(const std::string& key) const;
+            const std::string& at(const std::string& key) const;
             void insert(const std::string& key, const std::string& value);
 
         private:
@@ -21,7 +23,7 @@ namespace assfire
         void parseHeader(const std::string& header);
         const Entry& processEntry(const std::string& row);
 
-        const Entries& getEntrires() const;
+        const Entries& getEntries() const;
 
     private:
         std::vector<std::string> header;

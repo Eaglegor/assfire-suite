@@ -23,3 +23,7 @@ assfire::TimeInterval TimeWindow::getWidth() const {
 TimeWindow TimeWindow::fromEpochSecondsPair(std::int64_t start_epoch_seconds, std::int64_t end_epoch_seconds) {
     return TimeWindow(TimePoint::fromEpochSeconds(start_epoch_seconds), TimePoint::fromEpochSeconds(end_epoch_seconds));
 }
+
+TimeWindow TimeWindow::infinity() {
+    return TimeWindow(TimePoint::zero(), TimePoint::infinity());
+}

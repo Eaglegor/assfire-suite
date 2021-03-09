@@ -3,6 +3,7 @@
 #include "TimePoint.hpp"
 #include <cstdint>
 #include <compare>
+#include <limits>
 
 namespace assfire {
     class TimeInterval;
@@ -14,6 +15,8 @@ namespace assfire {
         explicit TimePoint(value_type epoch_seconds) : epoch_seconds(epoch_seconds) {}
 
     public:
+        TimePoint() : epoch_seconds(0) {}
+
         auto operator<=>(const TimePoint& rhs) const = default;
 
         std::int64_t toEpochSeconds() const;
@@ -28,6 +31,10 @@ namespace assfire {
 
         static TimePoint zero() {
             return TimePoint::fromEpochSeconds(0);
+        }
+
+        static TimePoint infinity() {
+            return TimePoint::fromEpochSeconds(std::numeric_limits<value_type>::max());
         }
 
     private:
