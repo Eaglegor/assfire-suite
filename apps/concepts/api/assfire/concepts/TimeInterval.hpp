@@ -29,9 +29,9 @@ namespace assfire {
 
         static TimeInterval infinity();
 
-        TimeInterval operator+(const TimeInterval& rhs);
+        TimeInterval operator+(const TimeInterval& rhs) const;
 
-        TimeInterval operator-(const TimeInterval& rhs);
+        TimeInterval operator-(const TimeInterval& rhs) const;
 
         TimeInterval& operator+=(const TimeInterval& rhs);
 

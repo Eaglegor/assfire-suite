@@ -42,7 +42,7 @@ namespace assfire::router
             return index_tag;
         }
 
-        const Location& getLocation() const {
+        const Location& getRawLocation() const {
             return location;
         }
 

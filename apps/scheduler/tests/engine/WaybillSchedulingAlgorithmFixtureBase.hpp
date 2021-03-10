@@ -6,6 +6,7 @@
 #include <tuple>
 #include <ostream>
 #include <ctime>
+#include <assfire/scheduler/api/WaybillSchedulingAlgorithm.hpp>
 #include "assfire/concepts/Location.hpp"
 #include "assfire/router/api/IndexedLocation.hpp"
 #include "assfire/router/api/DistanceMatrix.hpp"
@@ -13,6 +14,8 @@
 #include "assfire/scheduler/api/Waybill.hpp"
 #include "assfire/router/tests/MockRouteProviderEngine.hpp"
 #include "assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp"
+#include "assfire/router/tests/MockRouteProviderEngine.hpp"
+#include "assfire/scheduler/tests/WaybillBuilder.hpp"
 
 namespace assfire::scheduler {
     std::ostream& operator<<(std::ostream& os, const TimePoint& tp) {
@@ -108,6 +111,20 @@ namespace assfire::scheduler {
                 EXPECT_EQ(lhs[i].getStartTime(), rhs[i].getStartTime());
                 EXPECT_EQ(lhs[i].getEndTime(), rhs[i].getEndTime());
             }
+        }
+
+        void makeSimpleTest(const std::string& schedule, const std::function<std::unique_ptr<WaybillSchedulingAlgorithm>(const router::DistanceMatrix& dm)>& createAlgorithm) {
+            WaybillBuilder waybill_builder;
+            waybill_builder.parse(schedule);
+
+            Waybill scheduled_waybill(waybill_builder.buildCollapsedWaybill());
+            Waybill expected_waybill(waybill_builder.buildWaybill());
+
+            std::unique_ptr<WaybillSchedulingAlgorithm> algorithm = createAlgorithm(waybill_builder.buildDistanceMatrix());
+
+            algorithm->scheduleWaybill(scheduled_waybill);
+
+            checkEquality(scheduled_waybill, expected_waybill);
         }
     };
 }

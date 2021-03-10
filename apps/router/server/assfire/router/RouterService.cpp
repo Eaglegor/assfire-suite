@@ -119,7 +119,7 @@ void RouterService::processBatchRequest(const RouterService::GetRoutesBatchReque
 
             response.mutable_status()->set_code(api::v1::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
             api::v1::router::RouteInfo *route_info = response.add_route_infos();
-            route_info->CopyFrom(RouteInfoTranslator::toProto(from_loc.getLocation(), to_loc.getLocation(), route_details));
+            route_info->CopyFrom(RouteInfoTranslator::toProto(from_loc.getRawLocation(), to_loc.getRawLocation(), route_details));
 
             consumeResponse(response);
         }

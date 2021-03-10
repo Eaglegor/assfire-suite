@@ -5,20 +5,20 @@
 using namespace assfire::router;
 
 RouteInfo DirectRequestDistanceMatrixEngine::getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const {
-    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteInfo(origin.getLocation(), destination.getLocation());
+    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteInfo(origin.getRawLocation(), destination.getRawLocation());
     try {
-        return engine->getSingleRouteInfo(origin.getLocation(), destination.getLocation());
+        return engine->getSingleRouteInfo(origin.getRawLocation(), destination.getRawLocation());
     } catch (const std::exception& e) {
-        return processError(origin.getLocation(), destination.getLocation(), e).getSummary();
+        return processError(origin.getRawLocation(), destination.getRawLocation(), e).getSummary();
     }
 }
 
 RouteDetails DirectRequestDistanceMatrixEngine::getRouteDetails(const IndexedLocation &origin, const IndexedLocation &destination) const {
-    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteDetails(origin.getLocation(), destination.getLocation());
+    if(origin.getIndexTag() != matrix_tag || destination.getIndexTag() != matrix_tag) return getRouteDetails(origin.getRawLocation(), destination.getRawLocation());
     try {
-        return engine->getSingleRouteDetails(origin.getLocation(), destination.getLocation());
+        return engine->getSingleRouteDetails(origin.getRawLocation(), destination.getRawLocation());
     } catch(const std::exception& e) {
-        return processError(origin.getLocation(), destination.getLocation(), e);
+        return processError(origin.getRawLocation(), destination.getRawLocation(), e);
     }
 }
 

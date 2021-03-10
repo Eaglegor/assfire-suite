@@ -40,6 +40,7 @@ assfire::TimeInterval WaybillAllocation::getPlannedDuration() const {
 }
 
 TimeWindow WaybillAllocation::getNearestNextTimeWindow(assfire::TimePoint &tp) const {
+    if(time_windows.empty()) return TimeWindow::infinity();
     return *time_windows.begin();
 }
 

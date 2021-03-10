@@ -7,11 +7,11 @@ using namespace assfire::router;
 class MockDistanceMatrixEngine : public DistanceMatrixEngine {
 public:
     RouteInfo getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const override {
-        return getRouteInfo(origin.getLocation(), destination.getLocation());
+        return getRouteInfo(origin.getRawLocation(), destination.getRawLocation());
     }
 
     RouteDetails getRouteDetails(const IndexedLocation &origin, const IndexedLocation &destination) const override {
-        return getRouteDetails(origin.getLocation(), destination.getLocation());
+        return getRouteDetails(origin.getRawLocation(), destination.getRawLocation());
     }
 
     RouteInfo getRouteInfo(const Location &origin, const Location &destination) const override {

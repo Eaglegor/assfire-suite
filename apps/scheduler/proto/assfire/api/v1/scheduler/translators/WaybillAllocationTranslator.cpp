@@ -40,7 +40,7 @@ WaybillAllocationTranslator::ProtoWaybillAllocation WaybillAllocationTranslator:
     result.mutable_end_time()->CopyFrom(TimePointTranslator::toProto(obj.getEndTime()));
     result.mutable_next_route()->CopyFrom(RouteInfoTranslator::toProto(obj.getNextRouteInfo()));
     result.mutable_planned_duration()->CopyFrom(TimeIntervalTranslator::toProto(obj.getPlannedDuration()));
-    result.mutable_location()->CopyFrom(LocationTranslator::toProto(obj.getLocation().getLocation()));
+    result.mutable_location()->CopyFrom(LocationTranslator::toProto(obj.getLocation().getRawLocation()));
 
     for(const auto& tw : obj.getTimeWindows()) {
         result.add_time_windows()->CopyFrom(TimeWindowTranslator::toProto(tw));

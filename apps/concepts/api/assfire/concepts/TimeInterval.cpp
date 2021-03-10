@@ -26,11 +26,11 @@ TimeInterval TimeInterval::infinity() {
     return fromSeconds(INFINITE_TIME_INTERVAL);
 }
 
-TimeInterval TimeInterval::operator+(const TimeInterval &rhs) {
+TimeInterval TimeInterval::operator+(const TimeInterval &rhs) const {
     return TimeInterval::fromSeconds(seconds + rhs.seconds);
 }
 
-TimeInterval TimeInterval::operator-(const TimeInterval &rhs) {
+TimeInterval TimeInterval::operator-(const TimeInterval &rhs) const {
     return TimeInterval::fromSeconds(seconds - rhs.seconds);
 }
 
@@ -67,7 +67,7 @@ TimePoint TimePoint::operator-(const TimeInterval &rhs) const {
 }
 
 TimeInterval TimePoint::operator-(const TimePoint &rhs) const {
-    return TimeInterval::fromSeconds(rhs.toEpochSeconds() - toEpochSeconds());
+    return TimeInterval::fromSeconds(epoch_seconds - rhs.toEpochSeconds());
 }
 
 
