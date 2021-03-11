@@ -9,6 +9,7 @@
 #include "OsrmConnector.hpp"
 #include <random>
 #include <memory>
+#include "assfire/router/engine/EngineMetricsCollector.hpp"
 
 namespace web::http::client {
     class http_client;
@@ -23,8 +24,11 @@ namespace assfire::router {
         RouteDetails getSingleRouteDetails(const Location &origin, const Location &destination) const override;
 
     private:
+        RouteDetails calculateRouteDetails(const Location &origin, const Location &destination) const;
+
         RoutingProfile routing_profile;
         OsrmGeometry geometry;
         std::unique_ptr<OsrmConnector> client;
+        mutable EngineMetricsCollector metrics_collector;
     };
 }

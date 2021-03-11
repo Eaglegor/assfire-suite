@@ -16,11 +16,20 @@ OsrmRouteProviderEngine::OsrmRouteProviderEngine(const RoutingProfile &routingPr
         client(std::move(connector)){}
 
 RouteInfo OsrmRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const {
-    return getSingleRouteDetails(origin, destination).getSummary();
+    metrics_collector.recordSingleOsrmRouteInfoCalculation(geometry);
+    return calculateRouteDetails(origin, destination).getSummary();
 }
 
 RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &origin, const Location &destination) const {
-    if (origin == destination) return RouteDetails(RouteInfo::zero(), {origin, destination});
+    metrics_collector.recordSingleOsrmRouteDetailsCalculation(geometry);
+    return calculateRouteDetails(origin, destination);
+}
+
+RouteDetails OsrmRouteProviderEngine::calculateRouteDetails(const assfire::Location &origin, const assfire::Location &destination) const
+{
+    if (origin == destination) return RouteDetails::zero(origin, destination);
+
+    auto stopwatch = metrics_collector.measureSingleOsrmRouteDetailsCalculation(geometry);
 
     uri_builder builder;
     builder
@@ -84,5 +93,5 @@ RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &orig
                  distance.toMeters(), duration.toSeconds());
 
 
-    return RouteDetails(RouteInfo(distance, duration), waypoints);;
+    return RouteDetails(distance, duration, waypoints);
 }

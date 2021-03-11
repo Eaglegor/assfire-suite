@@ -5,12 +5,31 @@
 
 using namespace assfire::router;
 
-RandomRouteProviderEngine::RandomRouteProviderEngine(const RoutingProfile &routingProfile) : routing_profile(routingProfile),
-                                                                                             gen(rd()),
-                                                                                             distr(1000.0, 100000.0) {}
+RandomRouteProviderEngine::RandomRouteProviderEngine(const RoutingProfile &routingProfile, EngineMetricsCollector metrics_collector)
+        : routing_profile(routingProfile),
+          gen(rd()),
+          distr(1000.0, 100000.0),
+          metrics_collector(std::move(metrics_collector))
+{}
 
-RouteInfo RandomRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const {
+RouteInfo RandomRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const
+{
+    metrics_collector.recordSingleRandomRouteInfoCalculation();
+    return calculateRouteInfo(origin, destination);
+}
+
+RouteDetails RandomRouteProviderEngine::getSingleRouteDetails(const Location &origin, const Location &destination) const
+{
+
+    metrics_collector.recordSingleRandomRouteDetailsCalculation();
+    return RouteDetails(calculateRouteInfo(origin, destination), {origin, destination});
+}
+
+RouteInfo RandomRouteProviderEngine::calculateRouteInfo(const assfire::Location &origin, const assfire::Location &destination) const
+{
     if (origin == destination) return RouteInfo::zero();
+
+    auto stopwatch = metrics_collector.measureSingleRandomRouteInfoCalculation();
 
     Distance distance = Distance::fromMeters(distr(gen));
     TimeInterval duration = routing_profile.getSpeed().getSecondsToTravel(distance);
@@ -21,8 +40,4 @@ RouteInfo RandomRouteProviderEngine::getSingleRouteInfo(const Location &origin, 
                  distance.toMeters(), duration.toSeconds());
 
     return RouteInfo(distance, duration);
-}
-
-RouteDetails RandomRouteProviderEngine::getSingleRouteDetails(const Location &origin, const Location &destination) const {
-    return RouteDetails(getSingleRouteInfo(origin, destination), {origin, destination});
 }

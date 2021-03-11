@@ -1,4 +1,5 @@
 set(SOURCES
+        assfire/router/engine/EngineMetricsCollector.cpp
         assfire/router/engine/DistanceMatrixFactory.cpp
         assfire/router/engine/RouterEngine.cpp
         assfire/router/engine/impl/route_provider_engines/CrowflightRouteProviderEngine.cpp
@@ -10,7 +11,8 @@ set(SOURCES
         assfire/router/engine/impl/route_provider_engines/CppRedisCacheConnector.cpp
         assfire/router/engine/impl/route_provider_engines/RestSdkOsrmConnector.cpp)
 set(HEADERS
-        assfire/router/engine/MetricsCollector.hpp
+        assfire/router/engine/EngineMetricsCollector.hpp
+        assfire/router/engine/MetricsConsumer.hpp
         assfire/router/engine/RouterEngine.hpp
         assfire/router/engine/DistanceMatrixFactory.hpp
         assfire/router/engine/impl/route_provider_engines/CrowflightRouteProviderEngine.hpp

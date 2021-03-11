@@ -2,7 +2,6 @@
 
 #include <assfire/api/v1/router/service.grpc.pb.h>
 #include <assfire/router/engine/RouterEngine.hpp>
-#include "ServerMetricsCollector.hpp"
 #include <memory>
 #include <atomic>
 #include <functional>
@@ -19,8 +18,6 @@ namespace assfire::router
         using ResponseStatus = assfire::api::v1::router::ResponseStatus;
 
         struct Options {
-            std::shared_ptr<MetricsCollector> metrics_collector;
-
             bool use_redis = false;
             std::string redis_host;
             std::size_t redis_port;

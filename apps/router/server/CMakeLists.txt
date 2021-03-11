@@ -1,11 +1,9 @@
 set(TARGET_NAME assfire-router-server)
 set(SOURCES
         main.cpp
-        assfire/router/RouterService.cpp
-        assfire/router/ServerMetricsCollector.cpp)
+        assfire/router/RouterService.cpp)
 set(HEADERS
-        assfire/router/RouterService.h
-        assfire/router/ServerMetricsCollector.hpp)
+        assfire/router/RouterService.hpp)
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
