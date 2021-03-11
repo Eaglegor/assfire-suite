@@ -19,7 +19,7 @@ bool assfire::MarkdownTableParser::parseHeader(const std::string &h)
         header.push_back(w);
     }
 
-    if(header.empty()) return false;
+    return !header.empty();
 }
 
 const assfire::MarkdownTableParser::Entry& assfire::MarkdownTableParser::processEntry(const std::string &row)
@@ -54,7 +54,7 @@ void assfire::MarkdownTableParser::parseTable(const std::string &table)
 
     bool header_parsed = false;
     while(std::getline(ss,to,'\n')){
-        if(!header_parsed) header_parsed |= parseHeader(to);
+        if(!header_parsed) header_parsed = parseHeader(to);
         else processEntry(to);
     }
 }
