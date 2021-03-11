@@ -17,7 +17,7 @@ void BilinearWaybillSchedulingAlgorithm::scheduleWaybill(Waybill &waybill) const
         else allocation.setNextRouteInfo(RouteInfo::zero());
         TimeWindow tw = allocation.getNearestNextTimeWindow(current_time);
         TimeInterval waiting_time = tw.getStartTime() - current_time;
-        TimeInterval shift = std::min(waiting_time, shift_budget);
+        TimeInterval shift = std::max(TimeInterval::zero(), std::min(waiting_time, shift_budget));
         if (shift.isPositive()) {
             for (int j = i; j >= 0; --j) {
                 waybill[j].shiftStartTime(shift);

@@ -18,9 +18,11 @@
 #include "assfire/scheduler/tests/WaybillBuilder.hpp"
 
 namespace assfire::scheduler {
-    std::ostream& operator<<(std::ostream& os, const TimePoint& tp) {
-        std::time_t time = tp.toEpochSeconds();
-        return os << std::put_time(std::gmtime(&time), "%H:%M:%S");
+    namespace {
+        std::ostream &operator<<(std::ostream &os, const TimePoint &tp) {
+            std::time_t time = tp.toEpochSeconds();
+            return os << std::put_time(std::gmtime(&time), "%H:%M:%S");
+        }
     }
 
     class WaybillSchedulingAlgorithmFixtureBase : public testing::Test {

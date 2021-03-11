@@ -1,6 +1,6 @@
 set(HEADERS
         assfire/scheduler/engine/SchedulerEngine.hpp
-        assfire/scheduler/engine/algorithms/LinearWaybillSchedulingAlgorithmTest.hpp
+        assfire/scheduler/engine/algorithms/LinearWaybillSchedulingAlgorithm.hpp
         assfire/scheduler/engine/algorithms/BilinearWaybillSchedulingAlgorithm.hpp
         assfire/scheduler/engine/WaybillSchedulerFactory.hpp
         assfire/scheduler/engine/MetricsCollector.hpp)

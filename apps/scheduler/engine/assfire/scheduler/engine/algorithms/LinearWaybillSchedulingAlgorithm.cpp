@@ -1,4 +1,4 @@
-#include "LinearWaybillSchedulingAlgorithmTest.hpp"
+#include "LinearWaybillSchedulingAlgorithm.hpp"
 #include "assfire/scheduler/api/Waybill.hpp"
 
 using namespace assfire::router;

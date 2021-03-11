@@ -22,7 +22,7 @@ namespace assfire
         using Entries = std::vector<Entry>;
 
         void parseTable(const std::string& table);
-        void parseHeader(const std::string& header);
+        bool parseHeader(const std::string& header);
         const Entry& processEntry(const std::string& row);
 
         const Entries& getEntries() const;

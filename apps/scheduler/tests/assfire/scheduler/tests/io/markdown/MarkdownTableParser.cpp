@@ -8,7 +8,7 @@ namespace {
     static const std::regex MD_REGEX("\\|\\s*(.*?)\\s*(?=\\|)");
 }
 
-void assfire::MarkdownTableParser::parseHeader(const std::string &h)
+bool assfire::MarkdownTableParser::parseHeader(const std::string &h)
 {
     auto header_begin =
             std::sregex_iterator(h.begin(), h.end(), MD_REGEX);
@@ -18,6 +18,8 @@ void assfire::MarkdownTableParser::parseHeader(const std::string &h)
         std::string w = iter->str(1);
         header.push_back(w);
     }
+
+    if(header.empty()) return false;
 }
 
 const assfire::MarkdownTableParser::Entry& assfire::MarkdownTableParser::processEntry(const std::string &row)
@@ -50,9 +52,9 @@ void assfire::MarkdownTableParser::parseTable(const std::string &table)
     std::stringstream ss(table);
     std::string to;
 
-    int index = 0;
+    bool header_parsed = false;
     while(std::getline(ss,to,'\n')){
-        if(index++ == 0) parseHeader(to);
+        if(!header_parsed) header_parsed |= parseHeader(to);
         else processEntry(to);
     }
 }

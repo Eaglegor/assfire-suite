@@ -1,5 +1,5 @@
 #include "WaybillSchedulerFactory.hpp"
-#include "algorithms/LinearWaybillSchedulingAlgorithmTest.hpp"
+#include "algorithms/LinearWaybillSchedulingAlgorithm.hpp"
 #include "algorithms/BilinearWaybillSchedulingAlgorithm.hpp"
 #include <stdexcept>
 
