@@ -216,9 +216,7 @@ WaybillBuilder &WaybillBuilder::parse(const std::string &schedule) {
 
     for (int i = 0; i < parser.getEntries().size(); ++i) {
         const auto &entry = parser.getEntries()[i];
-        if (!entry.contains(TYPE)) {
-            throw std::invalid_argument("Schedule entry doesn't contain Type");
-        }
+        if (!entry.contains(TYPE)) continue;
         WaybillEntryType type = parseType(entry.at(TYPE));
 
         switch (type) {
