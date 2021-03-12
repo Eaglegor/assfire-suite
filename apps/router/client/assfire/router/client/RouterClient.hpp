@@ -8,11 +8,12 @@
 #include <assfire/router/api/RoutingProfile.hpp>
 #include <assfire/router/api/RouteProviderSettings.hpp>
 #include "ClientDistanceMatrixFactory.hpp"
+#include "assfire/router/api/RouterApi.hpp"
 
 namespace assfire::router {
     class ProtobufClient;
 
-    class RouterClient final {
+    class RouterClient : public RouterApi {
     public:
         using Port = std::size_t;
 
@@ -26,22 +27,21 @@ namespace assfire::router {
                                             DistanceMatrixCachingPolicy caching_policy,
                                             const RoutingProfile &routing_profile,
                                             const RouteProviderSettings &settings,
-                                            DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY) const;
+                                            DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY) const override;
 
         RouteInfo getRouteInfo(const Location &origin,
                                const Location &destination,
                                RouterEngineType engine_type,
                                const RoutingProfile &routing_profile,
-                               const RouteProviderSettings &settings) const;
+                               const RouteProviderSettings &settings) const override;
 
         RouteDetails getRouteDetails(const Location &origin,
                                      const Location &destination,
                                      RouterEngineType engine_type,
                                      const RoutingProfile &routing_profile,
-                                     const RouteProviderSettings &settings) const;
+                                     const RouteProviderSettings &settings) const override;
 
     private:
-        std::unique_ptr<ProtobufClient> transport_client;
         ClientDistanceMatrixFactory distance_matrix_factory;
     };
 }

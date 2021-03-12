@@ -7,8 +7,11 @@
 
 using namespace assfire::router;
 
+
+ClientDistanceMatrixFactory::ClientDistanceMatrixFactory(std::unique_ptr<ProtobufClient> grpc_client) : grpc_client(std::move(grpc_client)) {}
+
 namespace {
-    std::unique_ptr<RouteProviderEngine> createEngine(const GrpcProtobufClient& client, RouterEngineType engine_type, const RoutingProfile &routing_profile, const RouteProviderSettings &settings) {
+    std::unique_ptr<RouteProviderEngine> createEngine(const ProtobufClient& client, RouterEngineType engine_type, const RoutingProfile &routing_profile, const RouteProviderSettings &settings) {
         return std::make_unique<GrpcRouteProviderEngine>(client, engine_type, settings, routing_profile);
     }
 }

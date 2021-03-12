@@ -15,11 +15,13 @@
 namespace assfire::router {
     class ClientDistanceMatrixFactory {
     public:
+        ClientDistanceMatrixFactory(std::unique_ptr<ProtobufClient> grpc_client);
+
         DistanceMatrix createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings,
                                             DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY) const;
 
     private:
         mutable std::atomic_int tag_counter;
-        std::unique_ptr<GrpcProtobufClient> grpc_client;
+        std::unique_ptr<ProtobufClient> grpc_client;
     };
 }

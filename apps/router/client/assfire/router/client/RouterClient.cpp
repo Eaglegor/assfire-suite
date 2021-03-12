@@ -4,11 +4,11 @@
 #include <spdlog/spdlog.h>
 
 assfire::router::RouterClient::RouterClient(const std::string &server_host, Port server_port, bool use_ssl)
-        : transport_client(std::make_unique<GrpcProtobufClient>(server_host, server_port, use_ssl)) {
+        : distance_matrix_factory(std::make_unique<GrpcProtobufClient>(server_host, server_port, use_ssl)) {
 }
 
 assfire::router::RouterClient::RouterClient(std::unique_ptr<ProtobufClient> client)
-        : transport_client(std::move(client)) {
+        : distance_matrix_factory(std::move(client)) {
 }
 
 assfire::router::RouterClient::~RouterClient() = default;
