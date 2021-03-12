@@ -5,7 +5,7 @@
 #include <chrono>
 #include <assfire/metrics/stopwatch.hpp>
 #include <assfire/router/api/RouterEngineType.hpp>
-#include "MetricsConsumer.hpp"
+#include "EngineMetricsConsumer.hpp"
 #include "assfire/router/api/RouteProviderSettings.hpp"
 
 namespace assfire::router {
@@ -37,6 +37,6 @@ namespace assfire::router {
         void recordRedisCacheMiss();
 
 	private:
-	   std::shared_ptr<MetricsConsumer> metrics_consumer;
+	   std::shared_ptr<EngineMetricsConsumer> metrics_consumer;
     };
 }
