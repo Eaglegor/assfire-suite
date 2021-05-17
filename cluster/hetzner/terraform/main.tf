@@ -12,7 +12,7 @@ terraform {
 variable hcloud_token {}
 
 locals {
-  ssh_keys = ["eaglegor@ubuntu-win", "eaglegor@DESKTOP"]
+  ssh_keys = ["eaglegor@DESKTOP-N469TTV"]
 }
 
 provider "hcloud" {

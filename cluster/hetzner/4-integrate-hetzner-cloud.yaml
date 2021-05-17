@@ -85,27 +85,27 @@
         name: hcloud-fip-controller
         api_version: v1
         kind: Namespace
-    - name: Ensure floating ip failover controller is deployed
-      community.kubernetes.helm:
-        chart_ref: hcloud-fip-controller
-        chart_repo_url: "https://cbeneke.github.com/helm-charts"
-        release_name: hcloud-fip-controller
-        release_state: present
-        release_namespace: hcloud-fip-controller
-        release_values:
-          configInline:
-            hcloud_floating_ips:
-              - "{{floating_ip}}"
-            lease_duration: 30
-            lease_name: production
-            log_level: info
-    - name: Ensure floating ip failover controller secret is deployed
-      community.kubernetes.k8s:
-        state: present
-        definition:
-          kind: Secret
-          metadata:
-            name: hcloud-fip-controller-env
-            namespace: hcloud-fip-controller
-          stringData:
-            HCLOUD_API_TOKEN: "{{hcloud_token}}"
+#    - name: Ensure floating ip failover controller is deployed
+#      community.kubernetes.helm:
+#        chart_ref: hcloud-fip-controller
+#        chart_repo_url: "https://github.com/cbeneke/helm-charts"
+#        release_name: hcloud-fip-controller
+#        release_state: present
+#        release_namespace: hcloud-fip-controller
+#        release_values:
+#          configInline:
+#            hcloud_floating_ips:
+#              - "{{floating_ip}}"
+#            lease_duration: 30
+#            lease_name: production
+#            log_level: info
+#    - name: Ensure floating ip failover controller secret is deployed
+#      community.kubernetes.k8s:
+#        state: present
+#        definition:
+#          kind: Secret
+#          metadata:
+#            name: hcloud-fip-controller-env
+#            namespace: hcloud-fip-controller
+#          stringData:
+#            HCLOUD_API_TOKEN: "{{hcloud_token}}"

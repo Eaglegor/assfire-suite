@@ -1,4 +1,17 @@
 ---
+- name: Ensure assfire namespaces are present
+  hosts: localhost
+  connection: local
+  collections:
+    - community.kubernetes
+  tasks:
+    - name: Create assfire namespace
+      community.kubernetes.k8s:
+        name: assfire
+        api_version: v1
+        kind: Namespace
+        state: present
+
 - name: Ensure docker credentials are configured
   hosts: localhost
   connection: local
@@ -37,19 +50,6 @@
           data:
             .dockerconfigjson: "{{dockerconfigjson}}"
           type: kubernetes.io/dockerconfigjson
-
-- name: Ensure assfire namespaces are present
-  hosts: localhost
-  connection: local
-  collections:
-    - community.kubernetes
-  tasks:
-    - name: Create assfire namespace
-      community.kubernetes.k8s:
-        name: assfire
-        api_version: v1
-        kind: Namespace
-        state: present
 
 - name: Ensure assfire nodes are labeled properly
   hosts: localhost
