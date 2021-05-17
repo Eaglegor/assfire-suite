@@ -62,17 +62,15 @@ class RequestControls extends Component {
 
     buildRequest(state) {
         return state.endpoint + "?" + new URLSearchParams({
-            "origin.lat": state.from_latitude,
-            "origin.lon": state.from_longitude,
-            "destination.lat": state.to_latitude,
-            "destination.lon": state.to_longitude,
-            "options.velocity": state.velocity,
-            "options.coordinates_format.precision": state.coordinates_format_precision,
-            "options.routing_type": state.routing_type,
-            "options.coordinates_format.type": state.coordinates_format,
-            "options.retrieve_waypoints": state.retrieve_waypoints,
-            "options.force_update": state.force_update,
-            "options.osrm.geometry": state.osrm_geometry
+            "origin.encoded_latitude": state.from_latitude,
+            "origin.encoded_longitude": state.from_longitude,
+            "destination.encoded_latitude": state.to_latitude,
+            "destination.encoded_longitude": state.to_longitude,
+            "routing_profile.speed.meters_per_second": state.velocity,
+            "settings.router_engine_type": state.routing_type,
+            "settings.retrieve_waypoints": state.retrieve_waypoints,
+            "settings.force_update": state.force_update,
+            "settings.osrm_settings.geometry": state.osrm_geometry
         }).toString();
     }
 
@@ -101,28 +99,21 @@ class RequestControls extends Component {
                     <label>routing_type: </label>
                     <select name="routing_type" value={this.state.routing_type}
                             onChange={(event) => this.handleUpdate({routing_type: event.target.value})}>
-                        <option>CROWFLIGHT</option>
-                        <option>EUCLIDEAN</option>
-                        <option>RANDOM</option>
-                        <option>OSRM</option>
+                        <option>ROUTER_ENGINE_TYPE_CROWFLIGHT</option>
+                        <option>ROUTER_ENGINE_TYPE_EUCLIDEAN</option>
+                        <option>ROUTER_ENGINE_TYPE_RANDOM</option>
+                        <option>ROUTER_ENGINE_TYPE_OSRM</option>
                     </select>
                     <label>coordinates.format: </label>
-                    <select name="coordinates_format" value={this.state.coordinates_format}
-                            onChange={(event) => this.handleUpdate({coordinates_format: event.target.value})}>
-                        <option>FIXED_POINT_INT</option>
-                    </select>
-                    <label>coordinates.dp: </label><input name="coordinates_format_precision"
-                                                          value={this.state.coordinates_format_precision}
-                                                          onChange={(event) => this.handleUpdate({coordinates_format_precision: event.target.value})}/>
                     <label>retrieve_waypoints: </label><input type="checkbox" name="retrieve_waypoints"
                                                               checked={this.state.retrieve_waypoints}
                                                               onChange={(event) => this.handleUpdate({retrieve_waypoints: !this.state.retrieve_waypoints})}/>
                     <label>osrm_geometry: </label>
                     <select name="osrm_geometry" value={this.state.osrm_geometry}
                             onChange={(event) => this.handleUpdate({osrm_geometry: event.target.value})}>
-                        <option>STRAIGHT_LINE</option>
-                        <option>SIMPLIFIED</option>
-                        <option>FULL</option>
+                        <option>OSRM_GEOMETRY_STRAIGHT_LINE</option>
+                        <option>OSRM_GEOMETRY_SIMPLIFIED</option>
+                        <option>OSRM_GEOMETRY_FULL</option>
                     </select>
                     <label>force_update: </label><input type="checkbox" name="force_update"
                                                         checked={this.state.force_update}
