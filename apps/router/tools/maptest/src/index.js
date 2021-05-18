@@ -53,11 +53,11 @@ class RequestControls extends Component {
         to_longitude: 50178594,
         velocity: 16.6,
         coordinates_format_precision: 6,
-        routing_type: "CROWFLIGHT",
+        routing_type: "ROUTER_ENGINE_TYPE_CROWFLIGHT",
         coordinates_format: "FIXED_POINT_INT",
         retrieve_waypoints: false,
         force_update: false,
-        osrm_geometry: "STRAIGHT_LINE"
+        osrm_geometry: "OSRM_GEOMETRY_STRAIGHT_LINE"
     }
 
     buildRequest(state) {
@@ -104,7 +104,6 @@ class RequestControls extends Component {
                         <option>ROUTER_ENGINE_TYPE_RANDOM</option>
                         <option>ROUTER_ENGINE_TYPE_OSRM</option>
                     </select>
-                    <label>coordinates.format: </label>
                     <label>retrieve_waypoints: </label><input type="checkbox" name="retrieve_waypoints"
                                                               checked={this.state.retrieve_waypoints}
                                                               onChange={(event) => this.handleUpdate({retrieve_waypoints: !this.state.retrieve_waypoints})}/>
@@ -140,7 +139,7 @@ class AssfireRouterTestUI extends Component {
 
     parseWaypoints(waypoints, request) {
         if (waypoints == null) return [];
-        return waypoints.map((wp) => [this.convertCoordinate(wp.lat, request), this.convertCoordinate(wp.lon, request)])
+        return waypoints.map((wp) => [this.convertCoordinate(wp.encodedLatitude, request), this.convertCoordinate(wp.encodedLongitude, request)])
     }
 
     sendRequest(requestString, request) {
@@ -152,7 +151,7 @@ class AssfireRouterTestUI extends Component {
                     response: response
                 },
                 {
-                    waypoints: this.parseWaypoints(response.route_info.waypoints, request)
+                    waypoints: this.parseWaypoints(response.routeInfo.waypoints, request)
                 }))
         })
         httpRequest.open('GET', requestString)
