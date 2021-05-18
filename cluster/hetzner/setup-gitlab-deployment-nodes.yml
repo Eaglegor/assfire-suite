@@ -39,7 +39,7 @@
         cmd: gitlab-runner register --tag-list assfire-deployment-node -n -u https://gitlab.com -r "{{GITLAB_TOKEN}}" --executor shell
     - name: Register build runner in project
       shell:
-        cmd: gitlab-runner register -n -u https://gitlab.com -r "{{GITLAB_TOKEN}}" --executor docker --docker-image busybox:latest
+        cmd: gitlab-runner register -n -u https://gitlab.com -r "{{GITLAB_TOKEN}}" --executor docker --docker-image docker:19.03.12 --docker-privileged --docker-volumes "/certs/client"
     - name: Start gitlab runner
       service:
         name: gitlab-runner
