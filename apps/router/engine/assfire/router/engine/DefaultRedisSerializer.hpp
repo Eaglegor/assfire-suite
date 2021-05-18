@@ -36,7 +36,7 @@ namespace assfire::router {
             str << details.getWaypoints().size() << " ";
             for (const RouteDetails::Waypoint &waypoint : details.getWaypoints()) {
                 str << waypoint.getLatitude().encodedValue() << " "
-                    << waypoint.getLongitude().encodedValue();
+                    << waypoint.getLongitude().encodedValue() << " ";
             }
 
             return str.str();
