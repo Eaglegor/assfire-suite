@@ -4,7 +4,7 @@ using namespace assfire::api::v1::concepts;
 
 LocationTranslator::ApiLocation LocationTranslator::fromProto(const ProtoLocation &location)
 {
-    return ApiLocation::fromEncodedLatLon(location.encoded_latitude(), location.encoded_latitude());
+    return ApiLocation::fromEncodedLatLon(location.encoded_latitude(), location.encoded_longitude());
 }
 
 LocationTranslator::ProtoLocation LocationTranslator::toProto(const ApiLocation &location)
