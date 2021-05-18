@@ -20,10 +20,10 @@ namespace assfire::router {
 
         std::string serializeKey(const Location &origin, const Location &destination) override {
             std::ostringstream str;
-            str << origin.getLatitude().encodedValue()
-                << origin.getLongitude().encodedValue()
-                << destination.getLatitude().encodedValue()
-                << destination.getLongitude().encodedValue()
+            str << origin.getLatitude().encodedValue() << " "
+                << origin.getLongitude().encodedValue() << " "
+                << destination.getLatitude().encodedValue() << " "
+                << destination.getLongitude().encodedValue() << " "
                 << suffix;
             return str.str();
         }
@@ -35,7 +35,7 @@ namespace assfire::router {
 
             str << details.getWaypoints().size() << " ";
             for (const RouteDetails::Waypoint &waypoint : details.getWaypoints()) {
-                str << waypoint.getLatitude().encodedValue()
+                str << waypoint.getLatitude().encodedValue() << " "
                     << waypoint.getLongitude().encodedValue();
             }
 
