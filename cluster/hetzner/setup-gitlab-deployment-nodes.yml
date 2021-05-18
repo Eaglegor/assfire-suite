@@ -34,9 +34,12 @@
     - name: Unregistering old runners
       shell:
         cmd: gitlab-runner unregister --all-runners
-    - name: Register gitlab runner in project
+    - name: Register deployment gitlab runner in project
       shell:
         cmd: gitlab-runner register --tag-list assfire-deployment-node -n -u https://gitlab.com -r "{{GITLAB_TOKEN}}" --executor shell
+    - name: Register build runner in project
+      shell:
+        cmd: gitlab-runner register -n -u https://gitlab.com -r "{{GITLAB_TOKEN}}" --executor docker --docker-image busybox:latest
     - name: Start gitlab runner
       service:
         name: gitlab-runner
