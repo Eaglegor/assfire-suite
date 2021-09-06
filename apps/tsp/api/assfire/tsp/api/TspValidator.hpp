@@ -10,6 +10,6 @@ namespace assfire::tsp {
         using Points = std::vector<TspPoint>;
         using Sequence = std::vector<int>;
 
-        virtual TspValidationResult validate(const Points& points, const Sequence& sequence) = 0;
+        virtual TspValidationResult validate(const Points& points, const Sequence& sequence) const = 0;
     };
 }

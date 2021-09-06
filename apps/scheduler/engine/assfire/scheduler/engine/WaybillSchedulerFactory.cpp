@@ -12,9 +12,9 @@ WaybillScheduler WaybillSchedulerFactory::createWaybillScheduler(AlgorithmType t
 
     switch(type) {
         case WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_LINEAR:
-            return WaybillScheduler(std::make_unique<LinearWaybillSchedulingAlgorithm>(context.getDistanceMatrixProvider()(settings.getRouterEngineType(), settings.getRouteProviderSettings(), routing_profile)));
+            return WaybillScheduler(std::make_shared<LinearWaybillSchedulingAlgorithm>(context.getDistanceMatrixProvider()(settings.getRouterEngineType(), settings.getRouteProviderSettings(), routing_profile)));
         case WaybillSchedulingAlgorithmType::WAYBILL_SCHEDULING_ALGORITHM_TYPE_BILINEAR:
-            return WaybillScheduler(std::make_unique<BilinearWaybillSchedulingAlgorithm>(context.getDistanceMatrixProvider()(settings.getRouterEngineType(), settings.getRouteProviderSettings(), routing_profile)));
+            return WaybillScheduler(std::make_shared<BilinearWaybillSchedulingAlgorithm>(context.getDistanceMatrixProvider()(settings.getRouterEngineType(), settings.getRouteProviderSettings(), routing_profile)));
         default:
             throw std::invalid_argument("Unknown waybill scheduling algorithm type");
     }

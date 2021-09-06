@@ -2,7 +2,7 @@
 
 using namespace assfire::scheduler;
 
-WaybillScheduler::WaybillScheduler(std::unique_ptr<WaybillSchedulingAlgorithm> algorithm)
+WaybillScheduler::WaybillScheduler(AlgorithmPtr algorithm)
         : algorithm(std::move(algorithm)) {}
 
 Waybill WaybillScheduler::scheduleWaybill(const Waybill &waybill_prototype) const {

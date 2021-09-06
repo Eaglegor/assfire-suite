@@ -3,6 +3,10 @@
 
 namespace assfire::tsp {
 
+    TspSolver::TspSolver(const AlgorithmPtr &tsp_algorithm)
+            : tsp_algorithm(tsp_algorithm)
+    {}
+
     TspSolution TspSolver::solveTsp(const TspTask &task, const TspInterruptor& tsp_interruptor) const
     {
         return tsp_algorithm->solveTsp(task, tsp_interruptor);

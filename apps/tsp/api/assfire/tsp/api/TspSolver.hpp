@@ -15,6 +15,8 @@ namespace assfire::tsp
         using AlgorithmPtr = std::shared_ptr<TspAlgorithm>;
         using TspResultCallback = TspAlgorithm::TspResultCallback;
 
+        TspSolver(const AlgorithmPtr &tsp_algorithm);
+
         TspSolution solveTsp(const TspTask& task, const TspInterruptor& interruptor) const;
         void solveTsp(const TspTask& task, TspResultCallback resultCallback, const TspInterruptor& interruptor) const;
 

@@ -7,12 +7,14 @@ namespace assfire::scheduler
 {
     class WaybillScheduler {
     public:
-        WaybillScheduler(std::unique_ptr<WaybillSchedulingAlgorithm> algorithm);
+        using AlgorithmPtr = std::shared_ptr<WaybillSchedulingAlgorithm>;
+
+        WaybillScheduler(AlgorithmPtr algorithm);
 
         Waybill scheduleWaybill(const Waybill& waybill_prototype) const;
         void scheduleWaybillInPlace(Waybill& waybill) const;
 
     private:
-        std::unique_ptr<WaybillSchedulingAlgorithm> algorithm;
+        AlgorithmPtr algorithm;
     };
 }
