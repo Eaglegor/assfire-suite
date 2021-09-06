@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package assfire.api.v1.tsp;
+option go_package = "assfire.org/api/v1/tsp";
+
+import "assfire/api/v1/concepts/concepts.proto";
+import "assfire/api/v1/router/concepts.proto";
+import "assfire/api/v1/scheduler/concepts.proto";
+
+enum TspAlgorithmType {
+  TSP_ALGORITHM_TYPE_UNSPECIFIED = 0;
+  TSP_ALGORITHM_TYPE_TWO_OPT = 1;
+}
+
+enum TspCostFunctionType {
+  TSP_COST_FUNCTION_TYPE_UNSPECIFIED = 0;
+  TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE = 1;
+}
+
+message TotalDistanceTspCostFunctionSettings {
+  enum DistanceUnit {
+    KILOMETER = 0;
+    MILE = 1;
+  }
+  double cost_per_distance_unit = 1;
+  DistanceUnit distance_unit = 2;
+}
+
+message TspCostFunctionSettings {
+  TspCostFunctionType type = 1;
+  TotalDistanceTspCostFunctionSettings total_distance_cost_function_settings = 2;
+}
+
+enum TspValidatorType {
+  TSP_VALIDATOR_TYPE_UNSPECIFIED = 0;
+  TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION = 1;
+}
+
+message TspValidatorSettings {
+  TspValidatorType type = 1;
+}
+
+message TspEstimatorSettings {
+  TspCostFunctionSettings cost_function_settings = 1;
+  TspValidatorSettings validator_settings = 2;
+}
+
+message TspSolverSettings {
+  assfire.api.v1.router.RouteProviderSettings route_provider_settings = 1;
+}
+
+message TspPoint {
+  assfire.api.v1.concepts.Location location = 1;
+}
+
+message TspTask {
+  repeated TspPoint points = 1;
+}
+
+message TspCost {
+  double value = 1;
+}
+
+message TspValidationResult {
+  bool is_valid = 1;
+}
+
+message TspSolution {
+  repeated int32 optimized_sequence = 1;
+  TspCost cost = 2;
+  TspValidationResult validation_result = 3;
+  bool is_final = 4;
+}
