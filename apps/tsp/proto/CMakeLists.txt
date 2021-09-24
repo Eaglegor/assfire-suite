@@ -14,24 +14,30 @@ define_grpc_target(
         PROTOS assfire/api/v1/tsp/service.proto
 )
 
-#define_proto_cpp_api_translation_target(
-#        TARGET_NAME assfire-tsp-proto-cpp-translation
-#        PROTO_TARGET assfire-tsp-proto
-#        API_TARGET assfire-tsp-api
-#        DEPENDS assfire-concepts-proto-cpp-translation assfire-router-proto-cpp-translation assfire-scheduler-proto-cpp-translation
-#        HEADERS
-#        assfire/api/v1/scheduler/translators/Translators.hpp
-#        assfire/api/v1/scheduler/translators/WaybillTranslator.hpp
-#        assfire/api/v1/scheduler/translators/WaybillAllocationTranslator.hpp
-#        assfire/api/v1/scheduler/translators/WaybillSchedulingAlgorithmTypeTranslator.hpp
-#        assfire/api/v1/scheduler/translators/WaybillSchedulerSettingsTranslator.hpp
-#        assfire/api/v1/scheduler/translators/TimeWindowTranslator.hpp
-#        SOURCES
-#        assfire/api/v1/scheduler/translators/WaybillTranslator.cpp
-#        assfire/api/v1/scheduler/translators/WaybillAllocationTranslator.cpp
-#        assfire/api/v1/scheduler/translators/WaybillSchedulingAlgorithmTypeTranslator.cpp
-#        assfire/api/v1/scheduler/translators/WaybillSchedulerSettingsTranslator.cpp
-#        assfire/api/v1/scheduler/translators/TimeWindowTranslator.cpp
-#        PUBLIC_INCLUDE_DIRS
-#        ${CMAKE_CURRENT_SOURCE_DIR}
-#)
+define_proto_cpp_api_translation_target(
+        TARGET_NAME assfire-tsp-proto-cpp-translation
+        PROTO_TARGET assfire-tsp-proto
+        API_TARGET assfire-tsp-api
+        DEPENDS assfire-concepts-proto-cpp-translation assfire-router-proto-cpp-translation assfire-scheduler-proto-cpp-translation
+        HEADERS
+        assfire/api/v1/tsp/translators/Translators.hpp
+        assfire/api/v1/tsp/translators/TspCostFunctionSettingsTranslator.hpp
+        assfire/api/v1/tsp/translators/TspEstimatorSettingsTranslator.hpp
+        assfire/api/v1/tsp/translators/TspPointTranslator.hpp
+        assfire/api/v1/tsp/translators/TspSolutionTranslator.hpp
+        assfire/api/v1/tsp/translators/TspSolverSettingsTranslator.hpp
+        assfire/api/v1/tsp/translators/TspTaskTranslator.hpp
+        assfire/api/v1/tsp/translators/TspValidationResultTranslator.hpp
+        assfire/api/v1/tsp/translators/TspValidatorSettingsTranslator.hpp
+        SOURCES
+        assfire/api/v1/tsp/translators/TspCostFunctionSettingsTranslator.cpp
+        assfire/api/v1/tsp/translators/TspEstimatorSettingsTranslator.cpp
+        assfire/api/v1/tsp/translators/TspPointTranslator.cpp
+        assfire/api/v1/tsp/translators/TspSolutionTranslator.cpp
+        assfire/api/v1/tsp/translators/TspSolverSettingsTranslator.cpp
+        assfire/api/v1/tsp/translators/TspTaskTranslator.cpp
+        assfire/api/v1/tsp/translators/TspValidationResultTranslator.cpp
+        assfire/api/v1/tsp/translators/TspValidatorSettingsTranslator.cpp
+        PUBLIC_INCLUDE_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
