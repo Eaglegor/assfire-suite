@@ -3,10 +3,10 @@
 using namespace assfire::scheduler;
 using namespace assfire::router;
 
-SchedulerEngine::SchedulerEngine(WaybillSchedulingContext context) : context(std::move(context)) {}
+SchedulerEngine::SchedulerEngine(const WaybillSchedulingContext& context) : scheduler_factory(context) {}
 
 WaybillScheduler SchedulerEngine::createWaybillScheduler(WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings &settings, const router::RoutingProfile& routing_profile) const {
-    return scheduler_factory.createWaybillScheduler(type, settings, routing_profile, context);
+    return scheduler_factory.createWaybillScheduler(type, settings, routing_profile);
 }
 
 Waybill SchedulerEngine::scheduleWaybill(const Waybill &waybill, WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings &settings, const router::RoutingProfile& routing_profile) const {

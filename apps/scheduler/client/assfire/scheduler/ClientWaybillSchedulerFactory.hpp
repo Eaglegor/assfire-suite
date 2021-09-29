@@ -9,6 +9,11 @@
 namespace assfire::scheduler {
     class ClientWaybillSchedulerFactory {
     public:
-        WaybillScheduler createWaybillScheduler(WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile, const SchedulerGrpcConnector& grpc_connector) const;
+        ClientWaybillSchedulerFactory(std::unique_ptr<SchedulerGrpcConnector> grpc_connector);
+
+        WaybillScheduler createWaybillScheduler(WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const;
+
+    private:
+        std::unique_ptr<SchedulerGrpcConnector> grpc_connector;
     };
 }

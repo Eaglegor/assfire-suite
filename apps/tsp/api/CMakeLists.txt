@@ -1,13 +1,11 @@
 set(SOURCES
-        assfire/tsp/api/TspSolver.cpp
+
         assfire/tsp/api/NopTspInterruptor.cpp
         assfire/tsp/api/TspTask.cpp
         assfire/tsp/api/TspEstimator.cpp
         )
 set(HEADERS
-        assfire/tsp/api/TspSolver.hpp
         assfire/tsp/api/NopTspInterruptor.hpp
-        assfire/tsp/api/TspAlgorithm.hpp
         assfire/tsp/api/TspSolution.hpp
         assfire/tsp/api/TspTask.hpp
         assfire/tsp/api/TspPoint.hpp
@@ -21,6 +19,8 @@ set(HEADERS
         assfire/tsp/api/TspValidatorType.hpp
         assfire/tsp/api/TspValidatorSettings.hpp
         assfire/tsp/api/TspEstimatorSettings.hpp
+        assfire/tsp/api/TspSolverApi.hpp
+        assfire/tsp/api/TspResultCallback.hpp
         )
 
 find_package(spdlog CONFIG REQUIRED)

@@ -13,7 +13,7 @@
 #include "transport/GrpcProtobufClient.hpp"
 
 namespace assfire::router {
-    class ClientDistanceMatrixFactory {
+    class ClientDistanceMatrixFactory{
     public:
         ClientDistanceMatrixFactory(std::unique_ptr<ProtobufClient> grpc_client);
 

@@ -6,13 +6,17 @@
 #include "assfire/scheduler/api/WaybillSchedulingAlgorithmType.hpp"
 #include "WaybillSchedulingContext.hpp"
 #include "assfire/scheduler/api/WaybillSchedulerSettings.hpp"
-#include "WaybillSchedulingContext.hpp"
 
 namespace assfire::scheduler {
-    class WaybillSchedulerFactory {
+    class EngineWaybillSchedulerFactory {
     public:
         using AlgorithmType = WaybillSchedulingAlgorithmType;
 
-        WaybillScheduler createWaybillScheduler(AlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile, const WaybillSchedulingContext& context) const;
+        EngineWaybillSchedulerFactory(const WaybillSchedulingContext &scheduling_context);
+
+        WaybillScheduler createWaybillScheduler(AlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const ;
+
+    private:
+        WaybillSchedulingContext scheduling_context;
     };
 }

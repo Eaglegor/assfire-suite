@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DistanceMatrixFactory.hpp"
+#include "EngineDistanceMatrixFactory.hpp"
 #include "assfire/router/api/RouterApi.hpp"
 
 namespace assfire::router
@@ -28,7 +28,6 @@ namespace assfire::router
                                      const RouteProviderSettings &settings) const override;
 
     private:
-        RoutingContext routing_context;
-        DistanceMatrixFactory distance_matrix_factory;
+        EngineDistanceMatrixFactory distance_matrix_factory;
     };
 }

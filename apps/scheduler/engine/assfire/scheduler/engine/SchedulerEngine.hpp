@@ -1,21 +1,22 @@
 #pragma once
 
-#include "WaybillSchedulerFactory.hpp"
+#include "WaybillSchedulingContext.hpp"
+#include "EngineWaybillSchedulerFactory.hpp"
+#include "assfire/scheduler/api/WaybillSchedulerApi.hpp"
 #include "assfire/scheduler/api/WaybillScheduler.hpp"
 #include "assfire/scheduler/api/WaybillSchedulingAlgorithmType.hpp"
 #include "assfire/scheduler/api/WaybillSchedulerSettings.hpp"
 
 namespace assfire::scheduler {
-    class SchedulerEngine {
+    class SchedulerEngine : public WaybillSchedulerApi {
     public:
-        SchedulerEngine(WaybillSchedulingContext context);
+        SchedulerEngine(const WaybillSchedulingContext& context);
 
-        WaybillScheduler createWaybillScheduler(WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const;
-        Waybill scheduleWaybill(const Waybill& waybill, WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const;
-        void scheduleWaybillInPlace(Waybill& waybill, WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const;
+        WaybillScheduler createWaybillScheduler(WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const override;
+        Waybill scheduleWaybill(const Waybill& waybill, WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const override;
+        void scheduleWaybillInPlace(Waybill& waybill, WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings& settings, const router::RoutingProfile& routing_profile) const override;
 
     private:
-        WaybillSchedulingContext context;
-        WaybillSchedulerFactory scheduler_factory;
+        EngineWaybillSchedulerFactory scheduler_factory;
     };
 }

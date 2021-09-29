@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assfire/tsp/api/TspAlgorithm.hpp"
+#include "assfire/tsp/engine/TspAlgorithm.hpp"
 
 namespace assfire::tsp {
     class TwoOptTspAlgorithm : public TspAlgorithm{

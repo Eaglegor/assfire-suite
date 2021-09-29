@@ -5,15 +5,15 @@ using namespace assfire::scheduler;
 using namespace assfire::router;
 
 SchedulerClient::SchedulerClient(std::unique_ptr<SchedulerGrpcConnector> grpc_connector) :
-        grpc_connector(std::move(grpc_connector)) {
+        scheduler_factory(std::move(grpc_connector)) {
 }
 
 SchedulerClient::SchedulerClient(const std::string &host, int port, bool use_ssl) :
-        grpc_connector(std::make_unique<RemoteSchedulerGrpcConnector>(host, port, use_ssl)) {
+        scheduler_factory(std::make_unique<RemoteSchedulerGrpcConnector>(host, port, use_ssl)) {
 }
 
 WaybillScheduler SchedulerClient::createWaybillScheduler(WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings &settings, const RoutingProfile &routing_profile) const {
-    return scheduler_factory.createWaybillScheduler(type, settings, routing_profile, *grpc_connector);
+    return scheduler_factory.createWaybillScheduler(type, settings, routing_profile);
 }
 
 Waybill SchedulerClient::scheduleWaybill(const Waybill &waybill, WaybillSchedulingAlgorithmType type, const WaybillSchedulerSettings &settings, const RoutingProfile &routing_profile) const {

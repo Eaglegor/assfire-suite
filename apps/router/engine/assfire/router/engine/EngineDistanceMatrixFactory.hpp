@@ -7,15 +7,19 @@
 #include "assfire/router/api/DistanceMatrix.hpp"
 #include "assfire/router/api/RouteProviderSettings.hpp"
 #include <assfire/router/api/RoutingContext.hpp>
+#include <memory>
 #include <atomic>
 
 namespace assfire::router {
-    class DistanceMatrixFactory {
+    class EngineDistanceMatrixFactory {
     public:
-        DistanceMatrix createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings, const RoutingContext& context,
+        EngineDistanceMatrixFactory(const RoutingContext& routing_context);
+
+        DistanceMatrix createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings,
                                             DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY) const;
 
     private:
+        RoutingContext routing_context;
         mutable std::atomic_int tag_counter;
     };
 }

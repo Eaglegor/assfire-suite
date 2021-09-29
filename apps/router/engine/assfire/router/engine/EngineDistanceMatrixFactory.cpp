@@ -1,4 +1,4 @@
-#include "DistanceMatrixFactory.hpp"
+#include "EngineDistanceMatrixFactory.hpp"
 #include "assfire/router/api/RouteProviderEngine.hpp"
 #include "assfire/router/api/distance_matrix_engines/DirectRequestDistanceMatrixEngine.hpp"
 #include "assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp"
@@ -10,6 +10,7 @@
 #include "assfire/router/engine/impl/route_provider_engines/CppRedisCacheConnector.hpp"
 #include "assfire/router/engine/impl/route_provider_engines/RestSdkOsrmConnector.hpp"
 #include <stdexcept>
+#include <utility>
 
 using namespace assfire::router;
 
@@ -49,17 +50,21 @@ namespace {
     }
 }
 
+EngineDistanceMatrixFactory::EngineDistanceMatrixFactory(const RoutingContext& routing_context)
+        : routing_context(routing_context) {
+
+}
+
 DistanceMatrix
-DistanceMatrixFactory::createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile, const RouteProviderSettings &settings,
-                                            const RoutingContext &context, DistanceMatrixErrorPolicy error_policy) const {
+EngineDistanceMatrixFactory::createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixCachingPolicy caching_policy, const RoutingProfile &routing_profile,
+                                                  const RouteProviderSettings &settings, DistanceMatrixErrorPolicy error_policy) const {
     switch (caching_policy) {
         case DistanceMatrixCachingPolicy::NO_CACHING:
-            return DistanceMatrix(std::make_shared<DirectRequestDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter, error_policy));
+            return DistanceMatrix(std::make_shared<DirectRequestDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, routing_context), ++tag_counter, error_policy));
         case DistanceMatrixCachingPolicy::FULL_MATRIX_PRECACHING:
         case DistanceMatrixCachingPolicy::AUTO:
-            return DistanceMatrix(std::make_shared<FullMatrixCacheDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, context), ++tag_counter, error_policy));
+            return DistanceMatrix(std::make_shared<FullMatrixCacheDistanceMatrixEngine>(createCacheWrappedEngine(engine_type, routing_profile, settings, routing_context), ++tag_counter, error_policy));
         default:
             throw std::runtime_error("Unknown distance matrix caching policy");
     }
 }
-

@@ -2,14 +2,14 @@ set(HEADERS
         assfire/scheduler/engine/SchedulerEngine.hpp
         assfire/scheduler/engine/algorithms/LinearWaybillSchedulingAlgorithm.hpp
         assfire/scheduler/engine/algorithms/BilinearWaybillSchedulingAlgorithm.hpp
-        assfire/scheduler/engine/WaybillSchedulerFactory.hpp
+        assfire/scheduler/engine/EngineWaybillSchedulerFactory.hpp
         assfire/scheduler/engine/MetricsCollector.hpp)
 
 set(SOURCES
         assfire/scheduler/engine/SchedulerEngine.cpp
         assfire/scheduler/engine/algorithms/LinearWaybillSchedulingAlgorithm.cpp
         assfire/scheduler/engine/algorithms/BilinearWaybillSchedulingAlgorithm.cpp
-        assfire/scheduler/engine/WaybillSchedulerFactory.cpp)
+        assfire/scheduler/engine/EngineWaybillSchedulerFactory.cpp)
 
 find_package(spdlog CONFIG REQUIRED)
 include(pkg_utils)

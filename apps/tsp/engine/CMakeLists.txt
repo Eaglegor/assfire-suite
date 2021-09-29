@@ -1,9 +1,12 @@
 set(HEADERS
+        assfire/tsp/engine/TspSolverEngine.hpp
+        assfire/tsp/engine/TspAlgorithm.hpp
         assfire/tsp/engine/TspSolverFactory.hpp
         assfire/tsp/engine/algorithms/TwoOptTspAlgorithm.hpp
         )
 
 set(SOURCES
+        assfire/tsp/engine/TspSolverEngine.cpp
         assfire/tsp/engine/TspSolverFactory.cpp
         assfire/tsp/engine/algorithms/TwoOptTspAlgorithm.cpp)
 
