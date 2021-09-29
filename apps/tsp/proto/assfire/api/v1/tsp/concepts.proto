@@ -9,7 +9,8 @@ import "assfire/api/v1/scheduler/concepts.proto";
 
 enum TspAlgorithmType {
   TSP_ALGORITHM_TYPE_UNSPECIFIED = 0;
-  TSP_ALGORITHM_TYPE_TWO_OPT = 1;
+  TSP_ALGORITHM_TYPE_AUTO = 1;
+  TSP_ALGORITHM_TYPE_TWO_OPT = 2;
 }
 
 enum TspCostFunctionType {
