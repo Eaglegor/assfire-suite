@@ -14,16 +14,12 @@ enum TspAlgorithmType {
 
 enum TspCostFunctionType {
   TSP_COST_FUNCTION_TYPE_UNSPECIFIED = 0;
-  TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE = 1;
+  TSP_COST_FUNCTION_TYPE_DEFAULT = 1;
+  TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE = 2;
 }
 
 message TotalDistanceTspCostFunctionSettings {
-  enum DistanceUnit {
-    KILOMETER = 0;
-    MILE = 1;
-  }
-  double cost_per_distance_unit = 1;
-  DistanceUnit distance_unit = 2;
+  double cost_per_km = 1;
 }
 
 message TspCostFunctionSettings {
@@ -33,7 +29,8 @@ message TspCostFunctionSettings {
 
 enum TspValidatorType {
   TSP_VALIDATOR_TYPE_UNSPECIFIED = 0;
-  TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION = 1;
+  TSP_VALIDATOR_TYPE_DEFAULT = 1;
+  TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION = 2;
 }
 
 message TspValidatorSettings {

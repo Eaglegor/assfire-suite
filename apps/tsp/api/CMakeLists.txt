@@ -16,6 +16,11 @@ set(HEADERS
         assfire/tsp/api/TspCostFunction.hpp
         assfire/tsp/api/TspSolverType.hpp
         assfire/tsp/api/TspSolverSettings.hpp
+        assfire/tsp/api/TspCostFunctionType.hpp
+        assfire/tsp/api/TspCostFunctionSettings.hpp
+        assfire/tsp/api/TspValidatorType.hpp
+        assfire/tsp/api/TspValidatorSettings.hpp
+        assfire/tsp/api/TspEstimatorSettings.hpp
         )
 
 find_package(spdlog CONFIG REQUIRED)
