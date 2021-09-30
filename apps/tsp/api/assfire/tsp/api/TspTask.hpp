@@ -1,9 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "TspEstimator.hpp"
 #include "TspPoint.hpp"
-#include "assfire/router/api/DistanceMatrix.hpp"
+#include "TspSolverSettings.hpp"
 
 namespace assfire::tsp
 {
@@ -14,17 +13,18 @@ namespace assfire::tsp
     public:
         using Points = std::vector<TspPoint>;
 
-        TspTask(TspTask::Points points, TspEstimator estimator, const router::DistanceMatrix &distance_matrix);
+        TspTask(const Points &points, const TspSolverSettings &solver_settings) : points(points), solver_settings(solver_settings) {}
 
-        const TspEstimator &getEstimator() const;
+        const Points &getPoints() const {
+            return points;
+        }
 
-        const Points &getPoints() const;
-
-        const router::DistanceMatrix &getDistanceMatrix() const;
+        const TspSolverSettings &getSolverSettings() const {
+            return solver_settings;
+        }
 
     private:
-        TspEstimator estimator;
         Points points;
-        router::DistanceMatrix distance_matrix;
+        TspSolverSettings solver_settings;
     };
 }

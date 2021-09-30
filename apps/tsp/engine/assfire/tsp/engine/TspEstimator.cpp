@@ -1,8 +1,8 @@
 #include "TspEstimator.hpp"
 
 #include <utility>
-#include "TspValidator.hpp"
-#include "TspCostFunction.hpp"
+#include "assfire/tsp/api/TspValidator.hpp"
+#include "assfire/tsp/api/TspCostFunction.hpp"
 
 namespace assfire::tsp
 {

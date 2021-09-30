@@ -6,15 +6,17 @@
 
 namespace assfire::tsp
 {
-    static TspSolution createInitialSolution(const TspTask &task, bool is_final)
+    TwoOptTspAlgorithm::TwoOptTspAlgorithm(TspEstimator estimator) : estimator(std::move(estimator)) {}
+
+    TspSolution TwoOptTspAlgorithm::createInitialSolution(const TspTask &task, bool is_final) const
     {
         TspSolution::Sequence initial_sequence;
         for (int i = 0; i < task.getPoints().size(); ++i) {
             initial_sequence.push_back(i);
         }
         return TspSolution(initial_sequence,
-                           task.getEstimator().calculateCost(task.getPoints(), initial_sequence),
-                           task.getEstimator().validate(task.getPoints(), initial_sequence),
+                           estimator.calculateCost(task.getPoints(), initial_sequence),
+                           estimator.validate(task.getPoints(), initial_sequence),
                            is_final);
     }
 
@@ -42,8 +44,6 @@ namespace assfire::tsp
         resultCallback(solution);
 
         TspSolution::Sequence sequence = solution.getSequence();
-
-        const TspEstimator& estimator = task.getEstimator();
 
         for (int k = 0; k < sequence.size() && !interruptor.isInterrupted(); ++k) {
             for (int i = 0; i < sequence.size() && !interruptor.isInterrupted(); ++i) {

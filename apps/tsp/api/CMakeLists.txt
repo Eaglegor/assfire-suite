@@ -1,8 +1,5 @@
 set(SOURCES
-
         assfire/tsp/api/NopTspInterruptor.cpp
-        assfire/tsp/api/TspTask.cpp
-        assfire/tsp/api/TspEstimator.cpp
         )
 set(HEADERS
         assfire/tsp/api/NopTspInterruptor.hpp
@@ -21,6 +18,7 @@ set(HEADERS
         assfire/tsp/api/TspEstimatorSettings.hpp
         assfire/tsp/api/TspSolverApi.hpp
         assfire/tsp/api/TspResultCallback.hpp
+        assfire/tsp/api/TspRoutingSettings.hpp
         )
 
 find_package(spdlog CONFIG REQUIRED)

@@ -43,8 +43,14 @@ message TspEstimatorSettings {
   TspValidatorSettings validator_settings = 2;
 }
 
-message TspSolverSettings {
+message TspRoutingSettings {
   assfire.api.v1.router.RouteProviderSettings route_provider_settings = 1;
+  assfire.api.v1.router.RoutingProfile routing_profile = 2;
+}
+
+message TspSolverSettings {
+  TspRoutingSettings routing_settings = 1;
+  TspEstimatorSettings estimator_settings = 2;
 }
 
 message TspPoint {
@@ -53,6 +59,7 @@ message TspPoint {
 
 message TspTask {
   repeated TspPoint points = 1;
+  TspSolverSettings solver_settings = 2;
 }
 
 message TspCost {

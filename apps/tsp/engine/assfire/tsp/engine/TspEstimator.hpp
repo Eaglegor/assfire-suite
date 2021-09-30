@@ -2,9 +2,9 @@
 
 #include <vector>
 #include <memory>
-#include "TspPoint.hpp"
-#include "TspCost.hpp"
-#include "TspValidationResult.hpp"
+#include "assfire/tsp/api/TspPoint.hpp"
+#include "assfire/tsp/api/TspCost.hpp"
+#include "assfire/tsp/api/TspValidationResult.hpp"
 
 namespace assfire::tsp
 {

@@ -9,7 +9,7 @@ namespace assfire::tsp {
         switch(type) {
             case TspAlgorithmType::AUTO:
             case TspAlgorithmType::TWO_OPT:
-                return TspSolverEngine(std::make_shared<TwoOptTspAlgorithm>());
+                return TspSolverEngine(std::make_shared<TwoOptTspAlgorithm>(TspEstimator(nullptr, nullptr)));
             default:
                 throw std::invalid_argument("Unsupported tsp solver type: " + std::to_string(static_cast<int>(type)));
         }
