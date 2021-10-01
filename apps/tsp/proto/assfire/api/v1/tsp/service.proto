@@ -8,34 +8,77 @@ import "assfire/api/v1/scheduler/concepts.proto";
 import "assfire/api/v1/tsp/concepts.proto";
 import "google/api/annotations.proto";
 
-message SolveTspRequest {
+message StartTspRequest {
   TspTask task = 1;
   TspAlgorithmType algorithm_type = 2;
   TspSolverSettings settings = 3;
   assfire.api.v1.router.RoutingProfile routing_profile = 4;
 }
 
-message SolveTspResponseStatus {
-  enum Code {
-    SOLVE_TSP_RESPONSE_STATUS_CODE_UNSPECIFIED = 0;
-    SOLVE_TSP_RESPONSE_STATUS_CODE_OK = 1;
-    SOLVE_TSP_RESPONSE_STATUS_CODE_ERROR = 2;
-  }
-  Code code = 1;
-  string message = 2;
+message StartTspResponse {
+  string solutionId = 1;
 }
 
-message SolveTspResponse {
+message StopTspRequest {
+  string solutionId = 1;
+  bool get_latest_solution = 2;
+}
+
+message StopTspResponse {
   TspSolution solution = 1;
-  SolveTspResponseStatus status = 2;
+}
+
+message PauseTspRequest {
+  string solutionId = 1;
+  bool get_latest_solution = 2;
+}
+
+message PauseTspResponse {
+  TspSolution solution = 1;
+}
+
+message GetSolutionRequest {
+  string solution_id = 1;
+}
+
+message GetSolutionResponse {
+  TspSolution solution = 1;
+}
+
+message SubscribeForSolutionRequest {
+  string solutionId = 1;
+  int32 throttling_interval_ms = 2;
+}
+
+message SubscribeForSolutionResponse {
+  TspSolution solution = 1;
 }
 
 service TspService {
-  rpc SolveTsp(SolveTspRequest) returns (SolveTspResponse) {
+  rpc StartTsp(StartTspRequest) returns (StartTspResponse) {
     option (google.api.http) = {
-      get: "/v1/optimize/tsp"
+      post: "/v1/optimize/tsp/start"
     };
   }
 
-  rpc SolveTspContinuosly(SolveTspRequest) returns (stream SolveTspResponse);
+  rpc PauseTsp(PauseTspRequest) returns (PauseTspResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/pause"
+    };
+  }
+
+  rpc StopTsp(StopTspRequest) returns (StopTspResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/stop"
+    };
+  }
+
+  rpc GetSolution(GetSolutionRequest) returns (GetSolutionResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/solution"
+    };
+  }
+
+  rpc SubscribeForSolution(SubscribeForSolutionRequest) returns (stream SubscribeForSolutionResponse);
+
 }
