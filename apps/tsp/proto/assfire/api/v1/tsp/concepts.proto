@@ -48,9 +48,14 @@ message TspRoutingSettings {
   assfire.api.v1.router.RoutingProfile routing_profile = 2;
 }
 
+message TspAlgorithmSettings {
+  TspAlgorithmType algorithm_type = 1;
+}
+
 message TspSolverSettings {
   TspRoutingSettings routing_settings = 1;
   TspEstimatorSettings estimator_settings = 2;
+  TspAlgorithmSettings algorithm_settings = 3;
 }
 
 message TspPoint {

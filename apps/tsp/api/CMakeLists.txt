@@ -14,6 +14,7 @@ set(HEADERS
         assfire/tsp/api/TspCostFunctionType.hpp
         assfire/tsp/api/TspCostFunctionSettings.hpp
         assfire/tsp/api/TspValidatorType.hpp
+        assfire/tsp/api/TspAlgorithmSettings.hpp
         assfire/tsp/api/TspValidatorSettings.hpp
         assfire/tsp/api/TspEstimatorSettings.hpp
         assfire/tsp/api/TspSolverApi.hpp

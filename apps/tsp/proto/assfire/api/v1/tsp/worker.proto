@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package assfire.api.v1.tsp;
+option go_package = "assfire.org/api/v1/tsp";
+
+import "assfire/api/v1/tsp/concepts.proto";
+
+message WorkerTask {
+  string task_id = 1;
+  TspTask task = 2;
+}
+

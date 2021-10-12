@@ -4,7 +4,7 @@ define_proto_target(
         TARGET_NAME assfire-tsp-proto
         PROTO_IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS assfire-concepts-proto assfire-router-proto assfire-scheduler-proto
-        PROTOS assfire/api/v1/tsp/concepts.proto
+        PROTOS assfire/api/v1/tsp/concepts.proto assfire/api/v1/tsp/worker.proto
 )
 
 define_grpc_target(
@@ -30,6 +30,8 @@ define_proto_cpp_api_translation_target(
         assfire/api/v1/tsp/translators/TspValidationResultTranslator.hpp
         assfire/api/v1/tsp/translators/TspValidatorSettingsTranslator.hpp
         assfire/api/v1/tsp/translators/TspRoutingSettingsTranslator.hpp
+        assfire/api/v1/tsp/translators/TspAlgorithmSettingsTranslator.hpp
+        assfire/api/v1/tsp/translators/TspAlgorithmTypeTranslator.hpp
         SOURCES
         assfire/api/v1/tsp/translators/TspCostFunctionSettingsTranslator.cpp
         assfire/api/v1/tsp/translators/TspEstimatorSettingsTranslator.cpp
@@ -40,6 +42,8 @@ define_proto_cpp_api_translation_target(
         assfire/api/v1/tsp/translators/TspValidationResultTranslator.cpp
         assfire/api/v1/tsp/translators/TspValidatorSettingsTranslator.cpp
         assfire/api/v1/tsp/translators/TspRoutingSettingsTranslator.cpp
+        assfire/api/v1/tsp/translators/TspAlgorithmSettingsTranslator.cpp
+        assfire/api/v1/tsp/translators/TspAlgorithmTypeTranslator.cpp
         PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
