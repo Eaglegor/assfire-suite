@@ -1,10 +1,13 @@
 set(SOURCES
         main.cpp
-        assfire/tsp/TspService.cpp)
+        assfire/tsp/TspService.cpp
+        assfire/tsp/RedisWorkerSolutionStorage.cpp)
 set(HEADERS
         assfire/tsp/TspService.hpp
         assfire/tsp/TaskIdGenerator.hpp
-        assfire/tsp/IncrementalTaskIdGenerator.hpp)
+        assfire/tsp/IncrementalTaskIdGenerator.hpp
+        assfire/tsp/WorkerSolutionStorage.hpp
+        assfire/tsp/RedisWorkerSolutionStorage.hpp)
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)

@@ -34,6 +34,12 @@ namespace assfire::tsp {
         return grpc::Status::OK;
     }
 
+    grpc::Status TspService::ResumeTsp(ServerContext *context, const ResumeTspRequest *request, ResumeTspResponse *response) {
+        worker_task_publisher->publishResumeEvent(request->task_id());
+
+        return grpc::Status::OK;
+    }
+
     grpc::Status TspService::StopTsp(TspService::ServerContext *context, const TspService::StopTspRequest *request, TspService::StopTspResponse *response) {
         worker_task_publisher->publishStopEvent(request->task_id());
 
@@ -79,5 +85,4 @@ namespace assfire::tsp {
 
         return grpc::Status::OK;
     }
-
 }

@@ -2,7 +2,7 @@
 
 #include "WorkerSolutionStorage.hpp"
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class RedisWorkerSolutionStorage  : public WorkerSolutionStorage {
     public:
         std::optional<Solution> fetchSolution(const std::string &task_id) const override;

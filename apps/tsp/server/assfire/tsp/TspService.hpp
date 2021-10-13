@@ -1,8 +1,8 @@
 #pragma once
 
 #include <assfire/api/v1/tsp/service.grpc.pb.h>
-#include "assfire/tsp/worker/task/WorkerTaskPublisher.hpp"
-#include "assfire/tsp/worker/solution/WorkerSolutionStorage.hpp"
+#include "assfire/tsp/worker/WorkerTaskPublisher.hpp"
+#include "assfire/tsp/WorkerSolutionStorage.hpp"
 #include "TaskIdGenerator.hpp"
 #include <memory>
 #include <atomic>
@@ -17,6 +17,8 @@ namespace assfire::tsp {
         using StartTspResponse = api::v1::tsp::StartTspResponse;
         using PauseTspRequest = api::v1::tsp::PauseTspRequest;
         using PauseTspResponse = api::v1::tsp::PauseTspResponse;
+        using ResumeTspRequest = api::v1::tsp::ResumeTspRequest;
+        using ResumeTspResponse = api::v1::tsp::ResumeTspResponse;
         using StopTspRequest = api::v1::tsp::StopTspRequest;
         using StopTspResponse = api::v1::tsp::StopTspResponse;
         using GetLatestSolutionRequest = api::v1::tsp::GetLatestSolutionRequest;
@@ -24,7 +26,6 @@ namespace assfire::tsp {
         using SubscribeForStatusUpdatesRequest = api::v1::tsp::SubscribeForStatusUpdatesRequest;
         using SubscribeForStatusUpdatesResponse = api::v1::tsp::SubscribeForStatusUpdatesResponse;
         using WorkerTaskPublisher = worker::WorkerTaskPublisher;
-        using WorkerSolutionStorage = worker::WorkerSolutionStorage;
 
         explicit TspService(
                 std::unique_ptr<WorkerTaskPublisher> worker_task_publisher,
@@ -34,6 +35,8 @@ namespace assfire::tsp {
         grpc::Status StartTsp(ServerContext *context, const StartTspRequest *request, StartTspResponse *response) override;
 
         grpc::Status PauseTsp(ServerContext *context, const PauseTspRequest *request, PauseTspResponse *response) override;
+
+        grpc::Status ResumeTsp(ServerContext *context, const ResumeTspRequest *request, ResumeTspResponse *response) override;
 
         grpc::Status StopTsp(ServerContext *context, const StopTspRequest *request, StopTspResponse *response) override;
 

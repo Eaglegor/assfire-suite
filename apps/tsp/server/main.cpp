@@ -4,8 +4,8 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
-#include "assfire/tsp/worker/task/RabbitMQWorkerTaskPublisher.hpp"
-#include "assfire/tsp/worker/solution/RedisWorkerSolutionStorage.hpp"
+#include "assfire/tsp/worker/RabbitMQWorkerTaskPublisher.hpp"
+#include "assfire/tsp/RedisWorkerSolutionStorage.hpp"
 #include "assfire/tsp/IncrementalTaskIdGenerator.hpp"
 
 #ifdef _WIN32
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
 
     TspService service(
             std::make_unique<worker::RabbitMQWorkerTaskPublisher>(),
-            std::make_unique<worker::RedisWorkerSolutionStorage>(),
+            std::make_unique<RedisWorkerSolutionStorage>(),
             std::make_unique<IncrementalTaskIdGenerator>());
 
     ServerBuilder serverBuilder;

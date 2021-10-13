@@ -1,11 +1,13 @@
 set(SOURCES
-        assfire/tsp/worker/task/RabbitMQWorkerTaskPublisher.cpp
-        assfire/tsp/worker/solution/RedisWorkerSolutionStorage.cpp)
+        assfire/tsp/worker/RabbitMQWorkerTaskPublisher.cpp
+        assfire/tsp/worker/RabbitMQSolutionPublisher.cpp
+)
 set(HEADERS
-        assfire/tsp/worker/task/WorkerTaskPublisher.hpp
-        assfire/tsp/worker/task/RabbitMQWorkerTaskPublisher.hpp
-        assfire/tsp/worker/solution/WorkerSolutionStorage.hpp
-        assfire/tsp/worker/solution/RedisWorkerSolutionStorage.hpp)
+        assfire/tsp/worker/WorkerTaskPublisher.hpp
+        assfire/tsp/worker/RabbitMQWorkerTaskPublisher.hpp
+        assfire/tsp/worker/SolutionPublisher.hpp
+        assfire/tsp/worker/RabbitMQSolutionPublisher.hpp
+)
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)

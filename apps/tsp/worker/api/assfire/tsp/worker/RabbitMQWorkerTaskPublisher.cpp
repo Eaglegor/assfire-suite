@@ -12,4 +12,8 @@ namespace assfire::tsp::worker {
     void RabbitMQWorkerTaskPublisher::publishStopEvent(const std::string &task_id) {
 
     }
+
+    void RabbitMQWorkerTaskPublisher::publishResumeEvent(const std::string &task_id) {
+
+    }
 }

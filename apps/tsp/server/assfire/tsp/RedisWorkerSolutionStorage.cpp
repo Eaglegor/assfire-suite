@@ -3,7 +3,7 @@
 #include <atomic>
 #include <future>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     using namespace std::chrono_literals;
 
     class RedisSolutionUpdatePublisher : public WorkerSolutionStorage::SolutionUpdatePublisher {

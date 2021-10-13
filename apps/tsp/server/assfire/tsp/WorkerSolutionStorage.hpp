@@ -5,7 +5,7 @@
 #include <functional>
 #include <memory>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class WorkerSolutionStorage {
     public:
         using Solution = assfire::api::v1::tsp::TspSolution;
