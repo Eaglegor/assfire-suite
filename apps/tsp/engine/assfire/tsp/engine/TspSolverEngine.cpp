@@ -1,12 +1,14 @@
 #include "TspSolverEngine.hpp"
+
+#include <utility>
 #include "TspAlgorithm.hpp"
 
 #include "EngineTspSolutionController.hpp"
 
 namespace assfire::tsp {
 
-    TspSolverEngine::TspSolverEngine(const AlgorithmPtr &tsp_algorithm)
-            : tsp_algorithm(tsp_algorithm) {}
+    TspSolverEngine::TspSolverEngine(AlgorithmPtr tsp_algorithm)
+            : tsp_algorithm(std::move(tsp_algorithm)) {}
 
     TspSolutionSession TspSolverEngine::solveTsp(const TspTask &task) const {
         return solveTsp(task, TspAlgorithmStateContainer());

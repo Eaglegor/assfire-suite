@@ -15,7 +15,7 @@ namespace assfire::tsp
     public:
         using AlgorithmPtr = std::shared_ptr<TspAlgorithm>;
 
-        TspSolverEngine(const AlgorithmPtr &tsp_algorithm);
+        TspSolverEngine(AlgorithmPtr tsp_algorithm);
 
         TspSolutionSession solveTsp(const TspTask &task) const override;
         TspSolutionSession solveTsp(const TspTask &task, TspAlgorithmStateContainer saved_state) const;
