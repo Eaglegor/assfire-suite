@@ -4,7 +4,10 @@ define_proto_target(
         TARGET_NAME assfire-tsp-proto
         PROTO_IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS assfire-concepts-proto assfire-router-proto assfire-scheduler-proto
-        PROTOS assfire/api/v1/tsp/concepts.proto assfire/api/v1/tsp/worker.proto
+        PROTOS
+        assfire/api/v1/tsp/concepts.proto
+        assfire/api/v1/tsp/worker.proto
+        assfire/api/v1/tsp/state.proto
 )
 
 define_grpc_target(

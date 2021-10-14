@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 package assfire.api.v1.tsp;
-option go_package = "assfire.org/api/v1/tsp";
 
 import "assfire/api/v1/tsp/concepts.proto";
 

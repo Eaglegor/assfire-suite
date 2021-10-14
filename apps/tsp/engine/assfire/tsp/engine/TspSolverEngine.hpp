@@ -17,8 +17,7 @@ namespace assfire::tsp
 
         TspSolverEngine(const AlgorithmPtr &tsp_algorithm);
 
-        TspSolution solveTsp(const TspTask& task, const TspInterruptor& interruptor) const override;
-        void solveTsp(const TspTask& task, TspResultCallback resultCallback, const TspInterruptor& interruptor) const override;
+        TspSolutionSession solveTsp(const TspTask &task) const override;
 
     private:
         AlgorithmPtr tsp_algorithm;
