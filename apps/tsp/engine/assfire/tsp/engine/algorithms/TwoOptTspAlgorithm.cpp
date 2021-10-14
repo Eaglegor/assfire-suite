@@ -3,6 +3,7 @@
 #include <vector>
 #include <optional>
 #include <algorithm>
+#include <spdlog/spdlog.h>
 
 namespace assfire::tsp {
     TwoOptTspAlgorithm::TwoOptTspAlgorithm(TspEstimator estimator) : estimator(std::move(estimator)) {}
@@ -58,8 +59,12 @@ namespace assfire::tsp {
 
         std::optional<State> loaded_state = loadState(state_container);
         if (loaded_state) {
-            // [TODO] Log loaded state
-            return loaded_state;
+            if(size == loaded_state->getSize()) {
+                SPDLOG_INFO("Found algorithm saved state: i={}, j={}, k={}", loaded_state->getI(), loaded_state->getJ(), loaded_state->getK());
+                return loaded_state;
+            } else {
+                SPDLOG_INFO("Found algorithm saved state but it's not compatible with the task (size = {}, loadedSize = {})", size, loaded_state->getSize());
+            }
         }
 
         return std::make_optional<State>(0, 1, 0, size);
@@ -86,6 +91,7 @@ namespace assfire::tsp {
     }
 
     void TwoOptTspAlgorithm::saveState(const TwoOptTspAlgorithm::State &state, TspAlgorithmStateContainer &container) const {
+        container.getDto().clear_two_opt_algorithm_state();
         TspAlgorithmStateContainer::TwoOptAlgorithmStateDto *two_opt_state = container.getDto().mutable_two_opt_algorithm_state();
         two_opt_state->set_i(state.getI());
         two_opt_state->set_j(state.getJ());
