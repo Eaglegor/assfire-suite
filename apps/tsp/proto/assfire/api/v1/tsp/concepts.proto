@@ -59,7 +59,8 @@ message TspSolverSettings {
 }
 
 message TspPoint {
-  assfire.api.v1.concepts.Location location = 1;
+  int32 id = 1;
+  assfire.api.v1.concepts.Location location = 2;
 }
 
 message TspTask {

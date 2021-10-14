@@ -6,15 +6,18 @@ namespace assfire::tsp
 {
     class TspPoint {
     public:
+        TspPoint(int id, const Location &location) : id(id), location(location) {}
+
+        int getId() const {
+            return id;
+        }
+
         const Location &getLocation() const {
             return location;
         }
 
-        void setLocation(const Location &location) {
-            TspPoint::location = location;
-        }
-
     private:
+        int id;
         Location location;
     };
 }

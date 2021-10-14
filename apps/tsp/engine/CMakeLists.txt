@@ -14,6 +14,7 @@ set(SOURCES
         assfire/tsp/engine/TspSolverFactory.cpp
         assfire/tsp/engine/algorithms/TwoOptTspAlgorithm.cpp
         assfire/tsp/engine/EngineTspSolutionController.cpp
+        assfire/tsp/engine/TspAlgorithmStateContainer.cpp
         )
 
 find_package(spdlog CONFIG REQUIRED)

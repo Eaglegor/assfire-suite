@@ -29,12 +29,13 @@ namespace assfire::tsp {
             int i, j, k, size;
         };
 
-        TspSolution createInitialSolution(const TspTask &task, bool is_final) const;
-        std::optional<State> createInitialState(int size, const TspAlgorithmStateContainer& state_container) const;
+        TspSolution createInitialSolution(const TspTask &task, const TspAlgorithmStateContainer& saved_state) const;
+        std::optional<State> createInitialState(const TspTask& task, const TspAlgorithmStateContainer& state_container) const;
         std::optional<State> nextState(const std::optional<State>& state) const;
 
-        void saveState(const State& state, TspAlgorithmStateContainer& container) const;
-        std::optional<State> loadState(const TspAlgorithmStateContainer& container) const;
+        void validateOrResetSavedState(const TspTask &task, TspAlgorithmStateContainer& container) const;
+        void saveState(const State& state, TspAlgorithmStateContainer& container, const TspSolution::Sequence &current_sequence, const TspTask& task) const;
+        std::optional<State> loadState(const TspTask& task, const TspAlgorithmStateContainer& container) const;
 
         TspEstimator estimator;
     };

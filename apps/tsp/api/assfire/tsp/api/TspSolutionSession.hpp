@@ -14,7 +14,8 @@ namespace assfire::tsp {
         void interrupt();
         void pause();
         void resume();
-        std::future<TspSolution> getCurrentSolution();
+        std::optional<TspSolution> getCurrentSolution();
+        void setSolutionListener(std::function<void(const TspSolution&)> solution_listener);
         bool isFinished();
 
     private:

@@ -1,6 +1,5 @@
 #include "TwoOptTspAlgorithm.hpp"
 #include "assfire/tsp/api/TspTask.hpp"
-#include <vector>
 #include <optional>
 #include <algorithm>
 #include <spdlog/spdlog.h>
@@ -8,25 +7,68 @@
 namespace assfire::tsp {
     TwoOptTspAlgorithm::TwoOptTspAlgorithm(TspEstimator estimator) : estimator(std::move(estimator)) {}
 
-    TspSolution TwoOptTspAlgorithm::createInitialSolution(const TspTask &task, bool is_final) const {
-        TspSolution::Sequence initial_sequence;
-        for (int i = 0; i < task.getPoints().size(); ++i) {
-            initial_sequence.push_back(i);
+    namespace {
+        std::string formatSequence(const TspTask &task, const TspSolution::Sequence &sequence) {
+            std::string result;
+            for (int i = 0; i < sequence.size(); ++i) {
+                if (i > 0) result += "-";
+                result += std::to_string(task.getPoints()[sequence[i]].getId());
+            }
+            return result;
         }
+    }
+
+    void TwoOptTspAlgorithm::validateOrResetSavedState(const TspTask &task, TspAlgorithmStateContainer &saved_state) const {
+        if (!saved_state.containsTwoOptState()) {
+            SPDLOG_INFO("No saved 2-opt algorithm state found. Resetting state container");
+            saved_state.reset();
+        } else if (!saved_state.isConsistent()) {
+            SPDLOG_INFO("Found saved state but it's inconsistent. Resetting state container");
+            saved_state.reset();
+        } else if (!saved_state.isCompatibleWith(task)) {
+            SPDLOG_INFO("Found saved state but it's incompatible with current task. Resetting state container");
+            saved_state.reset();
+        } else {
+            const TspAlgorithmStateContainer::TwoOptAlgorithmStateDto &two_opt_state = saved_state.getDto().two_opt_algorithm_state();
+            int i = two_opt_state.i();
+            int j = two_opt_state.j();
+            int k = two_opt_state.k();
+            int size = task.getPoints().size();
+
+            if (i >= size || j >= size || k >= size) {
+                SPDLOG_WARN("Inconsistent saved two-opt state found: i = {}, j = {}, k = {} while size = {}. Resetting state container", i, j, k, size);
+                saved_state.reset();
+            }
+        }
+    }
+
+    TspSolution TwoOptTspAlgorithm::createInitialSolution(const TspTask &task, const TspAlgorithmStateContainer &saved_state) const {
+        TspSolution::Sequence initial_sequence;
+        if (saved_state.containsTwoOptState()) {
+            SPDLOG_INFO("Loading saved sequence");
+            initial_sequence = saved_state.getSequence();
+        } else {
+            for (int i = 0; i < task.getPoints().size(); ++i) {
+                initial_sequence.push_back(i);
+            }
+        }
+        SPDLOG_INFO("Initial sequence: {}", formatSequence(task, initial_sequence));
         return TspSolution(initial_sequence,
                            estimator.calculateCost(task.getPoints(), initial_sequence),
                            estimator.validate(task.getPoints(), initial_sequence),
-                           is_final);
+                           false);
     }
 
     void TwoOptTspAlgorithm::solveTsp(const TspTask &task, EngineTspSolutionController &solution_controller) const {
-        TspSolution solution = createInitialSolution(task, false);
+        validateOrResetSavedState(task, solution_controller.getStateContainer());
+
+        TspSolution solution = createInitialSolution(task, solution_controller.getStateContainer());
 
         solution_controller.publishSolution(solution);
 
         TspSolution::Sequence sequence = solution.getSequence();
 
-        std::optional<State> current_iteration_state = createInitialState(sequence.size(), solution_controller.getStateContainer());
+        std::optional<State> current_iteration_state = createInitialState(task, solution_controller.getStateContainer());
 
         while (current_iteration_state && !solution_controller.isInterrupted() && !solution_controller.isPaused()) {
             int i = current_iteration_state->getI();
@@ -48,26 +90,22 @@ namespace assfire::tsp {
             current_iteration_state = nextState(current_iteration_state);
 
             if (current_iteration_state && solution_controller.isPaused()) {
-                saveState(*current_iteration_state, solution_controller.getStateContainer());
+                saveState(*current_iteration_state, solution_controller.getStateContainer(), solution.getSequence(), task);
             }
         }
 
-        solution_controller.publishSolution(solution.asFinal());
+        solution_controller.publishSolution(current_iteration_state ? solution : solution.asFinal());
     }
 
-    std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::createInitialState(int size, const TspAlgorithmStateContainer &state_container) const {
+    std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::createInitialState(const TspTask &task, const TspAlgorithmStateContainer &state_container) const {
 
-        std::optional<State> loaded_state = loadState(state_container);
+        std::optional<State> loaded_state = loadState(task, state_container);
         if (loaded_state) {
-            if(size == loaded_state->getSize()) {
-                SPDLOG_INFO("Found algorithm saved state: i={}, j={}, k={}", loaded_state->getI(), loaded_state->getJ(), loaded_state->getK());
-                return loaded_state;
-            } else {
-                SPDLOG_INFO("Found algorithm saved state but it's not compatible with the task (size = {}, loadedSize = {})", size, loaded_state->getSize());
-            }
+            SPDLOG_INFO("Found algorithm saved state: i={}, j={}, k={}", loaded_state->getI(), loaded_state->getJ(), loaded_state->getK());
+            return loaded_state;
         }
 
-        return std::make_optional<State>(0, 1, 0, size);
+        return std::make_optional<State>(0, 1, 0, task.getPoints().size());
     }
 
     std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::nextState(const std::optional<State> &state) const {
@@ -90,20 +128,25 @@ namespace assfire::tsp {
         return k >= size ? std::nullopt : std::make_optional<State>(i, j, k, size);
     }
 
-    void TwoOptTspAlgorithm::saveState(const TwoOptTspAlgorithm::State &state, TspAlgorithmStateContainer &container) const {
-        container.getDto().clear_two_opt_algorithm_state();
+    void TwoOptTspAlgorithm::saveState(const TwoOptTspAlgorithm::State &state, TspAlgorithmStateContainer &container, const TspSolution::Sequence &current_sequence, const TspTask &task) const {
+        container.reset();
+        container.setPoints(task.getPoints());
+        container.setSequence(current_sequence);
         TspAlgorithmStateContainer::TwoOptAlgorithmStateDto *two_opt_state = container.getDto().mutable_two_opt_algorithm_state();
         two_opt_state->set_i(state.getI());
         two_opt_state->set_j(state.getJ());
         two_opt_state->set_k(state.getK());
-        two_opt_state->set_size(state.getSize());
     }
 
-    std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::loadState(const TspAlgorithmStateContainer &container) const {
+    std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::loadState(const TspTask &task, const TspAlgorithmStateContainer &container) const {
         const TspAlgorithmStateContainer::TspAlgorithmStateDto &dto = container.getDto();
         if (dto.has_two_opt_algorithm_state()) {
             const TspAlgorithmStateContainer::TwoOptAlgorithmStateDto &two_opt_state = dto.two_opt_algorithm_state();
-            return std::make_optional<State>(two_opt_state.i(), two_opt_state.j(), two_opt_state.k(), two_opt_state.size());
+            int i = two_opt_state.i();
+            int j = two_opt_state.j();
+            int k = two_opt_state.k();
+            int size = task.getPoints().size();
+            return std::make_optional<State>(i, j, k, size);
         }
         return std::nullopt;
     }

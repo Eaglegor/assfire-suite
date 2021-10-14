@@ -2,6 +2,8 @@
 
 #include "TspSolutionSession.hpp"
 
+#include <utility>
+
 namespace assfire::tsp {
     TspSolutionSession::TspSolutionSession(std::unique_ptr<TspSolutionController> solution_controller)
             : solution_controller(std::move(solution_controller)) {}
@@ -18,8 +20,12 @@ namespace assfire::tsp {
         solution_controller->resume();
     }
 
-    std::future<TspSolution> TspSolutionSession::getCurrentSolution() {
+    std::optional<TspSolution> TspSolutionSession::getCurrentSolution() {
         return solution_controller->getCurrentSolution();
+    }
+
+    void TspSolutionSession::setSolutionListener(std::function<void(const TspSolution &)> solution_listener) {
+        solution_controller->setSolutionListener(std::move(solution_listener));
     }
 
     bool TspSolutionSession::isFinished() {
