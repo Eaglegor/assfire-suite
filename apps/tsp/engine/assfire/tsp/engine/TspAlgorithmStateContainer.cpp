@@ -49,6 +49,10 @@ namespace assfire::tsp {
         });
     }
 
+    bool TspAlgorithmStateContainer::canBeUsedFor(const TspTask &task) const {
+        return isConsistent() && isCompatibleWith(task);
+    }
+
     bool TspAlgorithmStateContainer::containsTwoOptState() const {
         return state.has_two_opt_algorithm_state();
     }

@@ -21,6 +21,8 @@ namespace assfire::tsp {
         bool isConsistent() const;
         bool isCompatibleWith(const TspTask& task) const;
 
+        bool canBeUsedFor(const TspTask& task) const;
+
         bool containsTwoOptState() const;
 
     private:

@@ -80,4 +80,8 @@ namespace assfire::tsp {
     void EngineTspSolutionController::waitForTaskStop() {
         if (control_state.valid()) control_state.wait();
     }
+
+    const EngineTspSolutionController::SessionId &EngineTspSolutionController::getSessionId() const {
+        return session_id;
+    }
 }

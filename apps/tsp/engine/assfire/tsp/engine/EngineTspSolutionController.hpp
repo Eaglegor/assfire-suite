@@ -11,11 +11,14 @@ namespace assfire::tsp {
 
     class EngineTspSolutionController : public TspSolutionController {
     public:
+        using SessionId = std::string;
         using AlgorithmPtr = std::shared_ptr<TspAlgorithm>;
 
         explicit EngineTspSolutionController(const TspTask& task, AlgorithmPtr algorithm);
 
         EngineTspSolutionController(const TspTask& task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container);
+
+
 
         void start();
 
@@ -36,6 +39,8 @@ namespace assfire::tsp {
         bool isInterrupted() const;
         bool isPaused() const;
 
+        const SessionId &getSessionId() const;
+
         virtual ~EngineTspSolutionController();
 
     private:
@@ -53,5 +58,6 @@ namespace assfire::tsp {
         std::optional<TspSolution> solution;
         std::function<void(const TspSolution&)> solution_listener;
         std::mutex solution_guard;
+        SessionId session_id;
     };
 }
