@@ -34,6 +34,7 @@ RUN /opt/vcpkg/vcpkg install --debug \
     prometheus-cpp \
     cpprestsdk \
     gtest \
+    amqpcpp \
     --triplet x64-linux && \
     rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 

@@ -7,7 +7,6 @@ set(HEADERS
         assfire/tsp/api/TspPoint.hpp
         assfire/tsp/api/TspValidationResult.hpp
         assfire/tsp/api/TspCost.hpp
-        assfire/tsp/api/TspCostFunction.hpp
         assfire/tsp/api/TspAlgorithmType.hpp
         assfire/tsp/api/TspSolverSettings.hpp
         assfire/tsp/api/TspCostFunctionType.hpp

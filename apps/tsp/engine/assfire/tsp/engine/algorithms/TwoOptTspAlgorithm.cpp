@@ -51,8 +51,8 @@ namespace assfire::tsp {
         }
         SPDLOG_INFO("Initial sequence for session {}: {}", session_id, formatSequence(task, initial_sequence));
         return TspSolution(initial_sequence,
-                           estimator.calculateCost(task.getPoints(), initial_sequence),
-                           estimator.validate(task.getPoints(), initial_sequence),
+                           estimator.calculateCost(initial_sequence),
+                           estimator.validate(initial_sequence),
                            false);
     }
 
@@ -74,9 +74,9 @@ namespace assfire::tsp {
             int j = current_iteration_state->getJ();
 
             std::reverse(sequence.begin() + i, sequence.begin() + j);
-            TspValidationResult validation_result = estimator.validate(task.getPoints(), sequence);
+            TspValidationResult validation_result = estimator.validate(sequence);
             if (validation_result.isValid()) {
-                TspCost cost = estimator.calculateCost(task.getPoints(), sequence);
+                TspCost cost = estimator.calculateCost(sequence);
                 if (cost < current_solution.getCost()) {
                     current_solution = TspSolution(sequence, cost, validation_result, false);
                     solution_controller.publishSolution(current_solution);

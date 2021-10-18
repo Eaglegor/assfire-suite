@@ -14,6 +14,7 @@ namespace assfire::router {
                 : engine(std::move(engine)) {}
 
         DistanceMatrix(const DistanceMatrix &rhs) = default;
+        DistanceMatrix(DistanceMatrix &&rhs) = default;
 
         RouteInfo getRouteInfo(const IndexedLocation &origin, const IndexedLocation &destination) const {
             return engine->getRouteInfo(origin, destination);

@@ -1,8 +1,8 @@
 #include "TspEstimator.hpp"
 
 #include <utility>
-#include "assfire/tsp/api/TspValidator.hpp"
-#include "assfire/tsp/api/TspCostFunction.hpp"
+#include "TspValidator.hpp"
+#include "TspCostFunction.hpp"
 
 namespace assfire::tsp
 {
@@ -11,13 +11,13 @@ namespace assfire::tsp
             : validator(std::move(validator)), cost_function(std::move(cost_function))
     {}
 
-    TspCost TspEstimator::calculateCost(const Points &points, const Sequence &sequence) const
+    TspCost TspEstimator::calculateCost(const Sequence &sequence) const
     {
-        return cost_function->estimate(points, sequence);
+        return cost_function->estimate(sequence);
     }
 
-    TspValidationResult TspEstimator::validate(const Points &points, const Sequence &sequence) const
+    TspValidationResult TspEstimator::validate(const Sequence &sequence) const
     {
-        return validator->validate(points, sequence);
+        return validator->validate(sequence);
     }
 }

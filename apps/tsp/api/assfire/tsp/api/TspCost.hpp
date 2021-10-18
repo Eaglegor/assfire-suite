@@ -3,11 +3,13 @@
 namespace assfire::tsp {
     class TspCost {
     public:
-        explicit TspCost(double value)
+        using value_type = double;
+
+        explicit TspCost(value_type value)
                 : value(value)
         {}
 
-        double getValue() const
+        value_type getValue() const
         {
             return value;
         }
@@ -19,6 +21,6 @@ namespace assfire::tsp {
         }
 
     private:
-        double value;
+        value_type value;
     };
 }

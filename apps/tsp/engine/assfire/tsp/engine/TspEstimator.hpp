@@ -21,8 +21,8 @@ namespace assfire::tsp
 
         TspEstimator(ValidatorPtr validator, CostFunctionPtr cost_function);
 
-        TspCost calculateCost(const Points& points, const Sequence& sequence) const;
-        TspValidationResult validate(const Points& points, const Sequence& sequence) const;
+        TspCost calculateCost(const Sequence& sequence) const;
+        TspValidationResult validate(const Sequence& sequence) const;
 
     private:
         ValidatorPtr validator;

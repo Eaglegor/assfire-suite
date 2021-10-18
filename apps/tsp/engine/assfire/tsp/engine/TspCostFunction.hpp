@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "TspPoint.hpp"
-#include "TspCost.hpp"
+#include "assfire/tsp/api/TspPoint.hpp"
+#include "assfire/tsp/api/TspCost.hpp"
 
 namespace assfire::tsp
 {
@@ -12,6 +12,6 @@ namespace assfire::tsp
         using Points = std::vector<TspPoint>;
         using Sequence = std::vector<int>;
 
-        virtual TspCost estimate(const Points& points, const Sequence& sequence) const = 0;
+        virtual TspCost estimate(const Sequence& sequence) const = 0;
     };
 }

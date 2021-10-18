@@ -6,22 +6,25 @@
 #include <functional>
 #include "TspAlgorithm.hpp"
 
+namespace assfire::router {
+    class RouterApi;
+}
+
 namespace assfire::tsp
 {
     class TspTask;
 
+
     class TspSolverEngine : public TspSolverApi
     {
     public:
-        using AlgorithmPtr = std::shared_ptr<TspAlgorithm>;
-
-        TspSolverEngine(AlgorithmPtr tsp_algorithm);
+        TspSolverEngine(std::shared_ptr<router::RouterApi> router);
 
         TspSolutionSession solveTsp(const TspTask &task) const override;
         TspSolutionSession solveTsp(const TspTask &task, TspAlgorithmStateContainer saved_state) const;
 
     private:
-        AlgorithmPtr tsp_algorithm;
+        std::shared_ptr<router::RouterApi> router;
     };
 }
 
