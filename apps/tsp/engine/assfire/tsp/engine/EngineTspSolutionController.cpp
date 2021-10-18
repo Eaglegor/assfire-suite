@@ -32,13 +32,8 @@ namespace assfire::tsp {
         launchTask();
     }
 
-    std::optional<TspSolution> EngineTspSolutionController::getCurrentSolution() {
-        std::lock_guard<std::mutex> guard(solution_guard);
-        return solution;
-    }
-
     bool EngineTspSolutionController::isFinished() {
-        return solution && solution->isFinalSolution();
+        return is_finished;
     }
 
     TspAlgorithmStateContainer &EngineTspSolutionController::getStateContainer() {
@@ -47,10 +42,7 @@ namespace assfire::tsp {
 
     void EngineTspSolutionController::publishSolution(const TspSolution &solution) {
         SPDLOG_DEBUG("New solution found for session {}", session_id);
-        {
-            std::lock_guard<std::mutex> guard(solution_guard);
-            this->solution = solution;
-        }
+        is_finished = solution.isFinalSolution();
         if (solution_listener) solution_listener(solution);
     }
 
@@ -64,6 +56,10 @@ namespace assfire::tsp {
     }
 
     void EngineTspSolutionController::launchTask() {
+        if(is_finished) {
+            SPDLOG_DEBUG("Couldn't start tsp task for session {} - session already finished", session_id);
+            return;
+        }
         SPDLOG_DEBUG("Going to start tsp task for session {}", session_id);
         bool expected_started = false;
         if (is_started.compare_exchange_strong(expected_started, true)) {
@@ -88,5 +84,11 @@ namespace assfire::tsp {
 
     const EngineTspSolutionController::SessionId &EngineTspSolutionController::getSessionId() const {
         return session_id;
+    }
+
+    void EngineTspSolutionController::waitFor(long milliseconds) {
+        if(control_state.valid()) {
+            control_state.wait_for(std::chrono::milliseconds(milliseconds));
+        }
     }
 }

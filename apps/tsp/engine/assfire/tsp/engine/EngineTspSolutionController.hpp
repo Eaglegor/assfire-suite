@@ -24,11 +24,11 @@ namespace assfire::tsp {
 
         void resume() override;
 
-        std::optional<TspSolution> getCurrentSolution() override;
-
         void setSolutionListener(std::function<void(const TspSolution &)> listener) override;
 
         bool isFinished() override;
+
+        void waitFor(long milliseconds) override;
 
         TspAlgorithmStateContainer& getStateContainer();
         void publishSolution(const TspSolution& solution);
@@ -47,10 +47,9 @@ namespace assfire::tsp {
         AlgorithmPtr algorithm;
         std::atomic_bool is_started = false;
         std::atomic_bool is_interrupted = true;
+        std::atomic_bool is_finished = false;
         std::future<void> control_state;
-        std::optional<TspSolution> solution;
         std::function<void(const TspSolution&)> solution_listener;
-        std::mutex solution_guard;
         SessionId session_id;
     };
 }
