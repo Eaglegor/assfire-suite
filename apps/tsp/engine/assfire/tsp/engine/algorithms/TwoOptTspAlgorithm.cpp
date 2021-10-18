@@ -69,7 +69,7 @@ namespace assfire::tsp {
 
         std::optional<State> current_iteration_state = createInitialState(task, solution_controller.getStateContainer(), solution_controller.getSessionId());
 
-        while (current_iteration_state && !solution_controller.isInterrupted() && !solution_controller.isPaused()) {
+        while (current_iteration_state && !solution_controller.isInterrupted()) {
             int i = current_iteration_state->getI();
             int j = current_iteration_state->getJ();
 
@@ -89,8 +89,8 @@ namespace assfire::tsp {
 
             current_iteration_state = nextState(current_iteration_state);
 
-            if (current_iteration_state && solution_controller.isPaused()) {
-                SPDLOG_INFO("Pause signal received for tsp session {}. Saving state", solution_controller.getSessionId());
+            if (current_iteration_state && solution_controller.isInterrupted()) {
+                SPDLOG_INFO("Interrupt signal received for tsp session {}. Saving state", solution_controller.getSessionId());
                 saveState(*current_iteration_state, solution_controller.getStateContainer(), current_solution.getSequence(), task);
             }
         }

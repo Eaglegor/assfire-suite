@@ -1,42 +1,34 @@
 #include "EngineTspSolutionController.hpp"
 #include "TspAlgorithm.hpp"
-
+#include <spdlog/spdlog.h>
 #include <utility>
 
 namespace assfire::tsp {
 
-    EngineTspSolutionController::EngineTspSolutionController(const TspTask &task, AlgorithmPtr algorithm) : task(task), algorithm(std::move(algorithm)) {}
-
-    EngineTspSolutionController::EngineTspSolutionController(const TspTask &task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container)
-            : task(task), algorithm(std::move(algorithm)), state_container(std::move(state_container)) {}
+    EngineTspSolutionController::EngineTspSolutionController(const SessionId &session_id, const TspTask &task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container)
+            : session_id(session_id), task(task), algorithm(std::move(algorithm)), state_container(std::move(state_container)) {}
 
     void EngineTspSolutionController::start() {
-        if (is_started) return;
-        is_started = true;
-        launchTask();
+        SPDLOG_DEBUG("Starting solution for {}", session_id);
+        resume();
     }
 
     bool EngineTspSolutionController::isInterrupted() const {
         return is_interrupted;
     }
 
-    bool EngineTspSolutionController::isPaused() const {
-        return is_paused;
-    }
-
     void EngineTspSolutionController::interrupt() {
-        if (!is_started) return;
+        SPDLOG_DEBUG("Interrupting solution for {}", session_id);
         is_interrupted = true;
     }
 
     void EngineTspSolutionController::pause() {
-        if (!is_started || is_interrupted) return;
-        is_paused = true;
+        SPDLOG_DEBUG("Pausing solution for {}", session_id);
+        is_interrupted = true;
     }
 
     void EngineTspSolutionController::resume() {
-        if (!is_started || !is_paused || is_interrupted) return;
-        is_paused = false;
+        SPDLOG_DEBUG("Resuming solution for {}", session_id);
         launchTask();
     }
 
@@ -46,7 +38,7 @@ namespace assfire::tsp {
     }
 
     bool EngineTspSolutionController::isFinished() {
-        return is_finished;
+        return solution && solution->isFinalSolution();
     }
 
     TspAlgorithmStateContainer &EngineTspSolutionController::getStateContainer() {
@@ -54,15 +46,16 @@ namespace assfire::tsp {
     }
 
     void EngineTspSolutionController::publishSolution(const TspSolution &solution) {
+        SPDLOG_DEBUG("New solution found for session {}", session_id);
         {
             std::lock_guard<std::mutex> guard(solution_guard);
             this->solution = solution;
         }
-        if (solution.isFinalSolution()) is_finished = true;
         if (solution_listener) solution_listener(solution);
     }
 
     EngineTspSolutionController::~EngineTspSolutionController() {
+        is_interrupted = true;
         waitForTaskStop();
     }
 
@@ -71,14 +64,26 @@ namespace assfire::tsp {
     }
 
     void EngineTspSolutionController::launchTask() {
-        waitForTaskStop();
-        control_state = std::async(std::launch::async, [&, controller = this] {
-            algorithm->solveTsp(task, *controller);
-        });
+        SPDLOG_DEBUG("Going to start tsp task for session {}", session_id);
+        bool expected_started = false;
+        if (is_started.compare_exchange_strong(expected_started, true)) {
+            SPDLOG_DEBUG("Launching tsp task for session {}", session_id);
+            waitForTaskStop();
+            is_interrupted = false;
+            control_state = std::async(std::launch::async, [&, controller = this] {
+                algorithm->solveTsp(task, *controller);
+                is_started = false;
+            });
+        } else {
+            SPDLOG_DEBUG("Couldn't start tsp task for session {} - session already running", session_id);
+        }
     }
 
     void EngineTspSolutionController::waitForTaskStop() {
-        if (control_state.valid()) control_state.wait();
+        if (is_interrupted && control_state.valid()) {
+            SPDLOG_DEBUG("Waiting until algorithm exits for session {}", session_id);
+            control_state.wait();
+        }
     }
 
     const EngineTspSolutionController::SessionId &EngineTspSolutionController::getSessionId() const {

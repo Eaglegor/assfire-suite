@@ -7,6 +7,8 @@
 namespace assfire::tsp {
     class TspRoutingSettings {
     public:
+        TspRoutingSettings() : engine_type(router::RouterEngineType::CROWFLIGHT), routing_profile(Speed::fromKilometersPerHour(60.0)) {}
+
         TspRoutingSettings(router::RouterEngineType engine_type, const router::RouteProviderSettings &route_provider_settings, const router::RoutingProfile &routing_profile) : engine_type(
                 engine_type), route_provider_settings(route_provider_settings), routing_profile(routing_profile) {}
 

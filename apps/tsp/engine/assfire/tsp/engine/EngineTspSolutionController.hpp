@@ -14,11 +14,7 @@ namespace assfire::tsp {
         using SessionId = std::string;
         using AlgorithmPtr = std::shared_ptr<TspAlgorithm>;
 
-        explicit EngineTspSolutionController(const TspTask& task, AlgorithmPtr algorithm);
-
-        EngineTspSolutionController(const TspTask& task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container);
-
-
+        EngineTspSolutionController(const SessionId& session_id, const TspTask& task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container);
 
         void start();
 
@@ -37,7 +33,6 @@ namespace assfire::tsp {
         TspAlgorithmStateContainer& getStateContainer();
         void publishSolution(const TspSolution& solution);
         bool isInterrupted() const;
-        bool isPaused() const;
 
         const SessionId &getSessionId() const;
 
@@ -51,9 +46,7 @@ namespace assfire::tsp {
         TspAlgorithmStateContainer state_container;
         AlgorithmPtr algorithm;
         std::atomic_bool is_started = false;
-        std::atomic_bool is_paused = false;
-        std::atomic_bool is_interrupted = false;
-        std::atomic_bool is_finished = false;
+        std::atomic_bool is_interrupted = true;
         std::future<void> control_state;
         std::optional<TspSolution> solution;
         std::function<void(const TspSolution&)> solution_listener;

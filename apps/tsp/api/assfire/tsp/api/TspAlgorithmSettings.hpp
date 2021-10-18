@@ -5,7 +5,9 @@
 namespace assfire::tsp {
     class TspAlgorithmSettings {
     public:
-        TspAlgorithmSettings(TspAlgorithmType algorithm_type) : algorithm_type(algorithm_type) {}
+        TspAlgorithmSettings() : algorithm_type(TspAlgorithmType::AUTO) {}
+
+        explicit TspAlgorithmSettings(TspAlgorithmType algorithm_type) : algorithm_type(algorithm_type) {}
 
         TspAlgorithmType getAlgorithmType() const {
             return algorithm_type;

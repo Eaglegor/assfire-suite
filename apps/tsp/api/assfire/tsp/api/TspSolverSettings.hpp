@@ -7,6 +7,8 @@
 namespace assfire::tsp {
     class TspSolverSettings {
     public:
+        TspSolverSettings() = default;
+
         TspSolverSettings(const TspRoutingSettings &routing_settings, const TspEstimatorSettings &estimator_settings, const TspAlgorithmSettings &algorithm_settings)
                 : routing_settings(routing_settings), estimator_settings(estimator_settings), algorithm_settings(algorithm_settings) {}
 
