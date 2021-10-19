@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assfire/api/v1/tsp/service.grpc.pb.h>
-#include "assfire/tsp/worker/WorkerTaskPublisher.hpp"
+#include "WorkerInterface.hpp"
 #include "assfire/tsp/WorkerSolutionStorage.hpp"
 #include "TaskIdGenerator.hpp"
 #include <memory>
@@ -25,7 +25,7 @@ namespace assfire::tsp {
         using GetLatestSolutionResponse = api::v1::tsp::GetLatestSolutionResponse;
         using SubscribeForStatusUpdatesRequest = api::v1::tsp::SubscribeForStatusUpdatesRequest;
         using SubscribeForStatusUpdatesResponse = api::v1::tsp::SubscribeForStatusUpdatesResponse;
-        using WorkerTaskPublisher = worker::WorkerTaskPublisher;
+        using WorkerTaskPublisher = worker::WorkerInterface;
 
         explicit TspService(
                 std::unique_ptr<WorkerTaskPublisher> worker_task_publisher,

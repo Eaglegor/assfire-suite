@@ -4,7 +4,7 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
-#include "assfire/tsp/worker/RabbitMQWorkerTaskPublisher.hpp"
+#include "assfire/tsp/RabbitMQWorkerInterface.hpp"
 #include "assfire/tsp/RedisWorkerSolutionStorage.hpp"
 #include "assfire/tsp/IncrementalTaskIdGenerator.hpp"
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     assfire::log::initializeSpdlog(log_level);
 
     TspService service(
-            std::make_unique<worker::RabbitMQWorkerTaskPublisher>(),
+            std::make_unique<worker::RabbitMQWorkerInterface>(),
             std::make_unique<RedisWorkerSolutionStorage>(),
             std::make_unique<IncrementalTaskIdGenerator>());
 

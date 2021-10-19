@@ -9,3 +9,15 @@ message WorkerTask {
   TspTask task = 2;
 }
 
+message WorkerControlSignal {
+  enum Type {
+    WORKER_CONTROL_SIGNAL_TYPE_UNKNOWN = 0;
+    WORKER_CONTROL_SIGNAL_TYPE_PAUSE = 1;
+    WORKER_CONTROL_SIGNAL_TYPE_RESUME = 2;
+    WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT = 3;
+  }
+
+  string task_id = 1;
+  Type signal_type = 2;
+}
+
