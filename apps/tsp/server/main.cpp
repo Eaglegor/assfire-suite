@@ -4,7 +4,7 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
-#include "assfire/tsp/RabbitMQWorkerInterface.hpp"
+#include "assfire/tsp/RabbitMQWorkerTransport.hpp"
 #include "assfire/tsp/RedisWorkerSolutionStorage.hpp"
 #include "assfire/tsp/IncrementalTaskIdGenerator.hpp"
 
@@ -63,21 +63,28 @@ int main(int argc, char **argv) {
 
     assfire::log::initializeSpdlog(log_level);
 
-    TspService service(
-            std::make_unique<worker::RabbitMQWorkerInterface>("localhost", 5672, "guest", "guest"),
-            std::make_unique<RedisWorkerSolutionStorage>(),
-            std::make_unique<IncrementalTaskIdGenerator>());
+    try {
+        TspService service(
+                std::make_unique<worker::RabbitMQWorkerTransport>("localhost", 5672, "guest", "guest"),
+                std::make_unique<RedisWorkerSolutionStorage>(),
+                std::make_unique<IncrementalTaskIdGenerator>());
 
-    ServerBuilder serverBuilder;
-    serverBuilder.AddListeningPort(bind_address, grpc::InsecureServerCredentials());
-    serverBuilder.RegisterService(&service);
+        ServerBuilder serverBuilder;
+        serverBuilder.AddListeningPort(bind_address, grpc::InsecureServerCredentials());
+        serverBuilder.RegisterService(&service);
 
-    SPDLOG_INFO("Creating gRPC server...");
+        SPDLOG_INFO("Creating gRPC server...");
 
-    std::unique_ptr<Server> server(serverBuilder.BuildAndStart());
+        std::unique_ptr<Server> server(serverBuilder.BuildAndStart());
 
-    SPDLOG_INFO("Starting server on {}...", bind_address);
+        SPDLOG_INFO("Starting server on {}...", bind_address);
 
-    server->Wait();
+        server->Wait();
+    } catch (const std::exception &e) {
+        SPDLOG_ERROR("Exception thrown in service: {}", e.what());
+        return 1;
+    }
+
+
     return 0;
 }

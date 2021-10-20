@@ -2,17 +2,19 @@
 
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
-#include "WorkerInterface.hpp"
+#include "WorkerTransport.hpp"
 #include <mutex>
 
 namespace assfire::tsp::worker {
-    class RabbitMQWorkerInterface : public WorkerInterface {
+    class RabbitMQWorkerTransport : public WorkerTransport {
     public:
         static const std::string TASK_QUEUE_NAME;
         static const std::string CONTROL_QUEUE_NAME;
         static const std::string RESULT_QUEUE_NAME;
 
-        RabbitMQWorkerInterface(const std::string& host, int port, const std::string& login, const std::string& password);
+        RabbitMQWorkerTransport(const std::string& host, int port, const std::string& login, const std::string& password);
+
+        virtual ~RabbitMQWorkerTransport();
 
         void publishNewTask(const WorkerTask &task) override;
 

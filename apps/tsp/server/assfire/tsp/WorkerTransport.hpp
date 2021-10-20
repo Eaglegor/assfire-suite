@@ -3,7 +3,7 @@
 #include "assfire/api/v1/tsp/worker.pb.h"
 
 namespace assfire::tsp::worker {
-    class WorkerInterface {
+    class WorkerTransport {
     public:
         using WorkerTask = assfire::api::v1::tsp::WorkerTask;
 

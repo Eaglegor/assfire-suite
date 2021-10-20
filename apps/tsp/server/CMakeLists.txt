@@ -2,15 +2,15 @@ set(SOURCES
         main.cpp
         assfire/tsp/TspService.cpp
         assfire/tsp/RedisWorkerSolutionStorage.cpp
-        assfire/tsp/RabbitMQWorkerInterface.cpp)
+        assfire/tsp/RabbitMQWorkerTransport.cpp)
 set(HEADERS
         assfire/tsp/TspService.hpp
         assfire/tsp/TaskIdGenerator.hpp
         assfire/tsp/IncrementalTaskIdGenerator.hpp
         assfire/tsp/WorkerSolutionStorage.hpp
         assfire/tsp/RedisWorkerSolutionStorage.hpp
-        assfire/tsp/WorkerInterface.hpp
-        assfire/tsp/RabbitMQWorkerInterface.hpp)
+        assfire/tsp/WorkerTransport.hpp
+        assfire/tsp/RabbitMQWorkerTransport.hpp)
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
