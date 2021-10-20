@@ -1,7 +1,7 @@
 #include "TspService.hpp"
 
 namespace assfire::tsp {
-    TspService::TspService(std::unique_ptr<WorkerTaskPublisher> worker_task_publisher,
+    TspService::TspService(std::unique_ptr<WorkerInterface> worker_task_publisher,
                            std::unique_ptr<WorkerSolutionStorage> worker_solution_storage,
                            std::unique_ptr<TaskIdGenerator> task_id_generator)
             : worker_task_publisher(std::move(worker_task_publisher)),
@@ -11,7 +11,7 @@ namespace assfire::tsp {
     grpc::Status TspService::StartTsp(TspService::ServerContext *context, const TspService::StartTspRequest *request, TspService::StartTspResponse *response) {
         std::string task_id = task_id_generator->newId();
 
-        WorkerTaskPublisher::WorkerTask task;
+        WorkerInterface::WorkerTask task;
         task.set_task_id(task_id);
         task.mutable_task()->CopyFrom(request->task());
 

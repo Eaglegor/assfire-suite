@@ -25,10 +25,10 @@ namespace assfire::tsp {
         using GetLatestSolutionResponse = api::v1::tsp::GetLatestSolutionResponse;
         using SubscribeForStatusUpdatesRequest = api::v1::tsp::SubscribeForStatusUpdatesRequest;
         using SubscribeForStatusUpdatesResponse = api::v1::tsp::SubscribeForStatusUpdatesResponse;
-        using WorkerTaskPublisher = worker::WorkerInterface;
+        using WorkerInterface = worker::WorkerInterface;
 
         explicit TspService(
-                std::unique_ptr<WorkerTaskPublisher> worker_task_publisher,
+                std::unique_ptr<WorkerInterface> worker_task_publisher,
                 std::unique_ptr<WorkerSolutionStorage> worker_solution_storage,
                 std::unique_ptr<TaskIdGenerator> task_id_generator);
 
@@ -45,7 +45,7 @@ namespace assfire::tsp {
         grpc::Status SubscribeForStatusUpdates(ServerContext *context, const SubscribeForStatusUpdatesRequest *request, ServerWriter<SubscribeForStatusUpdatesResponse> *writer) override;
 
     private:
-        std::unique_ptr<WorkerTaskPublisher> worker_task_publisher;
+        std::unique_ptr<WorkerInterface> worker_task_publisher;
         std::unique_ptr<WorkerSolutionStorage> worker_solution_storage;
         std::unique_ptr<TaskIdGenerator> task_id_generator;
     };

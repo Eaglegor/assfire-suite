@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     assfire::log::initializeSpdlog(log_level);
 
     TspService service(
-            std::make_unique<worker::RabbitMQWorkerInterface>(),
+            std::make_unique<worker::RabbitMQWorkerInterface>("localhost", 5672, "guest", "guest"),
             std::make_unique<RedisWorkerSolutionStorage>(),
             std::make_unique<IncrementalTaskIdGenerator>());
 

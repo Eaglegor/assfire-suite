@@ -1,7 +1,9 @@
 #pragma once
 
-#include <amqpcpp.h>
+#include <amqp.h>
+#include <amqp_tcp_socket.h>
 #include "WorkerInterface.hpp"
+#include <mutex>
 
 namespace assfire::tsp::worker {
     class RabbitMQWorkerInterface : public WorkerInterface {
@@ -10,7 +12,7 @@ namespace assfire::tsp::worker {
         static const std::string CONTROL_QUEUE_NAME;
         static const std::string RESULT_QUEUE_NAME;
 
-        RabbitMQWorkerInterface();
+        RabbitMQWorkerInterface(const std::string& host, int port, const std::string& login, const std::string& password);
 
         void publishNewTask(const WorkerTask &task) override;
 
@@ -21,7 +23,8 @@ namespace assfire::tsp::worker {
         void publishStopEvent(const std::string &task_id) override;
 
     private:
-        AMQP::Connection connection;
-        AMQP::Channel channel;
+        std::mutex publish_lock;
+        amqp_socket_t* socket = nullptr;
+        amqp_connection_state_t connection;
     };
 }
