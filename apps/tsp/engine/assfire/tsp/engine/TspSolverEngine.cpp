@@ -26,7 +26,7 @@ namespace assfire::tsp {
             return "<todo>";
         }
 
-        EngineTspSolutionController::AlgorithmPtr createAlgorithm(const TspTask &task, TspEstimator estimator, const EngineTspSolutionController::SessionId &session_id) {
+        EngineTspSolutionController::AlgorithmPtr createAlgorithm(const TspTask &task, TspEstimator estimator, const TspSolutionController::SessionId &session_id) {
             TspAlgorithmType type = task.getSolverSettings().getAlgorithmSettings().getAlgorithmType();
             SPDLOG_INFO("Creating algorithm of type {} for TSP session {}", std::to_string(type), session_id);
             switch (type) {
@@ -38,7 +38,7 @@ namespace assfire::tsp {
             }
         }
 
-        router::DistanceMatrix createDistanceMatrix(const router::RouterApi &router, const TspRoutingSettings &settings, const EngineTspSolutionController::SessionId &session_id) {
+        router::DistanceMatrix createDistanceMatrix(const router::RouterApi &router, const TspRoutingSettings &settings, const TspSolutionController::SessionId &session_id) {
             SPDLOG_INFO("Building distance matrix for TSP session {}", session_id);
             return router.createDistanceMatrix(
                     settings.getEngineType(),
@@ -57,7 +57,7 @@ namespace assfire::tsp {
             return indexed_locations;
         }
 
-        TspEstimator::CostFunctionPtr createCostFunction(const TspTask &task, router::DistanceMatrix distance_matrix, const EngineTspSolutionController::SessionId &session_id) {
+        TspEstimator::CostFunctionPtr createCostFunction(const TspTask &task, router::DistanceMatrix distance_matrix, const TspSolutionController::SessionId &session_id) {
             TspCostFunctionType type = task.getSolverSettings().getEstimatorSettings().getCostFunctionSettings().getType();
             SPDLOG_INFO("Creating cost function of type {} for TSP session {}", std::to_string(type), session_id);
             switch (type) {
@@ -69,7 +69,7 @@ namespace assfire::tsp {
             }
         }
 
-        TspEstimator::ValidatorPtr createValidator(const TspTask &task, router::DistanceMatrix distance_matrix, const EngineTspSolutionController::SessionId &session_id) {
+        TspEstimator::ValidatorPtr createValidator(const TspTask &task, router::DistanceMatrix distance_matrix, const TspSolutionController::SessionId &session_id) {
             TspValidatorType type = task.getSolverSettings().getEstimatorSettings().getValidatorSettings().getType();
             SPDLOG_INFO("Creating validator of type {} for TSP session {}", std::to_string(type), session_id);
             switch (type) {
@@ -82,12 +82,12 @@ namespace assfire::tsp {
         }
     }
 
-    TspSolutionSession TspSolverEngine::solveTsp(const TspTask &task) const {
-        return solveTsp(task, TspAlgorithmStateContainer());
+    TspSolutionSession TspSolverEngine::solveTsp(const TspTask &task, TspSolutionListener solution_listener) const {
+        return solveTsp(task, TspAlgorithmStateContainer(), solution_listener);
     }
 
-    TspSolutionSession TspSolverEngine::solveTsp(const TspTask &task, TspAlgorithmStateContainer saved_state) const {
-        EngineTspSolutionController::SessionId session_id = generateSessionId();
+    TspSolutionSession TspSolverEngine::solveTsp(const TspTask &task, TspAlgorithmStateContainer saved_state, TspSolutionListener solution_listener) const {
+        TspSolutionController::SessionId session_id = generateSessionId();
         SPDLOG_INFO("Starting TSP session {}", session_id);
         router::DistanceMatrix distance_matrix = createDistanceMatrix(*router, task.getSolverSettings().getRoutingSettings(), session_id);
         TspEstimator::CostFunctionPtr cost_function = createCostFunction(task, distance_matrix, session_id);
@@ -95,7 +95,7 @@ namespace assfire::tsp {
         TspEstimator estimator(validator, cost_function);
         EngineTspSolutionController::AlgorithmPtr algorithm = createAlgorithm(task, estimator, session_id);
 
-        std::unique_ptr<EngineTspSolutionController> solution_controller = std::make_unique<EngineTspSolutionController>(session_id, task, algorithm, std::move(saved_state));
+        std::unique_ptr<EngineTspSolutionController> solution_controller = std::make_unique<EngineTspSolutionController>(session_id, task, algorithm, std::move(saved_state), solution_listener);
         solution_controller->start();
         return TspSolutionSession(std::move(solution_controller));
     }

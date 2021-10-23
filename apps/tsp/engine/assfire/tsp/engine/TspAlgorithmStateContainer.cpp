@@ -1,8 +1,17 @@
 #include "TspAlgorithmStateContainer.hpp"
 #include <iterator>
 #include <algorithm>
+#include <utility>
 
 namespace assfire::tsp {
+    TspAlgorithmStateContainer::TspAlgorithmStateContainer(TspAlgorithmStateContainer::Persister persister) :
+            persister(std::move(persister)) {
+    }
+
+    TspAlgorithmStateContainer::TspAlgorithmStateContainer(TspAlgorithmStateContainer::TspAlgorithmStateDto state, TspAlgorithmStateContainer::Persister persister) :
+            state(std::move(state)), persister(std::move(persister)) {
+    }
+
     TspAlgorithmStateContainer::TspAlgorithmStateDto &TspAlgorithmStateContainer::getDto() {
         return state;
     }
@@ -55,5 +64,13 @@ namespace assfire::tsp {
 
     bool TspAlgorithmStateContainer::containsTwoOptState() const {
         return state.has_two_opt_algorithm_state();
+    }
+
+    void TspAlgorithmStateContainer::setState(TspAlgorithmStateContainer::TspAlgorithmStateDto state) {
+        TspAlgorithmStateContainer::state = std::move(state);
+    }
+
+    void TspAlgorithmStateContainer::persist() {
+        persister(state);
     }
 }

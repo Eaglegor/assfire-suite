@@ -7,16 +7,18 @@
 namespace assfire::tsp {
     class TspSolutionController {
     public:
+        using SessionId = std::string;
+
         virtual void interrupt() = 0;
 
         virtual void pause() = 0;
 
         virtual void resume() = 0;
 
-        virtual void setSolutionListener(std::function<void(const TspSolution &)> listener) = 0;
-
         virtual bool isFinished() = 0;
 
         virtual void waitFor(long milliseconds) = 0;
+
+        virtual const SessionId &getSessionId() const = 0;
     };
 }

@@ -5,11 +5,12 @@
 
 namespace assfire::tsp {
 
-    EngineTspSolutionController::EngineTspSolutionController(const SessionId &session_id, const TspTask &task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container)
-            : session_id(session_id), task(task), algorithm(std::move(algorithm)), state_container(std::move(state_container)) {}
+    EngineTspSolutionController::EngineTspSolutionController(const SessionId &session_id, const TspTask &task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container,
+                                                             TspSolutionListener solution_listener)
+            : session_id(session_id), task(task), algorithm(std::move(algorithm)), state_container(std::move(state_container)), solution_listener(solution_listener) {}
 
     void EngineTspSolutionController::start() {
-        SPDLOG_DEBUG("Starting solution for {}", session_id);
+        SPDLOG_DEBUG("Starting solution for session {}", session_id);
         resume();
     }
 
@@ -18,17 +19,17 @@ namespace assfire::tsp {
     }
 
     void EngineTspSolutionController::interrupt() {
-        SPDLOG_DEBUG("Interrupting solution for {}", session_id);
+        SPDLOG_DEBUG("Interrupting solution for session {}", session_id);
         is_interrupted = true;
     }
 
     void EngineTspSolutionController::pause() {
-        SPDLOG_DEBUG("Pausing solution for {}", session_id);
+        SPDLOG_DEBUG("Pausing solution for session {}", session_id);
         is_interrupted = true;
     }
 
     void EngineTspSolutionController::resume() {
-        SPDLOG_DEBUG("Resuming solution for {}", session_id);
+        SPDLOG_DEBUG("Resuming solution for session {}", session_id);
         launchTask();
     }
 
@@ -43,7 +44,7 @@ namespace assfire::tsp {
     void EngineTspSolutionController::publishSolution(const TspSolution &solution) {
         SPDLOG_DEBUG("New solution found for session {}", session_id);
         is_finished = solution.isFinalSolution();
-        if (solution_listener) solution_listener(solution);
+        solution_listener(solution);
     }
 
     EngineTspSolutionController::~EngineTspSolutionController() {
@@ -51,12 +52,8 @@ namespace assfire::tsp {
         waitForTaskStop();
     }
 
-    void EngineTspSolutionController::setSolutionListener(std::function<void(const TspSolution &)> listener) {
-        this->solution_listener = listener;
-    }
-
     void EngineTspSolutionController::launchTask() {
-        if(is_finished) {
+        if (is_finished) {
             SPDLOG_DEBUG("Couldn't start tsp task for session {} - session already finished", session_id);
             return;
         }
@@ -68,6 +65,9 @@ namespace assfire::tsp {
             is_interrupted = false;
             control_state = std::async(std::launch::async, [&, controller = this] {
                 algorithm->solveTsp(task, *controller);
+                if (!is_finished) {
+                    state_container.persist();
+                }
                 is_started = false;
             });
         } else {
@@ -87,7 +87,7 @@ namespace assfire::tsp {
     }
 
     void EngineTspSolutionController::waitFor(long milliseconds) {
-        if(control_state.valid()) {
+        if (control_state.valid()) {
             control_state.wait_for(std::chrono::milliseconds(milliseconds));
         }
     }

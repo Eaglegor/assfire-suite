@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     std::string metrics_exposer_uri = result["metrics-exposer-uri"].as<std::string>();
     std::size_t metrics_exposer_threads_count = result["metrics-exposer-threads-count"].as<std::size_t>();
 
-    SPDLOG_INFO("Creating routing service with options: \n\
+    SPDLOG_INFO("Creating tsp service with options: \n\
                 log-level={}, \n\
 				bind-address={}, \n\
 				metrics-enabled={}, \n\

@@ -20,8 +20,8 @@ namespace assfire::tsp
     public:
         TspSolverEngine(std::shared_ptr<router::RouterApi> router);
 
-        TspSolutionSession solveTsp(const TspTask &task) const override;
-        TspSolutionSession solveTsp(const TspTask &task, TspAlgorithmStateContainer saved_state) const;
+        TspSolutionSession solveTsp(const TspTask &task, TspSolutionListener solution_listener) const override;
+        TspSolutionSession solveTsp(const TspTask &task, TspAlgorithmStateContainer saved_state, TspSolutionListener solution_listener) const;
 
     private:
         std::shared_ptr<router::RouterApi> router;

@@ -11,10 +11,11 @@ namespace assfire::tsp {
 
     class EngineTspSolutionController : public TspSolutionController {
     public:
-        using SessionId = std::string;
+        using TspSolutionListener = std::function<void(const TspSolution &)>;
         using AlgorithmPtr = std::shared_ptr<TspAlgorithm>;
 
-        EngineTspSolutionController(const SessionId& session_id, const TspTask& task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container);
+        EngineTspSolutionController(const SessionId &session_id, const TspTask &task, AlgorithmPtr algorithm, TspAlgorithmStateContainer state_container,
+                                    TspSolutionListener solution_listener);
 
         void start();
 
@@ -24,22 +25,23 @@ namespace assfire::tsp {
 
         void resume() override;
 
-        void setSolutionListener(std::function<void(const TspSolution &)> listener) override;
-
         bool isFinished() override;
 
         void waitFor(long milliseconds) override;
 
-        TspAlgorithmStateContainer& getStateContainer();
-        void publishSolution(const TspSolution& solution);
+        TspAlgorithmStateContainer &getStateContainer();
+
+        void publishSolution(const TspSolution &solution);
+
         bool isInterrupted() const;
 
-        const SessionId &getSessionId() const;
+        const SessionId &getSessionId() const override;
 
         virtual ~EngineTspSolutionController();
 
     private:
         void launchTask();
+
         void waitForTaskStop();
 
         TspTask task;
@@ -49,7 +51,7 @@ namespace assfire::tsp {
         std::atomic_bool is_interrupted = true;
         std::atomic_bool is_finished = false;
         std::future<void> control_state;
-        std::function<void(const TspSolution&)> solution_listener;
+        TspSolutionListener solution_listener;
         SessionId session_id;
     };
 }

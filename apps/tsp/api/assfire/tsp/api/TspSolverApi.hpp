@@ -9,7 +9,9 @@ namespace assfire::tsp {
 
     class TspSolverApi {
     public:
-        virtual TspSolutionSession solveTsp(const TspTask &task) const = 0;
+        using TspSolutionListener = std::function<void(const TspSolution &)>;
+
+        virtual TspSolutionSession solveTsp(const TspTask &task, TspSolutionListener solution_listener) const = 0;
     };
 }
 

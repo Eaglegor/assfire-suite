@@ -10,7 +10,9 @@
 namespace assfire::tsp {
     class TspSolutionSession {
     public:
-        TspSolutionSession(std::unique_ptr<TspSolutionController> solution_controller);
+        using Id = TspSolutionController::SessionId;
+
+        explicit TspSolutionSession(std::unique_ptr<TspSolutionController> solution_controller);
 
         void interrupt();
 
@@ -18,11 +20,11 @@ namespace assfire::tsp {
 
         void resume();
 
-        void setSolutionListener(std::function<void(const TspSolution &)> solution_listener);
-
         bool isFinished();
 
         void waitFor(long milliseconds);
+
+        const Id &getId() const;
 
     private:
         std::unique_ptr<TspSolutionController> solution_controller;

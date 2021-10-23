@@ -1,10 +1,14 @@
-#include "assfire/scheduler/SchedulerService.hpp"
-#include <grpc++/server_builder.h>
-#include <cxxopts.hpp>
+#include <assfire/api/v1/tsp/worker.pb.h>
+#include <assfire/tsp/engine/TspSolverEngine.hpp>
+#include <assfire/router/client/RouterClient.hpp>
 #include <memory>
-#include <numeric>
+#include <cxxopts.hpp>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
+#include <assfire/tsp/worker/RabbitMqTaskProcessor.hpp>
+#include <assfire/tsp/worker/StdoutSolutionPublisher.hpp>
+#include <assfire/tsp/worker/NopSavedStateManager.hpp>
+#include <numeric>
 
 #ifdef _WIN32
 
@@ -12,16 +16,13 @@
 
 #endif
 
-using namespace assfire::scheduler;
-using namespace grpc;
+using namespace assfire::tsp;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 #ifdef _WIN32
     assfire::win32::winsock_initializer winsock_initializer;
 #endif
 
-    constexpr const char *BIND_ADDRESS = "bind-address";
     constexpr const char *LOG_LEVEL = "log-level";
     constexpr const char *METRICS_ENABLED = "metrics-enabled";
     constexpr const char *METRICS_EXPOSER_BIND_ADDRESS = "metrics-exposer-bind-address";
@@ -31,10 +32,9 @@ int main(int argc, char **argv)
     constexpr const char *ROUTER_PORT = "router-port";
     constexpr const char *ROUTER_USE_SSL = "router-use-ssl";
 
-    cxxopts::Options args_template("assfire-scheduler-server");
+    cxxopts::Options args_template("assfire-tsp-worker");
     args_template.add_options()
             ("h,help", "Print options help")
-            (BIND_ADDRESS, "Service bind address", cxxopts::value<std::string>()->default_value("0.0.0.0:50051"))
             (LOG_LEVEL, "Log level", cxxopts::value<std::string>()->default_value("info"))
             (METRICS_ENABLED, "Prometheus metrics enabled", cxxopts::value<bool>()->default_value("false"))
             (METRICS_EXPOSER_BIND_ADDRESS, "Prometheus exposer binding address", cxxopts::value<std::string>()->default_value("0.0.0.0:8081"))
@@ -55,29 +55,41 @@ int main(int argc, char **argv)
                                                  [](const std::string &current, const cxxopts::KeyValue &kv) {
                                                      return current + "\n" + kv.key() + " = " + kv.value();
                                                  });
-    if(!options_string.empty()) {
+    if (!options_string.empty()) {
         SPDLOG_INFO("Recognized args: {}", options_string);
     }
 
     assfire::log::initializeSpdlog(options[LOG_LEVEL].as<std::string>());
 
-    SchedulerService::Options transport_scheduler_server_options;
-    transport_scheduler_server_options.router_host = options[ROUTER_HOST].as<std::string>();
-    transport_scheduler_server_options.router_port = options[ROUTER_PORT].as<int>();
-    transport_scheduler_server_options.use_ssl_for_router = options[ROUTER_USE_SSL].as<bool>();
+    std::string router_host = options[ROUTER_HOST].as<std::string>();
+    int router_port = options[ROUTER_PORT].as<int>();
+    bool use_ssl_for_router = options[ROUTER_USE_SSL].as<bool>();
 
-    SchedulerService service(transport_scheduler_server_options);
+    try {
 
-    ServerBuilder serverBuilder;
-    serverBuilder.AddListeningPort(options[BIND_ADDRESS].as<std::string>(), grpc::InsecureServerCredentials());
-    serverBuilder.RegisterService(&service);
+        std::unique_ptr<assfire::router::RouterApi> router =
+                std::make_unique<assfire::router::RouterClient>(router_host, router_port, use_ssl_for_router);
 
-    SPDLOG_INFO("Creating gRPC server...");
+        std::unique_ptr<assfire::tsp::worker::SolutionPublisher> solution_publisher =
+                std::make_unique<assfire::tsp::worker::StdoutSolutionPublisher>();
 
-    std::unique_ptr<Server> server(serverBuilder.BuildAndStart());
+        std::unique_ptr<assfire::tsp::TspSolverEngine> tsp_solver =
+                std::make_unique<assfire::tsp::TspSolverEngine>(std::move(router));
 
-    SPDLOG_INFO("Starting server on {}...", options[BIND_ADDRESS].as<std::string>());
+        std::unique_ptr<assfire::tsp::worker::SavedStateManager> saved_state_manager =
+                std::make_unique<assfire::tsp::worker::NopSavedStateManager>();
 
-    server->Wait();
+        std::unique_ptr<assfire::tsp::worker::TaskProcessor> task_processor =
+                std::make_unique<assfire::tsp::worker::RabbitMqTaskProcessor>(std::move(tsp_solver), std::move(solution_publisher), std::move(saved_state_manager),
+                                                                              "localhost", 5672, "guest", "guest");
+
+
+        task_processor->startProcessing();
+    } catch (const std::exception &e) {
+        SPDLOG_ERROR("Exception occurred: {}", e.what());
+        return 1;
+    }
+
+
     return 0;
 }

@@ -28,11 +28,11 @@ namespace assfire::tsp::worker {
                 throw std::runtime_error("Failed to create RabbitMQ socket");
             }
 
-            SPDLOG_INFO("Opening RabbitMQ socket on {}:{}", host, port);
+            SPDLOG_INFO("Connecting to RabbitMQ at {}:{}", host, port);
             int status = amqp_socket_open(socket, host.c_str(), port);
             if (status != AMQP_STATUS_OK) {
-                SPDLOG_ERROR("Failed to open RabbitMQ socket: {}", amqp_error_string2(status));
-                throw std::runtime_error("Failed to open RabbitMQ socket");
+                SPDLOG_ERROR("Failed to connect to RabbitMQ: {}", amqp_error_string2(status));
+                throw std::runtime_error("Failed to connect to RabbitMQ");
             }
 
             SPDLOG_INFO("Logging in to RabbitMQ as {}...", login.c_str());
@@ -63,7 +63,7 @@ namespace assfire::tsp::worker {
     RabbitMQWorkerTransport::~RabbitMQWorkerTransport() {
         SPDLOG_INFO("Destroying RabbitMQ worker transport");
 
-        SPDLOG_INFO("Closing RabbitMQ channel {}...", AMQP_CHANNEL_ID);
+        SPDLOG_INFO("Closing RabbitMQ channel #{}...", AMQP_CHANNEL_ID);
         amqp_rpc_reply_t reply = amqp_channel_close(connection, AMQP_CHANNEL_ID, AMQP_REPLY_SUCCESS);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             SPDLOG_ERROR("Failed to close RabbitMQ channel {}: {}", AMQP_CHANNEL_ID, amqp_error_string2(reply.library_error));
@@ -101,7 +101,7 @@ namespace assfire::tsp::worker {
         amqp_basic_publish(connection, AMQP_CHANNEL_ID, amqp_cstring_bytes(exchange_name.c_str()),
                            amqp_cstring_bytes(queue_name.c_str()), 1, 0,
                            nullptr, message_bytes);
-        SPDLOG_TRACE("Cleaing up memory", message_size);
+        SPDLOG_TRACE("Cleaning up memory", message_size);
         free(buffer);
     }
 
