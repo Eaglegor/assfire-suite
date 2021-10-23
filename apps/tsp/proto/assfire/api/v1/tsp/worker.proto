@@ -21,3 +21,7 @@ message WorkerControlSignal {
   Type signal_type = 2;
 }
 
+message TspSolutionResult {
+  TspSolution solution = 1;
+  bool is_success = 2;
+}

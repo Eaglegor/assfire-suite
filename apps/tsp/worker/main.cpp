@@ -7,6 +7,7 @@
 #include <assfire/log/spdlog.h>
 #include <assfire/tsp/worker/RabbitMqTaskProcessor.hpp>
 #include <assfire/tsp/worker/StdoutSolutionPublisher.hpp>
+#include <assfire/tsp/worker/RedisSolutionPublisher.hpp>
 #include <assfire/tsp/worker/NopSavedStateManager.hpp>
 #include <numeric>
 
@@ -31,6 +32,8 @@ int main(int argc, char **argv) {
     constexpr const char *ROUTER_HOST = "router-host";
     constexpr const char *ROUTER_PORT = "router-port";
     constexpr const char *ROUTER_USE_SSL = "router-use-ssl";
+    constexpr const char *REDIS_HOST = "redis-host";
+    constexpr const char *REDIS_PORT = "redis-port";
 
     cxxopts::Options args_template("assfire-tsp-worker");
     args_template.add_options()
@@ -42,7 +45,9 @@ int main(int argc, char **argv) {
             (METRICS_EXPOSER_THREADS_COUNT, "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"))
             (ROUTER_HOST, "Assfire Router server host", cxxopts::value<std::string>()->default_value("http://localhost"))
             (ROUTER_PORT, "Assfire Router port to connect to", cxxopts::value<int>()->default_value("50051"))
-            (ROUTER_USE_SSL, "If true, SSL will be used to connect to the Assfire Router", cxxopts::value<bool>()->default_value("false"));
+            (ROUTER_USE_SSL, "If true, SSL will be used to connect to the Assfire Router", cxxopts::value<bool>()->default_value("false"))
+            (REDIS_HOST, "Redis host address", cxxopts::value<std::string>()->default_value("127.0.0.1"))
+            (REDIS_PORT, "Redis connection port", cxxopts::value<std::size_t>()->default_value("6379"));
 
     auto options = args_template.parse(argc, argv);
 
@@ -65,13 +70,17 @@ int main(int argc, char **argv) {
     int router_port = options[ROUTER_PORT].as<int>();
     bool use_ssl_for_router = options[ROUTER_USE_SSL].as<bool>();
 
+    std::string redis_host = options[REDIS_HOST].as<std::string>();
+    std::size_t redis_port = options[REDIS_PORT].as<std::size_t>();
+
     try {
 
         std::unique_ptr<assfire::router::RouterApi> router =
                 std::make_unique<assfire::router::RouterClient>(router_host, router_port, use_ssl_for_router);
 
         std::unique_ptr<assfire::tsp::worker::SolutionPublisher> solution_publisher =
-                std::make_unique<assfire::tsp::worker::StdoutSolutionPublisher>();
+//                std::make_unique<assfire::tsp::worker::StdoutSolutionPublisher>();
+                std::make_unique<assfire::tsp::worker::RedisSolutionPublisher>(redis_host, redis_port);
 
         std::unique_ptr<assfire::tsp::TspSolverEngine> tsp_solver =
                 std::make_unique<assfire::tsp::TspSolverEngine>(std::move(router));

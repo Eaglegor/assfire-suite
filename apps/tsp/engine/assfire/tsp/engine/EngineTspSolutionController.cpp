@@ -75,7 +75,11 @@ namespace assfire::tsp {
                     }
                 } catch (const std::exception &e) {
                     SPDLOG_ERROR("Error occurred while solving tsp for {}: {}", session_id, e.what());
-                    solution_listener.onError();
+                    try {
+                        solution_listener.onError();
+                    } catch(const std::exception &e) {
+                        SPDLOG_ERROR("Error occurred while notifying about error for task {}: {}", session_id, e.what());
+                    }
                 }
                 is_started = false;
             });
