@@ -77,7 +77,7 @@ void FullMatrixCacheDistanceMatrixEngine::initialize() const {
 }
 
 std::string FullMatrixCacheDistanceMatrixEngine::encodeLocation(const Location &location) const {
-    return std::to_string(location.getLatitude().encodedValue()) + std::to_string(location.getLatitude().encodedValue());
+    return std::to_string(location.getLatitude().encodedValue()) + std::to_string(location.getLongitude().encodedValue());
 }
 
 RouteInfo FullMatrixCacheDistanceMatrixEngine::getCachedRouteInfo(int origin_id, int destination_id) const {

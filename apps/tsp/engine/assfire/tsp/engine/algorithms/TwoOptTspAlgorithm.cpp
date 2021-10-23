@@ -78,9 +78,11 @@ namespace assfire::tsp {
             if (validation_result.isValid()) {
                 TspCost cost = estimator.calculateCost(sequence);
                 if (cost < current_solution.getCost()) {
+                    SPDLOG_TRACE("Solution {} accepted, new cost = {}", formatSequence(task, sequence), cost.getValue());
                     current_solution = TspSolution(sequence, cost, validation_result, false);
                     solution_controller.publishSolution(current_solution);
                 } else {
+                    SPDLOG_TRACE("Solution {} rejected: cost {} >= {} (best)",  formatSequence(task, sequence), cost.getValue(), current_solution.getCost().getValue());
                     std::reverse(sequence.begin() + i, sequence.begin() + j);
                 }
             } else {
@@ -107,7 +109,7 @@ namespace assfire::tsp {
             return loaded_state;
         }
 
-        return std::make_optional<State>(0, 1, 0, task.getPoints().size());
+        return std::make_optional<State>(0, 2, 0, task.getPoints().size());
     }
 
     std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::nextState(const std::optional<State> &state) const {
@@ -117,7 +119,7 @@ namespace assfire::tsp {
         int k = state->getK();
         int size = state->getSize();
 
-        if (++j >= size) {
+        if (++j >= size + 1) {
             if (++i >= size) {
                 ++k;
                 i = 0;
@@ -126,6 +128,8 @@ namespace assfire::tsp {
                 j = i + 1;
             }
         }
+
+        SPDLOG_TRACE("New 2-opt state: {}, {}, {}", i, j, k);
 
         return k >= size ? std::nullopt : std::make_optional<State>(i, j, k, size);
     }

@@ -34,7 +34,7 @@ namespace assfire::tsp {
     }
 
     bool EngineTspSolutionController::isFinished() {
-        return is_finished;
+        return !is_started;
     }
 
     TspAlgorithmStateContainer &EngineTspSolutionController::getStateContainer() {
@@ -43,8 +43,12 @@ namespace assfire::tsp {
 
     void EngineTspSolutionController::publishSolution(const TspSolution &solution) {
         SPDLOG_DEBUG("New solution found for session {}", session_id);
-        is_finished = solution.isFinalSolution();
-        solution_listener(solution);
+        has_final_solution = solution.isFinalSolution();
+        if (solution.isFinalSolution()) {
+            solution_listener.onFinalSolution(solution);
+        } else {
+            solution_listener.onNextSolution(solution);
+        }
     }
 
     EngineTspSolutionController::~EngineTspSolutionController() {
@@ -53,7 +57,7 @@ namespace assfire::tsp {
     }
 
     void EngineTspSolutionController::launchTask() {
-        if (is_finished) {
+        if (has_final_solution) {
             SPDLOG_DEBUG("Couldn't start tsp task for session {} - session already finished", session_id);
             return;
         }
@@ -64,9 +68,14 @@ namespace assfire::tsp {
             waitForTaskStop();
             is_interrupted = false;
             control_state = std::async(std::launch::async, [&, controller = this] {
-                algorithm->solveTsp(task, *controller);
-                if (!is_finished) {
-                    state_container.persist();
+                try {
+                    algorithm->solveTsp(task, *controller);
+                    if (!has_final_solution) {
+                        state_container.persist();
+                    }
+                } catch (const std::exception &e) {
+                    SPDLOG_ERROR("Error occurred while solving tsp for {}: {}", session_id, e.what());
+                    solution_listener.onError();
                 }
                 is_started = false;
             });

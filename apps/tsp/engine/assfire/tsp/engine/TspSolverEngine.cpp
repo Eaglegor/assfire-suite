@@ -44,7 +44,8 @@ namespace assfire::tsp {
                     settings.getEngineType(),
                     router::DistanceMatrixCachingPolicy::FULL_MATRIX_PRECACHING,
                     settings.getRoutingProfile(),
-                    settings.getRouteProviderSettings()
+                    settings.getRouteProviderSettings(),
+                    router::DistanceMatrixErrorPolicy::ON_ERROR_THROW
             );
         }
 

@@ -45,7 +45,7 @@ namespace assfire::tsp {
 
     TEST(EngineTspSolutionControllerTest, InterruptResumeWorkflowIsThreadSafe) {
         std::shared_ptr<EngineControllerTestAlgorithm> algorithm = std::make_shared<EngineControllerTestAlgorithm>();
-        EngineTspSolutionController controller("test", TspTask(TspTask::Points(), TspSolverSettings()), algorithm, TspAlgorithmStateContainer(), [](const TspSolution&){});
+        EngineTspSolutionController controller("test", TspTask(TspTask::Points(), TspSolverSettings()), algorithm, TspAlgorithmStateContainer(), TspSolutionListener());
         controller.start();
         while (algorithm->getI() < 1000) {
             int randomAction = rand() % 4;

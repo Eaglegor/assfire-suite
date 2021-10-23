@@ -15,6 +15,41 @@ namespace assfire::tsp::worker {
 
     using WorkerControlSignal = assfire::api::v1::tsp::WorkerControlSignal;
 
+    void processAmqpError(const amqp_rpc_reply_t &reply, const char *message, bool throw_error = true) {
+        switch (reply.reply_type) {
+            case AMQP_RESPONSE_NONE: {
+                SPDLOG_ERROR("{}: {}", message, "Missing AMQP reply type");
+                break;
+            }
+
+            case AMQP_RESPONSE_LIBRARY_EXCEPTION: {
+                SPDLOG_ERROR("{}: {}", message, amqp_error_string2(reply.library_error));
+                break;
+            }
+
+            case AMQP_RESPONSE_SERVER_EXCEPTION: {
+                switch (reply.reply.id) {
+                    case AMQP_CONNECTION_CLOSE_METHOD: {
+                        amqp_connection_close_t *m =
+                                (amqp_connection_close_t *) reply.reply.decoded;
+                        SPDLOG_ERROR("{}: error {} ({})", message, m->reply_code, (const char *) m->reply_text.bytes);
+                        break;
+                    }
+                    case AMQP_CHANNEL_CLOSE_METHOD: {
+                        amqp_channel_close_t *m = (amqp_channel_close_t *) reply.reply.decoded;
+                        SPDLOG_ERROR("{}: error {} ({})", message, m->reply_code, (const char *) m->reply_text.bytes);
+                        break;
+                    }
+                    default:
+                        amqp_channel_close_t *m = (amqp_channel_close_t *) reply.reply.decoded;
+                        SPDLOG_ERROR("{}: unknown AMQP server error", message);
+                }
+                break;
+            }
+        }
+        if (throw_error) throw std::runtime_error(message);
+    }
+
     RabbitMQWorkerTransport::RabbitMQWorkerTransport(const std::string &host, int port, const std::string &login, const std::string &password) {
         SPDLOG_INFO("Initializing RabbitMQ worker transport");
 
@@ -49,6 +84,21 @@ namespace assfire::tsp::worker {
             if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
                 SPDLOG_ERROR("Failed to open RabbitMQ channel: {}", amqp_error_string2(reply.library_error));
                 throw std::runtime_error("Failed to open RabbitMQ channel");
+            }
+
+            SPDLOG_INFO("Declaring RabbitMQ tasks queue {}", TASK_QUEUE_NAME);
+            amqp_queue_declare(connection, AMQP_CHANNEL_ID, amqp_cstring_bytes(TASK_QUEUE_NAME.c_str()),
+                               0,0,0,1,amqp_empty_table);
+            reply = amqp_get_rpc_reply(connection);
+            if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+                processAmqpError(reply, "Failed to declare RabbitMQ queue");
+            }
+
+            amqp_queue_bind(connection, AMQP_CHANNEL_ID, amqp_cstring_bytes(TASK_QUEUE_NAME.c_str()), amqp_cstring_bytes(TASK_EXCHANGE.c_str()),
+                            amqp_cstring_bytes(TASK_QUEUE_NAME.c_str()), amqp_empty_table);
+            reply = amqp_get_rpc_reply(connection);
+            if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+                processAmqpError(reply, "Failed to bind RabbitMQ queue");
             }
         } catch (const std::runtime_error& e) {
             SPDLOG_ERROR("Failed to initialize RabbitMQ transport. Cleaning up connections...");
@@ -97,10 +147,14 @@ namespace assfire::tsp::worker {
         amqp_bytes_t message_bytes;
         message_bytes.len = message_size;
         message_bytes.bytes = buffer;
-        SPDLOG_DEBUG("Sending {} bytes to RabbitMQ", message_bytes.bytes);
-        amqp_basic_publish(connection, AMQP_CHANNEL_ID, amqp_cstring_bytes(exchange_name.c_str()),
+        SPDLOG_DEBUG("Sending {} bytes to RabbitMQ", message_bytes.len);
+        auto status = amqp_basic_publish(connection, AMQP_CHANNEL_ID, amqp_cstring_bytes(exchange_name.c_str()),
                            amqp_cstring_bytes(queue_name.c_str()), 1, 0,
                            nullptr, message_bytes);
+        if(status != AMQP_STATUS_OK) {
+            SPDLOG_ERROR("Failed to send task to RabbitMQ: {}", amqp_error_string2(status));
+            throw std::runtime_error("Failed to send task to RabbitMQ");
+        }
         SPDLOG_TRACE("Cleaning up memory", message_size);
         free(buffer);
     }

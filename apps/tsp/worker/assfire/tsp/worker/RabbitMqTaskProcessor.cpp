@@ -58,7 +58,7 @@ namespace assfire::tsp::worker {
     RabbitMqTaskProcessor::RabbitMqTaskProcessor(std::unique_ptr<TspSolverEngine> tsp_solver, std::unique_ptr<SolutionPublisher> solution_publisher,
                                                  std::unique_ptr<SavedStateManager> saved_state_manager,
                                                  const std::string &host, int port, const std::string &login, const std::string &password)
-            : tsp_solver(std::move(tsp_solver)), solution_publisher(std::move(solution_publisher)) {
+            : tsp_solver(std::move(tsp_solver)), solution_publisher(std::move(solution_publisher)), saved_state_manager(std::move(saved_state_manager)) {
         SPDLOG_INFO("Initializing RabbitMQ task processor");
 
         SPDLOG_INFO("Creating RabbitMQ socket");
@@ -129,14 +129,14 @@ namespace assfire::tsp::worker {
     void RabbitMqTaskProcessor::startProcessing() {
         SPDLOG_INFO("Subscribing for RabbitMQ tasks queue {}", TASK_QUEUE_NAME);
         amqp_queue_declare(connection, AMQP_CHANNEL_ID, amqp_cstring_bytes(TASK_QUEUE_NAME.c_str()),
-                           0,0,0,1,amqp_empty_table);
+                           0, 0, 0, 1, amqp_empty_table);
         amqp_rpc_reply_t_ reply = amqp_get_rpc_reply(connection);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to declare RabbitMQ queue");
         }
 
         amqp_queue_bind(connection, AMQP_CHANNEL_ID, amqp_cstring_bytes(TASK_QUEUE_NAME.c_str()), amqp_cstring_bytes(TASK_EXCHANGE.c_str()),
-                        amqp_empty_bytes, amqp_empty_table);
+                        amqp_cstring_bytes(TASK_QUEUE_NAME.c_str()), amqp_empty_table);
         reply = amqp_get_rpc_reply(connection);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to bind RabbitMQ queue");
@@ -159,7 +159,7 @@ namespace assfire::tsp::worker {
             if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
                 processAmqpError(reply, "There was an error while retrieving message from RabbitMQ queue");
             }
-            SPDLOG_DEBUG("Received {} bytes from queue {}", envelope.message.body.bytes, TASK_QUEUE_NAME);
+            SPDLOG_DEBUG("Received {} bytes from queue {}", envelope.message.body.len, TASK_QUEUE_NAME);
 
             assfire::api::v1::tsp::WorkerTask worker_task;
             worker_task.ParseFromArray(envelope.message.body.bytes, envelope.message.body.len);
@@ -168,18 +168,28 @@ namespace assfire::tsp::worker {
             TspAlgorithmStateContainer saved_state_container([&](const TspAlgorithmStateContainer::TspAlgorithmStateDto &state) {
                 saved_state_manager->saveState(worker_task.task_id(), state);
             });
+            SPDLOG_INFO("Looking for saved state for task {}", worker_task.task_id());
             std::optional<SavedStateManager::State> saved_state = saved_state_manager->loadState(worker_task.task_id());
             if (saved_state) {
                 SPDLOG_INFO("Found saved state for task {}. Will use it as an initial state", worker_task.task_id());
                 saved_state_container.setState(std::move(*saved_state));
             }
 
-            SPDLOG_INFO("Starting tsp solution session for task {}", worker_task.task_id());
-            TspSolutionSession session = tsp_solver->solveTsp(assfire::api::v1::tsp::TspTaskTranslator::fromProto(worker_task.task()), saved_state_container, [&](const TspSolution &solution) {
+            TspTask task = assfire::api::v1::tsp::TspTaskTranslator::fromProto(worker_task.task());
+
+            TspSolutionListener solution_listener;
+            solution_listener.setOnNextSolutionCallback([&](const TspSolution &solution) {
                 SPDLOG_DEBUG("Got new solution for task {}, current_cost: {}", worker_task.task_id(), solution.getCost().getValue());
-                solution_publisher->publish(worker_task.task_id(), solution);
+                solution_publisher->publish(worker_task.task_id(), task, solution);
+            }, true);
+            solution_listener.setOnErrorCallback([&] {
+                SPDLOG_ERROR("Error while calculating solution for task {}", worker_task.task_id());
+                solution_publisher->onError(worker_task.task_id());
             });
 
+            SPDLOG_INFO("Starting tsp solution session for task {}", worker_task.task_id());
+
+            TspSolutionSession session = tsp_solver->solveTsp(task, saved_state_container, solution_listener);
             SPDLOG_INFO("Started session {} for task {}", session.getId(), worker_task.task_id());
 
             auto start = std::chrono::system_clock::now();
