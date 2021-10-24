@@ -1,7 +1,7 @@
 #include "RabbitMqConnector.hpp"
 #include <spdlog/spdlog.h>
 
-namespace assfire::tsp {
+namespace assfire::util {
     RabbitMqConnector::RabbitMqConnector(const std::string &name) : name(name) {
     }
 
@@ -210,10 +210,20 @@ namespace assfire::tsp {
     }
 
     RabbitMqConnector::Publisher::~Publisher() {
+        if (is_moved) return;
         SPDLOG_INFO("Closing RabbitMQ channel {}...", channel_id);
         amqp_rpc_reply_t reply = amqp_channel_close(connection, channel_id, AMQP_REPLY_SUCCESS);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to close RabbitMQ channel", false);
         }
+    }
+
+    RabbitMqConnector::Publisher::Publisher(RabbitMqConnector::Publisher &&rhs) {
+        rhs.is_moved = true;
+        this->connection = std::move(rhs.connection);
+        this->name = std::move(rhs.name);
+        this->queue_name = std::move(rhs.queue_name);
+        this->exchange_name = std::move(rhs.exchange_name);
+        this->channel_id = rhs.channel_id;
     }
 }

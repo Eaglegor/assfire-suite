@@ -2,7 +2,6 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(rabbitmq-c CONFIG REQUIRED)
 
 add_library(assfire-util-amqp-connector
-        assfire/tsp/amqp/TspAmqpConstants.hpp
         assfire/util/amqp/RabbitMqConnector.hpp
         assfire/util/amqp/RabbitMqConnector.cpp
         )

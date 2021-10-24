@@ -23,7 +23,10 @@ namespace assfire::tsp {
     }
 
     grpc::Status TspService::PauseTsp(TspService::ServerContext *context, const TspService::PauseTspRequest *request, TspService::PauseTspResponse *response) {
-        worker_transport->publishPauseEvent(request->task_id());
+        WorkerTransport::WorkerControlSignal control_signal;
+        control_signal.set_task_id(request->task_id());
+        control_signal.set_signal_type(WorkerTransport::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_PAUSE);
+        worker_transport->publishControlSignal(control_signal);
 
         std::optional<WorkerSolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
 
@@ -42,7 +45,10 @@ namespace assfire::tsp {
     }
 
     grpc::Status TspService::StopTsp(TspService::ServerContext *context, const TspService::StopTspRequest *request, TspService::StopTspResponse *response) {
-        worker_transport->publishStopEvent(request->task_id());
+        WorkerTransport::WorkerControlSignal control_signal;
+        control_signal.set_task_id(request->task_id());
+        control_signal.set_signal_type(WorkerTransport::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT);
+        worker_transport->publishControlSignal(control_signal);
 
         std::optional<WorkerSolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
 

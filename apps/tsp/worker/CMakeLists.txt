@@ -26,7 +26,7 @@ include(pkg_utils)
 vcpkg_find_cpp_redis()
 
 add_executable(assfire-tsp-worker ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull assfire-util-amqp-connector cpp_redis::cpp_redis)
+target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull assfire-util-amqp-connector cpp_redis::cpp_redis assfire-tsp-shared-constants)
 
 install(TARGETS assfire-tsp-worker COMPONENT tsp-worker)
 if (ASSFIRE_PACKAGE_BUILD_RPM)

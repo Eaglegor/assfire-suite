@@ -5,7 +5,7 @@
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
 
-namespace assfire::tsp {
+namespace assfire::util {
     class RabbitMqConnector {
     public:
         using MessageCallback = std::function<void(const amqp_envelope_t_ &)>;
@@ -13,7 +13,7 @@ namespace assfire::tsp {
         class Publisher {
         public:
             Publisher(const std::string& name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id);
-            Publisher(Publisher&&) = default;
+            Publisher(Publisher&&);
             Publisher(const Publisher&) = delete;
             virtual ~Publisher();
 
@@ -25,6 +25,7 @@ namespace assfire::tsp {
             std::string queue_name;
             std::string exchange_name;
             int channel_id;
+            bool is_moved;
         };
 
         RabbitMqConnector(const std::string &name);

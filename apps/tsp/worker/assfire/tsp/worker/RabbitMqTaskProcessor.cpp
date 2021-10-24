@@ -5,7 +5,7 @@
 #include <assfire/tsp/api/TspSolution.hpp>
 #include <assfire/tsp/api/TspTask.hpp>
 #include <assfire/api/v1/tsp/translators/TspTaskTranslator.hpp>
-#include "assfire/tsp/amqp/TspAmqpConstants.hpp"
+#include "assfire/tsp/TspAmqpConstants.hpp"
 #include <chrono>
 
 namespace assfire::tsp {
@@ -28,7 +28,7 @@ namespace assfire::tsp {
     void RabbitMqTaskProcessor::startProcessing() {
         SPDLOG_INFO("Starting RabbitMQ tasks processing");
 
-        RabbitMqConnector::Publisher status_publisher = status_rabbit_mq_connector.publish(
+        util::RabbitMqConnector::Publisher status_publisher = status_rabbit_mq_connector.publish(
                 TSP_AMQP_WORKER_STATUS_UPDATE_QUEUE_NAME,
                 TSP_AMQP_WORKER_STATUS_UPDATE_EXCHANGE_NAME,
                 TSP_AMQP_WORKER_STATUS_UPDATE_CHANNEL_ID);

@@ -27,6 +27,6 @@ namespace assfire::tsp {
         std::future<void> control_state;
         OnPauseListener on_pause;
         OnInterruptListener on_interrupt;
-        RabbitMqConnector rabbit_mq_connector;
+        util::RabbitMqConnector rabbit_mq_connector;
     };
 }

@@ -28,8 +28,8 @@ namespace assfire::tsp {
         std::unique_ptr<TspSolverEngine> tsp_solver;
         std::unique_ptr<SolutionPublisher> solution_publisher;
         std::unique_ptr<SavedStateManager> saved_state_manager;
-        RabbitMqConnector task_rabbit_mq_connector;
-        RabbitMqConnector status_rabbit_mq_connector;
+        util::RabbitMqConnector task_rabbit_mq_connector;
+        util::RabbitMqConnector status_rabbit_mq_connector;
         RabbitMqControlChannelListener control_channel_listener;
     };
 }

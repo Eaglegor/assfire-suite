@@ -20,6 +20,7 @@ if (ASSFIRE_APPS_BUILD_TSP OR ASSFIRE_APPS_BUILD_ALL)
     add_subdirectory(tests)
     add_subdirectory(tools)
     add_subdirectory(amqp_connector)
+    add_subdirectory(shared_constants)
     
     #    configure_file(Dockerfile ${CMAKE_CURRENT_BINARY_DIR}/Dockerfile)
 endif ()
