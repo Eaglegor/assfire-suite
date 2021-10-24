@@ -2,12 +2,12 @@
 
 #include <assfire/api/v1/tsp/service.grpc.pb.h>
 #include "WorkerTransport.hpp"
-#include "assfire/tsp/WorkerSolutionStorage.hpp"
+#include "assfire/tsp/SolutionStorage.hpp"
 #include "TaskIdGenerator.hpp"
 #include <memory>
 #include <atomic>
 #include <functional>
-#include "TspTasksStorage.hpp"
+#include "TspTaskStorage.hpp"
 
 namespace assfire::tsp {
     class TspService final : public assfire::api::v1::tsp::TspService::Service {
@@ -24,12 +24,13 @@ namespace assfire::tsp {
         using StopTspResponse = api::v1::tsp::StopTspResponse;
         using GetLatestSolutionRequest = api::v1::tsp::GetLatestSolutionRequest;
         using GetLatestSolutionResponse = api::v1::tsp::GetLatestSolutionResponse;
+        using TspStatusUpdate = api::v1::tsp::TspStatusUpdate;
         using SubscribeForStatusUpdatesRequest = api::v1::tsp::SubscribeForStatusUpdatesRequest;
         using SubscribeForStatusUpdatesResponse = api::v1::tsp::SubscribeForStatusUpdatesResponse;
 
         explicit TspService(std::unique_ptr<WorkerTransport> worker_task_publisher,
-                            std::unique_ptr<WorkerSolutionStorage> worker_solution_storage,
-                            std::unique_ptr<TspTasksStorage> tsp_tasks_storage,
+                            std::unique_ptr<SolutionStorage> worker_solution_storage,
+                            std::unique_ptr<TspTaskStorage> tsp_tasks_storage,
                             std::unique_ptr<TaskIdGenerator> task_id_generator);
 
         grpc::Status StartTsp(ServerContext *context, const StartTspRequest *request, StartTspResponse *response) override;
@@ -46,8 +47,8 @@ namespace assfire::tsp {
 
     private:
         std::unique_ptr<WorkerTransport> worker_transport;
-        std::unique_ptr<WorkerSolutionStorage> worker_solution_storage;
-        std::unique_ptr<TspTasksStorage> tsp_tasks_storage;
+        std::unique_ptr<SolutionStorage> worker_solution_storage;
+        std::unique_ptr<TspTaskStorage> tsp_tasks_storage;
         std::unique_ptr<TaskIdGenerator> task_id_generator;
     };
 }

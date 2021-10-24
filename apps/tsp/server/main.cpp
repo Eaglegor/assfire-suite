@@ -5,9 +5,9 @@
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
 #include "assfire/tsp/RabbitMQWorkerTransport.hpp"
-#include "assfire/tsp/RedisWorkerSolutionStorage.hpp"
+#include "assfire/tsp/RedisSolutionStorage.hpp"
 #include "assfire/tsp/IncrementalTaskIdGenerator.hpp"
-#include "assfire/tsp/NopTspTasksStorage.hpp"
+#include "assfire/tsp/NopTspTaskStorage.hpp"
 #include "assfire/tsp/RedisTspTaskStorage.hpp"
 #include "cpp_redis/core/client.hpp"
 #include <numeric>
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
 
         TspService service(
                 std::make_unique<RabbitMQWorkerTransport>("localhost", 5672, "guest", "guest"),
-                std::make_unique<RedisWorkerSolutionStorage>(),
+                std::make_unique<RedisSolutionStorage>(),
                 std::make_unique<RedisTspTaskStorage>(redis_client),
                 std::make_unique<IncrementalTaskIdGenerator>());
 

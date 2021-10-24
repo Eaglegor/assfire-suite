@@ -1,20 +1,20 @@
 set(SOURCES
         main.cpp
         assfire/tsp/TspService.cpp
-        assfire/tsp/RedisWorkerSolutionStorage.cpp
+        assfire/tsp/RedisSolutionStorage.cpp
         assfire/tsp/RabbitMQWorkerTransport.cpp
-        assfire/tsp/NopTspTasksStorage.cpp
+        assfire/tsp/NopTspTaskStorage.cpp
         assfire/tsp/RedisTspTaskStorage.cpp)
 set(HEADERS
         assfire/tsp/TspService.hpp
         assfire/tsp/TaskIdGenerator.hpp
         assfire/tsp/IncrementalTaskIdGenerator.hpp
-        assfire/tsp/WorkerSolutionStorage.hpp
-        assfire/tsp/RedisWorkerSolutionStorage.hpp
+        assfire/tsp/SolutionStorage.hpp
+        assfire/tsp/RedisSolutionStorage.hpp
         assfire/tsp/WorkerTransport.hpp
         assfire/tsp/RabbitMQWorkerTransport.hpp
-        assfire/tsp/TspTasksStorage.hpp
-        assfire/tsp/NopTspTasksStorage.hpp
+        assfire/tsp/TspTaskStorage.hpp
+        assfire/tsp/NopTspTaskStorage.hpp
         assfire/tsp/RedisTspTaskStorage.cpp)
 
 find_package(cxxopts CONFIG REQUIRED)

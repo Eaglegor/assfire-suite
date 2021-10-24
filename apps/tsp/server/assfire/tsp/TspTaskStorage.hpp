@@ -4,11 +4,11 @@
 #include <assfire/api/v1/tsp/concepts.pb.h>
 
 namespace assfire::tsp {
-    class TspTasksStorage {
+    class TspTaskStorage {
     public:
         using TspTask = assfire::api::v1::tsp::TspTask;
 
-        virtual ~TspTasksStorage() {}
+        virtual ~TspTaskStorage() {}
 
         virtual std::optional<TspTask> fetchTask(const std::string &id) const = 0;
 

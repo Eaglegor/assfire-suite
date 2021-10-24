@@ -1,9 +1,10 @@
 #include "TspService.hpp"
+#include <spdlog/spdlog.h>
 
 namespace assfire::tsp {
     TspService::TspService(std::unique_ptr<WorkerTransport> worker_task_publisher,
-                           std::unique_ptr<WorkerSolutionStorage> worker_solution_storage,
-                           std::unique_ptr<TspTasksStorage> tsp_tasks_storage,
+                           std::unique_ptr<SolutionStorage> worker_solution_storage,
+                           std::unique_ptr<TspTaskStorage> tsp_tasks_storage,
                            std::unique_ptr<TaskIdGenerator> task_id_generator)
             : worker_transport(std::move(worker_task_publisher)),
               worker_solution_storage(std::move(worker_solution_storage)),
@@ -33,7 +34,7 @@ namespace assfire::tsp {
         control_signal.set_signal_type(WorkerTransport::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_PAUSE);
         worker_transport->publishControlSignal(control_signal);
 
-        std::optional<WorkerSolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
+        std::optional<SolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
 
         if (solution) {
             response->mutable_solution()->CopyFrom(*solution);
@@ -48,7 +49,7 @@ namespace assfire::tsp {
             return grpc::Status(grpc::ALREADY_EXISTS, "Task with id = " + request->task_id() + " is already running or scheduled to be run");
         }
 
-        std::optional<TspTasksStorage::TspTask> task = tsp_tasks_storage->fetchTask(request->task_id());
+        std::optional<TspTaskStorage::TspTask> task = tsp_tasks_storage->fetchTask(request->task_id());
 
         if (task) {
             WorkerTransport::WorkerTask worker_task;
@@ -69,7 +70,7 @@ namespace assfire::tsp {
         control_signal.set_signal_type(WorkerTransport::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT);
         worker_transport->publishControlSignal(control_signal);
 
-        std::optional<WorkerSolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
+        std::optional<SolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
 
         if (solution) {
             response->mutable_solution()->CopyFrom(*solution);
@@ -81,7 +82,7 @@ namespace assfire::tsp {
     }
 
     grpc::Status TspService::GetLatestSolution(TspService::ServerContext *context, const TspService::GetLatestSolutionRequest *request, TspService::GetLatestSolutionResponse *response) {
-        std::optional<WorkerSolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
+        std::optional<SolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
 
         if (solution) {
             response->mutable_solution()->CopyFrom(*solution);
@@ -92,24 +93,58 @@ namespace assfire::tsp {
 
     grpc::Status TspService::SubscribeForStatusUpdates(ServerContext *context, const SubscribeForStatusUpdatesRequest *request,
                                                        ServerWriter<SubscribeForStatusUpdatesResponse> *writer) {
-        using namespace std::chrono_literals;
 
-        std::unique_ptr<WorkerSolutionStorage::SolutionUpdatePublisher> solution_publisher = worker_solution_storage->subscribeForSolutionUpdate(request->task_id());
-
-        std::atomic_bool done = false;
-        std::condition_variable waiting_for_update;
-        std::mutex lock;
-
-        solution_publisher->listen([&](const WorkerSolutionStorage::Solution &solution) {
-            SubscribeForStatusUpdatesResponse response;
-            response.mutable_status_update()->mutable_current_best_cost()->CopyFrom(solution.cost());
-            response.mutable_status_update()->mutable_current_best_validation_result()->CopyFrom(solution.validation_result());
-            writer->Write(response);
-            waiting_for_update.notify_all();
-            done = solution.is_final();
+        std::atomic_bool is_finished = false;
+        worker_transport->addWorkerStatusUpdateListener(request->task_id(), [&](const WorkerTransport::WorkerStatusUpdate &update) {
+            try {
+                if (update.type() == WorkerTransport::WorkerStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION) {
+                    std::optional<SolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
+                    if (solution) {
+                        SubscribeForStatusUpdatesResponse response;
+                        TspStatusUpdate *status_update = response.mutable_status_update();
+                        status_update->mutable_current_best_cost()->CopyFrom(solution->cost());
+                        status_update->mutable_current_best_validation_result()->CopyFrom(solution->validation_result());
+                        status_update->set_is_finished(solution->is_final());
+                        writer->Write(response);
+                        is_finished = solution->is_final();
+                    }
+                } else if (update.type() == WorkerTransport::WorkerStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_ERROR) {
+                    SubscribeForStatusUpdatesResponse response;
+                    TspStatusUpdate *status_update = response.mutable_status_update();
+                    status_update->set_is_error(true);
+                    writer->Write(response);
+                    is_finished = true;
+                }
+            } catch (std::exception &e) {
+                SPDLOG_ERROR("Exception while trying to retrieve solution by status update for task {}", update.task_id());
+                SubscribeForStatusUpdatesResponse response;
+                TspStatusUpdate *status_update = response.mutable_status_update();
+                status_update->set_is_error(true);
+                writer->Write(response);
+                is_finished = true;
+            }
         });
 
-        done.wait(false);
+        try {
+            std::optional<SolutionStorage::Solution> solution = worker_solution_storage->fetchSolution(request->task_id());
+            if (solution) {
+                SubscribeForStatusUpdatesResponse response;
+                TspStatusUpdate *status_update = response.mutable_status_update();
+                status_update->mutable_current_best_cost()->CopyFrom(solution->cost());
+                status_update->mutable_current_best_validation_result()->CopyFrom(solution->validation_result());
+                status_update->set_is_finished(solution->is_final());
+                writer->Write(response);
+            }
+        } catch (std::exception &e) {
+            SPDLOG_ERROR("Exception while trying to retrieve current solution by status update for task", request->task_id());
+            SubscribeForStatusUpdatesResponse response;
+            TspStatusUpdate *status_update = response.mutable_status_update();
+            status_update->set_is_error(true);
+            writer->Write(response);
+            is_finished = true;
+        }
+
+
 
         return grpc::Status::OK;
     }

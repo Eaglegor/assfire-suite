@@ -1,8 +1,8 @@
 #pragma once
-#include "TspTasksStorage.hpp"
+#include "TspTaskStorage.hpp"
 
 namespace assfire::tsp {
-    class NopTspTasksStorage : public TspTasksStorage {
+    class NopTspTaskStorage : public TspTaskStorage {
     public:
         std::optional<TspTask> fetchTask(const std::string &id) const override;
 

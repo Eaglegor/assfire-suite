@@ -6,8 +6,9 @@ namespace assfire::tsp {
     using WorkerControlSignal = assfire::api::v1::tsp::WorkerControlSignal;
 
     RabbitMQWorkerTransport::RabbitMQWorkerTransport(const std::string &host, int port, const std::string &login, const std::string &password) :
-            task_rabbit_mq_connector("WorkerTransport"),
-            control_signal_rabbit_mq_connector("WorkerTransport::ControlSignal") {
+            task_rabbit_mq_connector("WorkerTransport::Task"),
+            control_signal_rabbit_mq_connector("WorkerTransport::ControlSignal"),
+            status_update_rabbit_mq_connector("WorkerTransport::StatusUpdate") {
         SPDLOG_INFO("Initializing RabbitMQ worker transport");
 
         task_rabbit_mq_connector.connect(host, port, login, password);
@@ -23,6 +24,9 @@ namespace assfire::tsp {
                 TSP_AMQP_WORKER_CONTROL_SIGNAL_EXCHANGE_NAME,
                 TSP_AMQP_WORKER_CONTROL_SIGNAL_CHANNEL_ID
         ));
+
+        status_update_rabbit_mq_connector.connect(host, port, login, password);
+        subscribeForStatusUpdates();
 
         SPDLOG_INFO("RabbitMQ worker transport successfully initialized");
     }
@@ -53,5 +57,41 @@ namespace assfire::tsp {
         signal.SerializeToArray(buffer, message_size);
         control_signal_publisher->publish(buffer, message_size);
         free(buffer);
+    }
+
+    void RabbitMQWorkerTransport::subscribeForStatusUpdates() {
+        status_update_control_state = std::async(std::launch::async, [&] {
+            status_update_rabbit_mq_connector.listen(
+                    TSP_AMQP_WORKER_STATUS_UPDATE_QUEUE_NAME,
+                    TSP_AMQP_WORKER_STATUS_UPDATE_EXCHANGE_NAME,
+                    TSP_AMQP_WORKER_STATUS_UPDATE_CHANNEL_ID,
+                    [&](const amqp_envelope_t_ &envelope) {
+                        WorkerStatusUpdate status_update;
+                        status_update.ParseFromArray(envelope.message.body.bytes, envelope.message.body.len);
+                        {
+                            std::lock_guard<std::mutex> guard(listeners_lock);
+                            auto iter = status_listeners.find(status_update.task_id());
+                            if (iter != status_listeners.end()) {
+                                iter->second(status_update);
+                            }
+                        }
+                    }
+            );
+        });
+    }
+
+    void RabbitMQWorkerTransport::addWorkerStatusUpdateListener(const std::string &task_id, StatusUpdateListener listener) {
+        std::lock_guard<std::mutex> guard(listeners_lock);
+        status_listeners.emplace(task_id, listener);
+    }
+
+    void RabbitMQWorkerTransport::removeStatusUpdateListener(const std::string &task_id) {
+        std::lock_guard<std::mutex> guard(listeners_lock);
+        status_listeners.erase(task_id);
+    }
+
+    RabbitMQWorkerTransport::~RabbitMQWorkerTransport() {
+        status_update_rabbit_mq_connector.interrupt();
+        status_update_control_state.wait();
     }
 }

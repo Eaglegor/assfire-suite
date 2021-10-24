@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "TspTasksStorage.hpp"
+#include "TspTaskStorage.hpp"
 
 namespace cpp_redis {
     class client;
@@ -9,7 +9,7 @@ namespace cpp_redis {
 
 namespace assfire::tsp {
 
-    class RedisTspTaskStorage : public TspTasksStorage {
+    class RedisTspTaskStorage : public TspTaskStorage {
     public:
         RedisTspTaskStorage(std::shared_ptr<cpp_redis::client> redis_client);
 

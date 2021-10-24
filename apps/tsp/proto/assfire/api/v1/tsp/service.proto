@@ -58,6 +58,7 @@ message TspStatusUpdate {
   TspCost current_best_cost = 1;
   TspValidationResult current_best_validation_result = 2;
   bool is_finished = 3;
+  bool is_error = 4;
 }
 
 message SubscribeForStatusUpdatesResponse {

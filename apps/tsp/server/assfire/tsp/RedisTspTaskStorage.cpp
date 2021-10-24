@@ -20,7 +20,7 @@ namespace assfire::tsp {
         }
     }
 
-    std::optional<TspTasksStorage::TspTask> RedisTspTaskStorage::fetchTask(const std::string &id) const {
+    std::optional<TspTaskStorage::TspTask> RedisTspTaskStorage::fetchTask(const std::string &id) const {
         std::future<cpp_redis::reply> freply = redis_client->get(formatTaskKey(id));
         redis_client->sync_commit();
 
@@ -33,12 +33,12 @@ namespace assfire::tsp {
             return std::nullopt;
         }
 
-        TspTasksStorage::TspTask task;
+        TspTaskStorage::TspTask task;
         task.ParseFromString(reply.as_string());
         return task;
     }
 
-    void RedisTspTaskStorage::saveTask(const std::string &id, TspTasksStorage::TspTask task) {
+    void RedisTspTaskStorage::saveTask(const std::string &id, TspTaskStorage::TspTask task) {
         redis_client->set(formatTaskKey(id), task.SerializeAsString(), [&](const cpp_redis::reply &rpl) {
             if (rpl.is_error()) {
                 SPDLOG_ERROR("Error while saving task {} to Redis cache: {}", id, rpl.error());
