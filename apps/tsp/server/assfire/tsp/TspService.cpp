@@ -3,9 +3,11 @@
 namespace assfire::tsp {
     TspService::TspService(std::unique_ptr<WorkerTransport> worker_task_publisher,
                            std::unique_ptr<WorkerSolutionStorage> worker_solution_storage,
+                           std::unique_ptr<TspTasksStorage> tsp_tasks_storage,
                            std::unique_ptr<TaskIdGenerator> task_id_generator)
             : worker_transport(std::move(worker_task_publisher)),
               worker_solution_storage(std::move(worker_solution_storage)),
+              tsp_tasks_storage(std::move(tsp_tasks_storage)),
               task_id_generator(std::move(task_id_generator)) {}
 
     grpc::Status TspService::StartTsp(TspService::ServerContext *context, const TspService::StartTspRequest *request, TspService::StartTspResponse *response) {
@@ -14,6 +16,9 @@ namespace assfire::tsp {
         WorkerTransport::WorkerTask task;
         task.set_task_id(task_id);
         task.mutable_task()->CopyFrom(request->task());
+
+        tsp_tasks_storage->saveTask(task.task_id(), task.task());
+        tsp_tasks_storage->markAsInProgress(task.task_id());
 
         worker_transport->publishNewTask(task);
 
@@ -33,15 +38,29 @@ namespace assfire::tsp {
         if (solution) {
             response->mutable_solution()->CopyFrom(*solution);
         }
+        tsp_tasks_storage->markAsStopped(request->task_id());
 
         return grpc::Status::OK;
     }
 
     grpc::Status TspService::ResumeTsp(ServerContext *context, const ResumeTspRequest *request, ResumeTspResponse *response) {
+        if (tsp_tasks_storage->isInProgress(request->task_id())) {
+            return grpc::Status(grpc::ALREADY_EXISTS, "Task with id = " + request->task_id() + " is already running or scheduled to be run");
+        }
 
-        // [TODO] Retrieve saved task and resend it
+        std::optional<TspTasksStorage::TspTask> task = tsp_tasks_storage->fetchTask(request->task_id());
 
-        return grpc::Status::OK;
+        if (task) {
+            WorkerTransport::WorkerTask worker_task;
+            worker_task.set_task_id(request->task_id());
+            worker_task.mutable_task()->CopyFrom(*task);
+
+            tsp_tasks_storage->markAsInProgress(request->task_id());
+            worker_transport->publishNewTask(worker_task);
+            return grpc::Status::OK;
+        } else {
+            return grpc::Status(grpc::NOT_FOUND, "No task with id = " + request->task_id() + " found");
+        }
     }
 
     grpc::Status TspService::StopTsp(TspService::ServerContext *context, const TspService::StopTspRequest *request, TspService::StopTspResponse *response) {
@@ -55,6 +74,8 @@ namespace assfire::tsp {
         if (solution) {
             response->mutable_solution()->CopyFrom(*solution);
         }
+
+        tsp_tasks_storage->dropTask(request->task_id());
 
         return grpc::Status::OK;
     }

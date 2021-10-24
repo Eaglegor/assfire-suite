@@ -7,6 +7,7 @@
 #include <memory>
 #include <atomic>
 #include <functional>
+#include "TspTasksStorage.hpp"
 
 namespace assfire::tsp {
     class TspService final : public assfire::api::v1::tsp::TspService::Service {
@@ -26,10 +27,10 @@ namespace assfire::tsp {
         using SubscribeForStatusUpdatesRequest = api::v1::tsp::SubscribeForStatusUpdatesRequest;
         using SubscribeForStatusUpdatesResponse = api::v1::tsp::SubscribeForStatusUpdatesResponse;
 
-        explicit TspService(
-                std::unique_ptr<WorkerTransport> worker_task_publisher,
-                std::unique_ptr<WorkerSolutionStorage> worker_solution_storage,
-                std::unique_ptr<TaskIdGenerator> task_id_generator);
+        explicit TspService(std::unique_ptr<WorkerTransport> worker_task_publisher,
+                            std::unique_ptr<WorkerSolutionStorage> worker_solution_storage,
+                            std::unique_ptr<TspTasksStorage> tsp_tasks_storage,
+                            std::unique_ptr<TaskIdGenerator> task_id_generator);
 
         grpc::Status StartTsp(ServerContext *context, const StartTspRequest *request, StartTspResponse *response) override;
 
@@ -46,6 +47,7 @@ namespace assfire::tsp {
     private:
         std::unique_ptr<WorkerTransport> worker_transport;
         std::unique_ptr<WorkerSolutionStorage> worker_solution_storage;
+        std::unique_ptr<TspTasksStorage> tsp_tasks_storage;
         std::unique_ptr<TaskIdGenerator> task_id_generator;
     };
 }

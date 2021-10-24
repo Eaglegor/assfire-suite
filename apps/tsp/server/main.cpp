@@ -7,6 +7,7 @@
 #include "assfire/tsp/RabbitMQWorkerTransport.hpp"
 #include "assfire/tsp/RedisWorkerSolutionStorage.hpp"
 #include "assfire/tsp/IncrementalTaskIdGenerator.hpp"
+#include "assfire/tsp/NopTspTasksStorage.hpp"
 
 #ifdef _WIN32
 
@@ -67,6 +68,7 @@ int main(int argc, char **argv) {
         TspService service(
                 std::make_unique<RabbitMQWorkerTransport>("localhost", 5672, "guest", "guest"),
                 std::make_unique<RedisWorkerSolutionStorage>(),
+                std::make_unique<NopTspTasksStorage>(),
                 std::make_unique<IncrementalTaskIdGenerator>());
 
         ServerBuilder serverBuilder;
