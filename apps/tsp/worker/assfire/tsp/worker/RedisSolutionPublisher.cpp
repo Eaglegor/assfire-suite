@@ -4,6 +4,7 @@
 #include <cpp_redis/core/client.hpp>
 #include <assfire/api/v1/tsp/translators/TspSolutionTranslator.hpp>
 #include <assfire/api/v1/tsp/worker.pb.h>
+#include <assfire/tsp/TspRedisConstants.hpp>
 #include <future>
 
 namespace assfire::tsp {
@@ -46,17 +47,21 @@ namespace assfire::tsp {
     }
 
     namespace {
-        std::string formatKey(const std::string &task_id) {
-            return "asf.tsp.sol|" + task_id;
+        std::string formatTaskKey(const std::string &task_id) {
+            return std::string(TSP_REDIS_WORKER_KEY_PREFIX) + task_id + std::string(TSP_REDIS_WORKER_SOLUTION_KEY_SUFFIX);
         }
+
+        const int SOLUTION_EXPIRY_PERIOD_SECONDS = 3600;
 
         void publishResult(cpp_redis::client &client, const std::string &task_id, const assfire::api::v1::tsp::TspSolutionResult &result) {
             try {
-                client.set(formatKey(task_id), result.SerializeAsString(), [](const cpp_redis::reply &rpl) {
+                std::string key = formatTaskKey(task_id);
+                client.set(key, result.SerializeAsString(), [](const cpp_redis::reply &rpl) {
                     if (rpl.is_error()) {
                         SPDLOG_ERROR("Couldn't save TSP result to Redis storage: {}", rpl.error());
                     }
                 });
+                client.expire(key, SOLUTION_EXPIRY_PERIOD_SECONDS);
                 client.sync_commit();
             } catch (std::exception &e) {
                 SPDLOG_ERROR("Couldn't connect to Redis storage to save results: {}", e.what());

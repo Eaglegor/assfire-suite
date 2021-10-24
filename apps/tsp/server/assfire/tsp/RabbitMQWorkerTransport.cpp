@@ -30,7 +30,7 @@ namespace assfire::tsp {
     void RabbitMQWorkerTransport::publishNewTask(const WorkerTask &task) {
         SPDLOG_INFO("Publishing worker task {} to RabbitMQ", task.task_id());
 
-        SPDLOG_TRACE("Obtaning task publish lock");
+        SPDLOG_TRACE("Obtaining task publish lock");
         std::lock_guard<std::mutex> guard(task_publish_lock);
         SPDLOG_TRACE("Task publish lock obtained");
 
@@ -42,9 +42,9 @@ namespace assfire::tsp {
     }
 
     void RabbitMQWorkerTransport::publishControlSignal(const WorkerControlSignal &signal) {
-        SPDLOG_INFO("Publishing control signal for task {} to RabbitMQ");
+        SPDLOG_INFO("Publishing control signal for task {} to RabbitMQ", signal.task_id());
 
-        SPDLOG_TRACE("Obtaning signal publish lock");
+        SPDLOG_TRACE("Obtaining signal publish lock");
         std::lock_guard<std::mutex> guard(signal_publish_lock);
         SPDLOG_TRACE("Signal publish lock obtained");
 

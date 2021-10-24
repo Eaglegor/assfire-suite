@@ -13,8 +13,7 @@
 using namespace assfire;
 using namespace assfire::tsp;
 
-int main() {
-
+std::string startTsp() {
     std::vector<TspPoint> points;
     TspPoint p1(1, Location::fromDoubleLatLon(0, 0));
     TspPoint p2(2, Location::fromDoubleLatLon(0, 1));
@@ -35,8 +34,55 @@ int main() {
     grpc::ClientContext context;
     assfire::api::v1::tsp::StartTspResponse response;
     stub->StartTsp(&context, request, &response);
-
     std::cout << "Started task " << response.task_id() << std::endl;
+    return response.task_id();
+}
+
+void stopTsp(const std::string& id) {
+
+    assfire::api::v1::tsp::StopTspRequest request;
+    request.set_task_id(id);
+
+    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
+
+    grpc::ClientContext context;
+    assfire::api::v1::tsp::StopTspResponse response;
+    stub->StopTsp(&context, request, &response);
+}
+
+void pauseTsp(const std::string& id) {
+
+    assfire::api::v1::tsp::PauseTspRequest request;
+    request.set_task_id(id);
+
+    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
+
+    grpc::ClientContext context;
+    assfire::api::v1::tsp::PauseTspResponse response;
+    stub->PauseTsp(&context, request, &response);
+}
+
+void resumeTsp(const std::string& id) {
+
+    assfire::api::v1::tsp::ResumeTspRequest request;
+    request.set_task_id(id);
+
+    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
+
+    grpc::ClientContext context;
+    assfire::api::v1::tsp::ResumeTspResponse response;
+    stub->ResumeTsp(&context, request, &response);
+}
+
+int main() {
+
+    startTsp();
+//    stopTsp("1");
+//    resumeTsp("2");
+//    pauseTsp("2");
 
     return 0;
 }

@@ -3,7 +3,8 @@ set(SOURCES
         assfire/tsp/TspService.cpp
         assfire/tsp/RedisWorkerSolutionStorage.cpp
         assfire/tsp/RabbitMQWorkerTransport.cpp
-        assfire/tsp/NopTspTasksStorage.cpp)
+        assfire/tsp/NopTspTasksStorage.cpp
+        assfire/tsp/RedisTspTaskStorage.cpp)
 set(HEADERS
         assfire/tsp/TspService.hpp
         assfire/tsp/TaskIdGenerator.hpp
@@ -13,15 +14,18 @@ set(HEADERS
         assfire/tsp/WorkerTransport.hpp
         assfire/tsp/RabbitMQWorkerTransport.hpp
         assfire/tsp/TspTasksStorage.hpp
-        assfire/tsp/NopTspTasksStorage.hpp)
+        assfire/tsp/NopTspTasksStorage.hpp
+        assfire/tsp/RedisTspTaskStorage.cpp)
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(civetweb CONFIG REQUIRED) # Required by prometheus
 find_package(prometheus-cpp CONFIG REQUIRED)
+include(pkg_utils)
+vcpkg_find_cpp_redis()
 
 add_executable(assfire-tsp-server ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-tsp-server PRIVATE spdlog::spdlog assfire-tsp-grpc prometheus-cpp::pull assfire-util-amqp-connector assfire-tsp-shared-constants)
+target_link_libraries(assfire-tsp-server PRIVATE spdlog::spdlog assfire-tsp-grpc prometheus-cpp::pull assfire-util-amqp-connector assfire-tsp-shared-constants cpp_redis::cpp_redis)
 
 install(TARGETS assfire-tsp-server COMPONENT tsp-server)
 if (ASSFIRE_PACKAGE_BUILD_RPM)

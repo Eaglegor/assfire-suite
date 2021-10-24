@@ -8,6 +8,9 @@
 #include "assfire/tsp/RedisWorkerSolutionStorage.hpp"
 #include "assfire/tsp/IncrementalTaskIdGenerator.hpp"
 #include "assfire/tsp/NopTspTasksStorage.hpp"
+#include "assfire/tsp/RedisTspTaskStorage.hpp"
+#include "cpp_redis/core/client.hpp"
+#include <numeric>
 
 #ifdef _WIN32
 
@@ -23,52 +26,60 @@ int main(int argc, char **argv) {
     assfire::win32::winsock_initializer winsock_initializer;
 #endif
 
-    cxxopts::Options options("assfire-tsp-server");
-    options.add_options()
+    constexpr const char *LOG_LEVEL = "log-level";
+    constexpr const char *BIND_ADDRESS = "bind-address";
+    constexpr const char *METRICS_ENABLED = "metrics-enabled";
+    constexpr const char *METRICS_EXPOSER_BIND_ADDRESS = "metrics-exposer-bind-address";
+    constexpr const char *METRICS_EXPOSER_URI = "metrics-exposer-uri";
+    constexpr const char *METRICS_EXPOSER_THREADS_COUNT = "metrics-exposer-threads-count";
+    constexpr const char *REDIS_HOST = "redis-host";
+    constexpr const char *REDIS_PORT = "redis-port";
+
+    cxxopts::Options args_template("assfire-tsp-server");
+    args_template.add_options()
             ("h,help", "Print options help")
-            ("bind-address", "Service bind address", cxxopts::value<std::string>()->default_value("0.0.0.0:50051"))
-            ("log-level", "Log level", cxxopts::value<std::string>()->default_value("info"))
-            ("metrics-enabled", "Prometheus metrics enabled", cxxopts::value<bool>()->default_value("false"))
-            ("metrics-exposer-bind-address", "Prometheus exposer binding address", cxxopts::value<std::string>()->default_value("0.0.0.0:8081"))
-            ("metrics-exposer-uri", "Prometheus exposer URI", cxxopts::value<std::string>()->default_value("/metrics"))
-            ("metrics-exposer-threads-count", "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"));
+            (BIND_ADDRESS, "Service bind address", cxxopts::value<std::string>()->default_value("0.0.0.0:50051"))
+            (LOG_LEVEL, "Log level", cxxopts::value<std::string>()->default_value("info"))
+            (METRICS_ENABLED, "Prometheus metrics enabled", cxxopts::value<bool>()->default_value("false"))
+            (METRICS_EXPOSER_BIND_ADDRESS, "Prometheus exposer binding address", cxxopts::value<std::string>()->default_value("0.0.0.0:8081"))
+            (METRICS_EXPOSER_URI, "Prometheus exposer URI", cxxopts::value<std::string>()->default_value("/metrics"))
+            (METRICS_EXPOSER_THREADS_COUNT, "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"))
+            (REDIS_HOST, "Redis host address", cxxopts::value<std::string>()->default_value("127.0.0.1"))
+            (REDIS_PORT, "Redis connection port", cxxopts::value<std::size_t>()->default_value("6379"));
 
-    auto result = options.parse(argc, argv);
+    auto options = args_template.parse(argc, argv);
 
-    if (result.count("help")) {
-        std::cout << options.help() << std::endl;
+    if (options.count("help")) {
+        std::cout << args_template.help() << std::endl;
         return 0;
     }
 
-    std::string bind_address = result["bind-address"].as<std::string>();
-    std::string log_level = result["log-level"].as<std::string>();
+    std::string options_string = std::accumulate(options.arguments().begin(), options.arguments().end(), std::string(),
+                                                 [](const std::string &current, const cxxopts::KeyValue &kv) {
+                                                     return current + "\n" + kv.key() + " = " + kv.value();
+                                                 });
+    if (!options_string.empty()) {
+        SPDLOG_INFO("Recognized args: {}", options_string);
+    }
 
-    bool metrics_enabled = result["metrics-enabled"].as<bool>();
-    std::string metrics_exposer_bind_address = result["metrics-exposer-bind-address"].as<std::string>();
-    std::string metrics_exposer_uri = result["metrics-exposer-uri"].as<std::string>();
-    std::size_t metrics_exposer_threads_count = result["metrics-exposer-threads-count"].as<std::size_t>();
+    assfire::log::initializeSpdlog(options[LOG_LEVEL].as<std::string>());
 
-    SPDLOG_INFO("Creating tsp service with options: \n\
-                log-level={}, \n\
-				bind-address={}, \n\
-				metrics-enabled={}, \n\
-				metrics-exposer-bind-address={} \n\
-				metrics-exposer-uri={} \n\
-				metrics-exposer-threads-count={} \n",
-                log_level,
-                bind_address,
-                metrics_enabled,
-                metrics_exposer_bind_address,
-                metrics_exposer_uri,
-                metrics_exposer_threads_count);
+    std::string bind_address = options[BIND_ADDRESS].as<std::string>();
+    std::string log_level = options[LOG_LEVEL].as<std::string>();
 
-    assfire::log::initializeSpdlog(log_level);
+    bool metrics_enabled = options[METRICS_ENABLED].as<bool>();
+    std::string metrics_exposer_bind_address = options[METRICS_EXPOSER_BIND_ADDRESS].as<std::string>();
+    std::string metrics_exposer_uri = options[METRICS_EXPOSER_URI].as<std::string>();
+    std::size_t metrics_exposer_threads_count = options[METRICS_EXPOSER_THREADS_COUNT].as<std::size_t>();
 
     try {
+        std::shared_ptr<cpp_redis::client> redis_client = std::make_shared<cpp_redis::client>();
+        redis_client->connect(options[REDIS_HOST].as<std::string>(), options[REDIS_PORT].as<std::size_t>());
+
         TspService service(
                 std::make_unique<RabbitMQWorkerTransport>("localhost", 5672, "guest", "guest"),
                 std::make_unique<RedisWorkerSolutionStorage>(),
-                std::make_unique<NopTspTasksStorage>(),
+                std::make_unique<RedisTspTaskStorage>(redis_client),
                 std::make_unique<IncrementalTaskIdGenerator>());
 
         ServerBuilder serverBuilder;
