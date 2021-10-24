@@ -7,6 +7,8 @@
 #include "TaskProcessor.hpp"
 #include "SolutionPublisher.hpp"
 #include "SavedStateManager.hpp"
+#include "RabbitMqControlChannelListener.hpp"
+#include "RabbitMqConnector.hpp"
 
 namespace assfire::tsp {
     class TspSolverEngine;
@@ -23,8 +25,6 @@ namespace assfire::tsp::worker {
         RabbitMqTaskProcessor(std::unique_ptr<TspSolverEngine> tsp_solver, std::unique_ptr<SolutionPublisher> solution_publisher, std::unique_ptr<SavedStateManager> saved_state_manager,
                               const std::string &host, int port, const std::string &login, const std::string &password);
 
-        ~RabbitMqTaskProcessor();
-
         [[noreturn]]
         void startProcessing() override;
 
@@ -32,7 +32,8 @@ namespace assfire::tsp::worker {
         std::unique_ptr<TspSolverEngine> tsp_solver;
         std::unique_ptr<SolutionPublisher> solution_publisher;
         std::unique_ptr<SavedStateManager> saved_state_manager;
-        amqp_socket_t *socket = nullptr;
-        amqp_connection_state_t connection;
+        RabbitMqConnector task_rabbit_mq_connector;
+        RabbitMqConnector status_rabbit_mq_connector;
+        RabbitMqControlChannelListener control_channel_listener;
     };
 }

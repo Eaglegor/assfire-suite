@@ -35,7 +35,8 @@ namespace assfire::tsp {
     }
 
     grpc::Status TspService::ResumeTsp(ServerContext *context, const ResumeTspRequest *request, ResumeTspResponse *response) {
-        worker_transport->publishResumeEvent(request->task_id());
+
+        // [TODO] Retrieve saved task and resend it
 
         return grpc::Status::OK;
     }

@@ -181,13 +181,4 @@ namespace assfire::tsp::worker {
 
         publish(connection, signal, CONTROL_QUEUE_NAME, SIGNAL_EXCHANGE, publish_lock);
     }
-
-    void RabbitMQWorkerTransport::publishResumeEvent(const std::string &task_id) {
-        SPDLOG_INFO("Publishing resume signal for task {} to RabbitMQ", task_id);
-        WorkerControlSignal signal;
-        signal.set_signal_type(WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_RESUME);
-        signal.set_task_id(task_id);
-
-        publish(connection, signal, CONTROL_QUEUE_NAME, SIGNAL_EXCHANGE, publish_lock);
-    }
 }

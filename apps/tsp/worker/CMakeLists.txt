@@ -4,6 +4,8 @@ set(SOURCES
         assfire/tsp/worker/StdoutSolutionPublisher.cpp
         assfire/tsp/worker/NopSavedStateManager.cpp
         assfire/tsp/worker/RedisSolutionPublisher.cpp
+        assfire/tsp/worker/RabbitMqControlChannelListener.cpp
+        assfire/tsp/worker/RabbitMqConnector.cpp
         )
 
 set(HEADERS
@@ -14,6 +16,8 @@ set(HEADERS
         assfire/tsp/worker/SavedStateManager.hpp
         assfire/tsp/worker/NopSavedStateManager.hpp
         assfire/tsp/worker/RedisSolutionPublisher.hpp
+        assfire/tsp/worker/RabbitMqControlChannelListener.hpp
+        assfire/tsp/worker/RabbitMqConnector.hpp
         )
 
 find_package(cxxopts CONFIG REQUIRED)

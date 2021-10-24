@@ -10,7 +10,6 @@ namespace assfire::tsp::worker {
         virtual void publishNewTask(const WorkerTask& task) = 0;
 
         virtual void publishPauseEvent(const std::string& task_id) = 0;
-        virtual void publishResumeEvent(const std::string& task_id) = 0;
         virtual void publishStopEvent(const std::string& task_id) = 0;
     };
 }

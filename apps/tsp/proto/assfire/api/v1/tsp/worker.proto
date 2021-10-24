@@ -13,8 +13,7 @@ message WorkerControlSignal {
   enum Type {
     WORKER_CONTROL_SIGNAL_TYPE_UNKNOWN = 0;
     WORKER_CONTROL_SIGNAL_TYPE_PAUSE = 1;
-    WORKER_CONTROL_SIGNAL_TYPE_RESUME = 2;
-    WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT = 3;
+    WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT = 2;
   }
 
   string task_id = 1;
@@ -24,4 +23,8 @@ message WorkerControlSignal {
 message TspSolutionResult {
   TspSolution solution = 1;
   bool is_success = 2;
+}
+
+message WorkerTspStatusUpdate {
+  string task_id = 1;
 }

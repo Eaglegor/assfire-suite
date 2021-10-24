@@ -20,8 +20,6 @@ namespace assfire::tsp::worker {
 
         void publishPauseEvent(const std::string &task_id) override;
 
-        void publishResumeEvent(const std::string &task_id) override;
-
         void publishStopEvent(const std::string &task_id) override;
 
     private:
