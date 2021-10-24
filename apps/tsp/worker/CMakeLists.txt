@@ -5,7 +5,6 @@ set(SOURCES
         assfire/tsp/worker/NopSavedStateManager.cpp
         assfire/tsp/worker/RedisSolutionPublisher.cpp
         assfire/tsp/worker/RabbitMqControlChannelListener.cpp
-        assfire/tsp/worker/RabbitMqConnector.cpp
         )
 
 set(HEADERS
@@ -17,19 +16,17 @@ set(HEADERS
         assfire/tsp/worker/NopSavedStateManager.hpp
         assfire/tsp/worker/RedisSolutionPublisher.hpp
         assfire/tsp/worker/RabbitMqControlChannelListener.hpp
-        assfire/tsp/worker/RabbitMqConnector.hpp
         )
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(civetweb CONFIG REQUIRED) # Required by prometheus
 find_package(prometheus-cpp CONFIG REQUIRED)
-find_package(rabbitmq-c CONFIG REQUIRED)
 include(pkg_utils)
 vcpkg_find_cpp_redis()
 
 add_executable(assfire-tsp-worker ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull rabbitmq::rabbitmq rabbitmq::rabbitmq-static cpp_redis::cpp_redis)
+target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull assfire-util-amqp-connector cpp_redis::cpp_redis)
 
 install(TARGETS assfire-tsp-worker COMPONENT tsp-worker)
 if (ASSFIRE_PACKAGE_BUILD_RPM)

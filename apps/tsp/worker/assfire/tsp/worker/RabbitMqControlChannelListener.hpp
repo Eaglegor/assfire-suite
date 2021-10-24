@@ -4,9 +4,9 @@
 #include <functional>
 #include <string>
 #include <future>
-#include "RabbitMqConnector.hpp"
+#include "assfire/util/amqp/RabbitMqConnector.hpp"
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class RabbitMqControlChannelListener {
     public:
         using OnPauseListener = std::function<void(const std::string &)>;

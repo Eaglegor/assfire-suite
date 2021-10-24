@@ -8,7 +8,7 @@ namespace cpp_redis {
     class client;
 }
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class RedisSolutionPublisher : public SolutionPublisher {
     public:
         RedisSolutionPublisher(const std::string& redis_host, std::size_t redis_port);

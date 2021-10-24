@@ -4,7 +4,7 @@ namespace assfire::tsp {
     class TspSolution;
     class TspTask;
 }
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class SolutionPublisher {
     public:
         virtual ~SolutionPublisher() {

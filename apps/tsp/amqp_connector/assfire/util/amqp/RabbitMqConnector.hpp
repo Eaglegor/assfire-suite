@@ -5,7 +5,7 @@
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class RabbitMqConnector {
     public:
         using MessageCallback = std::function<void(const amqp_envelope_t_ &)>;

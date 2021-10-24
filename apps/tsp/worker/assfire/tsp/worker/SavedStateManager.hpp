@@ -3,7 +3,7 @@
 #include <optional>
 #include <assfire/api/v1/tsp/state.pb.h>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class SavedStateManager {
     public:
         using State = assfire::api::v1::tsp::TspAlgorithmState;

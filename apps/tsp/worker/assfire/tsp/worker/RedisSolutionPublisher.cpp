@@ -6,7 +6,7 @@
 #include <assfire/api/v1/tsp/worker.pb.h>
 #include <future>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
 
     RedisSolutionPublisher::RedisSolutionPublisher(const std::string &redis_host, std::size_t redis_port) {
         SPDLOG_INFO("Initializing Redis TSP solution publisher... Creating Redis client");

@@ -2,7 +2,7 @@
 
 #include "assfire/api/v1/tsp/worker.pb.h"
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class WorkerTransport {
     public:
         using WorkerTask = assfire::api::v1::tsp::WorkerTask;

@@ -78,18 +78,18 @@ int main(int argc, char **argv) {
         std::unique_ptr<assfire::router::RouterApi> router =
                 std::make_unique<assfire::router::RouterClient>(router_host, router_port, use_ssl_for_router);
 
-        std::unique_ptr<assfire::tsp::worker::SolutionPublisher> solution_publisher =
-//                std::make_unique<assfire::tsp::worker::StdoutSolutionPublisher>();
-                std::make_unique<assfire::tsp::worker::RedisSolutionPublisher>(redis_host, redis_port);
+        std::unique_ptr<assfire::tsp::SolutionPublisher> solution_publisher =
+//                std::make_unique<assfire::tsp::StdoutSolutionPublisher>();
+                std::make_unique<assfire::tsp::RedisSolutionPublisher>(redis_host, redis_port);
 
         std::unique_ptr<assfire::tsp::TspSolverEngine> tsp_solver =
                 std::make_unique<assfire::tsp::TspSolverEngine>(std::move(router));
 
-        std::unique_ptr<assfire::tsp::worker::SavedStateManager> saved_state_manager =
-                std::make_unique<assfire::tsp::worker::NopSavedStateManager>();
+        std::unique_ptr<assfire::tsp::SavedStateManager> saved_state_manager =
+                std::make_unique<assfire::tsp::NopSavedStateManager>();
 
-        std::unique_ptr<assfire::tsp::worker::TaskProcessor> task_processor =
-                std::make_unique<assfire::tsp::worker::RabbitMqTaskProcessor>(std::move(tsp_solver), std::move(solution_publisher), std::move(saved_state_manager),
+        std::unique_ptr<assfire::tsp::TaskProcessor> task_processor =
+                std::make_unique<assfire::tsp::RabbitMqTaskProcessor>(std::move(tsp_solver), std::move(solution_publisher), std::move(saved_state_manager),
                                                                               "localhost", 5672, "guest", "guest");
 
 

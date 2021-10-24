@@ -1,7 +1,7 @@
 #include "RabbitMqConnector.hpp"
 #include <spdlog/spdlog.h>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     RabbitMqConnector::RabbitMqConnector(const std::string &name) : name(name) {
     }
 

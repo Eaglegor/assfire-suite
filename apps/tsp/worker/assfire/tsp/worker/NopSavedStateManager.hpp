@@ -2,7 +2,7 @@
 
 #include "SavedStateManager.hpp"
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class NopSavedStateManager : public SavedStateManager {
     public:
         std::optional<State> loadState(const std::string &task_id) override;

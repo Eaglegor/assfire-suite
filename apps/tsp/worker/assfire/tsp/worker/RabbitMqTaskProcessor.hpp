@@ -8,20 +8,16 @@
 #include "SolutionPublisher.hpp"
 #include "SavedStateManager.hpp"
 #include "RabbitMqControlChannelListener.hpp"
-#include "RabbitMqConnector.hpp"
+#include "assfire/util/amqp/RabbitMqConnector.hpp"
 
 namespace assfire::tsp {
     class TspSolverEngine;
 }
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
 
     class RabbitMqTaskProcessor : public TaskProcessor {
     public:
-        static const std::string TASK_QUEUE_NAME;
-        static const std::string CONTROL_QUEUE_NAME;
-        static const std::string RESULT_QUEUE_NAME;
-
         RabbitMqTaskProcessor(std::unique_ptr<TspSolverEngine> tsp_solver, std::unique_ptr<SolutionPublisher> solution_publisher, std::unique_ptr<SavedStateManager> saved_state_manager,
                               const std::string &host, int port, const std::string &login, const std::string &password);
 

@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
 
     try {
         TspService service(
-                std::make_unique<worker::RabbitMQWorkerTransport>("localhost", 5672, "guest", "guest"),
+                std::make_unique<RabbitMQWorkerTransport>("localhost", 5672, "guest", "guest"),
                 std::make_unique<RedisWorkerSolutionStorage>(),
                 std::make_unique<IncrementalTaskIdGenerator>());
 

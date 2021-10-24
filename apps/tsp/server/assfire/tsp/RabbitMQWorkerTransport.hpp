@@ -5,7 +5,7 @@
 #include "WorkerTransport.hpp"
 #include <mutex>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     class RabbitMQWorkerTransport : public WorkerTransport {
     public:
         static const std::string TASK_QUEUE_NAME;

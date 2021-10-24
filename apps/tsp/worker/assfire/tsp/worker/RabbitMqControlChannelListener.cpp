@@ -1,8 +1,9 @@
 #include "RabbitMqControlChannelListener.hpp"
 #include <spdlog/spdlog.h>
 #include <assfire/api/v1/tsp/worker.pb.h>
+#include "assfire/tsp/amqp/TspAmqpConstants.hpp"
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     RabbitMqControlChannelListener::RabbitMqControlChannelListener(const std::string &host, int port, const std::string &login, const std::string &password) :
             rabbit_mq_connector("ControlChannelListener") {
         SPDLOG_INFO("Initializing RabbitMQ control channel listener");
@@ -18,9 +19,9 @@ namespace assfire::tsp::worker {
 
         control_state = std::async(std::launch::async, [&]() {
             rabbit_mq_connector.listen(
-                    "org.assfire.tsp.worker.signal",
-                    "amq.topic",
-                    2,
+                    TSP_AMQP_WORKER_CONTROL_SIGNAL_QUEUE_NAME,
+                    TSP_AMQP_WORKER_CONTROL_SIGNAL_EXCHANGE_NAME,
+                    TSP_AMQP_WORKER_CONTROL_SIGNAL_CHANNEL_ID,
                     [&](const amqp_envelope_t_ &envelope) {
                         assfire::api::v1::tsp::WorkerControlSignal worker_signal;
                         worker_signal.ParseFromArray(envelope.message.body.bytes, envelope.message.body.len);
@@ -43,9 +44,8 @@ namespace assfire::tsp::worker {
         });
     }
 
-
-    void RabbitMqControlChannelListener::setListeners(worker::RabbitMqControlChannelListener::OnPauseListener on_pause_listener,
-                                                      worker::RabbitMqControlChannelListener::OnInterruptListener on_interrupt_listener) {
+    void RabbitMqControlChannelListener::setListeners(RabbitMqControlChannelListener::OnPauseListener on_pause_listener,
+                                                      RabbitMqControlChannelListener::OnInterruptListener on_interrupt_listener) {
         std::lock_guard<std::mutex> guard(mutex);
         this->on_pause = std::move(on_pause_listener);
         this->on_interrupt = std::move(on_interrupt_listener);

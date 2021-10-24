@@ -1,7 +1,7 @@
 #include "RabbitMQWorkerTransport.hpp"
 #include <spdlog/spdlog.h>
 
-namespace assfire::tsp::worker {
+namespace assfire::tsp {
     const std::string RabbitMQWorkerTransport::TASK_QUEUE_NAME("org.assfire.tsp.worker.task");
     const std::string RabbitMQWorkerTransport::CONTROL_QUEUE_NAME("org.assfire.tsp.worker.signal");
     const std::string RabbitMQWorkerTransport::RESULT_QUEUE_NAME("org.assfire.tsp.worker.result");
