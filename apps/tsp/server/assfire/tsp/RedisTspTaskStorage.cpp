@@ -29,7 +29,7 @@ namespace assfire::tsp {
             SPDLOG_ERROR("Error while trying to retrieve task {} from cache: {}", id, reply.error());
             return std::nullopt;
         } else if (!reply.is_string()) {
-            SPDLOG_INFO("Task with id {} not found in cache: {}", id);
+            SPDLOG_INFO("Task with id {} not found in cache", id);
             return std::nullopt;
         }
 

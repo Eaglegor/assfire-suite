@@ -4,7 +4,9 @@ set(SOURCES
         assfire/tsp/RedisSolutionStorage.cpp
         assfire/tsp/RabbitMQWorkerTransport.cpp
         assfire/tsp/NopTspTaskStorage.cpp
-        assfire/tsp/RedisTspTaskStorage.cpp)
+        assfire/tsp/RedisTspTaskStorage.cpp
+        assfire/tsp/AsyncTspService.cpp
+        )
 set(HEADERS
         assfire/tsp/TspService.hpp
         assfire/tsp/TaskIdGenerator.hpp
@@ -15,7 +17,9 @@ set(HEADERS
         assfire/tsp/RabbitMQWorkerTransport.hpp
         assfire/tsp/TspTaskStorage.hpp
         assfire/tsp/NopTspTaskStorage.hpp
-        assfire/tsp/RedisTspTaskStorage.cpp)
+        assfire/tsp/RedisTspTaskStorage.hpp
+        assfire/tsp/AsyncTspService.hpp
+        )
 
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
