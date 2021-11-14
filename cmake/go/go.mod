@@ -1,0 +1,8 @@
+module @GO_PACKAGE_NAME@
+
+go 1.16
+
+require(
+@REQUIRE_DIRECTIVES@)
+replace(
+@REPLACE_DIRECTIVES@)

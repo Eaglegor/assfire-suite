@@ -12,7 +12,7 @@ if(MSVC)
 	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True) # To avoid declspec(dllexport) for each symbol
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP")
 	add_definitions("-D_WIN32_WINNT=0x600")
 	add_definitions("-DNOMINMAX")
 endif()
@@ -32,7 +32,7 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG True)
 
 option(ASSFIRE_DEBUG_MODE "Enable debug mode" ON)
 option(ASSFIRE_GENERATE_GO "Generate go sources" ON)
-option(ASSFIRE_GENERATE_GRPC_GATEWAYS "Generate reverse HTTP proxy services for gRPC (needs golang compiler to be installed)" ON)
+option(ASSFIRE_GENERATE_GRPC_GATEWAYS "Generate reverse HTTP proxy services for gRPC (needs golang compiler to be installed)" OFF)
 option(ASSFIRE_PACKAGE_BUILD_RPM "Build RPM packages" OFF)
 
 if(ASSFIRE_GENERATE_GRPC_GATEWAYS OR ASSFIRE_GENERATE_GO)

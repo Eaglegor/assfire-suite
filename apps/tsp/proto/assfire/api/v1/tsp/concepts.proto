@@ -5,7 +5,6 @@ option go_package = "assfire.org/api/v1/tsp";
 
 import "assfire/api/v1/concepts/concepts.proto";
 import "assfire/api/v1/router/concepts.proto";
-import "assfire/api/v1/scheduler/concepts.proto";
 
 enum TspAlgorithmType {
   TSP_ALGORITHM_TYPE_UNSPECIFIED = 0;

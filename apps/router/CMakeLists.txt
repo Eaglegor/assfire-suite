@@ -18,6 +18,7 @@ if(ASSFIRE_APPS_BUILD_ROUTER OR ASSFIRE_APPS_BUILD_ALL)
     add_subdirectory(server)
     add_subdirectory(tools)
     add_subdirectory(tests)
+    add_subdirectory(go)
 
     configure_file(Dockerfile ${CMAKE_CURRENT_BINARY_DIR}/Dockerfile)
 endif()

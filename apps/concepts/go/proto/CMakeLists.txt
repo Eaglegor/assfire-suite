@@ -8,5 +8,5 @@ define_proto_go_target(
         DEPENDS ""
         PROTOS assfire/api/v1/concepts/concepts.proto
         PROTO_ROOT ${PROTO_PREFIX}
-        GO_PACKAGE_NAME assfire/api/v1/concepts
+        GO_PACKAGE_NAME assfire.org/api/v1/concepts
 )
