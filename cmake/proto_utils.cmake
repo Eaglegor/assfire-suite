@@ -1,3 +1,5 @@
+set(GO_PROTOBUF_VERSION "v1.27.1")
+
 function(define_proto_target)
     set(_options "")
     set(_singleargs TARGET_NAME)
@@ -64,7 +66,7 @@ function(define_proto_go_target)
     set(REQUIRES ${define_proto_go_target_REQUIRES})
     set(GRPC_PROTOS ${define_proto_go_target_GRPC_PROTOS})
 
-    list(APPEND REQUIRES "google.golang.org/protobuf v1.27.1")
+    list(APPEND REQUIRES "google.golang.org/protobuf ${GO_PROTOBUF_VERSION}")
 
     message(STATUS "[Protobuf][Go] Generating protobuf definition target: ${TARGET_NAME}")
     message(STATUS "[Protobuf][Go]   Depends on: ${DEPENDS}")
@@ -95,6 +97,13 @@ function(define_proto_go_target)
 
     message(STATUS "[Protobuf][Go]   Summarized proto import dirs: ${FINAL_IMPORT_DIRS}")
     message(STATUS "[Protobuf][Go]   Summarized proto include strings: ${PROTO_INCLUDE_STRINGS}")
+
+    foreach(dep ${DEPENDS})
+        get_target_property(${dep}_TRANSITIVE_DEPS ${dep} DEPENDS_ON)
+        list(APPEND TRANSITIVE_DEPS ${${dep}_TRANSITIVE_DEPS})
+    endforeach()
+
+    list(REMOVE_DUPLICATES TRANSITIVE_DEPS)
 
     set(GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR}/${GO_PACKAGE_NAME})
 
@@ -131,6 +140,12 @@ function(define_proto_go_target)
         get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
 
         string(APPEND REQUIRE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION}\n")
+        string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
+    endforeach()
+    foreach(req ${TRANSITIVE_DEPS})
+        get_target_property(DEP_MODULE_NAME ${req} GO_PACKAGE_NAME)
+        get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
+
         string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
     endforeach()
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.mod ${GO_MOD_PATH} @ONLY)
@@ -171,6 +186,69 @@ function(define_proto_go_target)
     set_target_properties(${TARGET_NAME} PROPERTIES PROTO_IMPORT_DIRS "${FINAL_IMPORT_DIRS}")
     set_target_properties(${TARGET_NAME} PROPERTIES GO_MODULE_PATH "${GO_MOD_PATH}")
     set_target_properties(${TARGET_NAME} PROPERTIES GO_PACKAGE_NAME "${GO_PACKAGE_NAME}")
+    set_target_properties(${TARGET_NAME} PROPERTIES DEPENDS_ON "${DEPENDS}")
+    set_target_properties(${TARGET_NAME} PROPERTIES TRANSITIVE_DEPS "${TRANSITIVE_DEPS}")
+endfunction()
+
+function(define_go_target)
+    set(_options "")
+    set(_singleargs TARGET_NAME GO_PACKAGE_NAME)
+    set(_multiargs DEPENDS REQUIRES)
+    cmake_parse_arguments(define_go_target "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
+
+    set(TARGET_NAME ${define_go_target_TARGET_NAME})
+    set(DEPENDS ${define_go_target_DEPENDS})
+    set(REQUIRES ${define_go_target_REQUIRES})
+    set(GO_PACKAGE_NAME ${define_go_target_GO_PACKAGE_NAME})
+
+    foreach(dep ${DEPENDS})
+        get_target_property(${dep}_TRANSITIVE_DEPS ${dep} DEPENDS_ON)
+        list(APPEND TRANSITIVE_DEPS ${${dep}_TRANSITIVE_DEPS})
+    endforeach()
+
+    list(REMOVE_DUPLICATES TRANSITIVE_DEPS)
+
+    list(APPEND REQUIRES "google.golang.org/protobuf ${GO_PROTOBUF_VERSION}")
+
+    message(STATUS "[Server][Go] Generating go server target: ${TARGET_NAME}")
+    message(STATUS "[Server][Go]   Depends on: ${DEPENDS}")
+    message(STATUS "[Server][Go]   Go package name: ${GO_PACKAGE_NAME}")
+    message(STATUS "[Server][Go]   Requires: ${REQUIRES}")
+    message(STATUS "[Server][Go]   Transitive dependencies: ${TRANSITIVE_DEPS}")
+
+    set(GO_MOD_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
+    set(REQUIRE_DIRECTIVES "")
+    set(REPLACE_DIRECTIVES "")
+    foreach(req ${REQUIRES})
+        string(APPEND REQUIRE_DIRECTIVES "${req}\n")
+    endforeach()
+    foreach(req ${DEPENDS})
+        get_target_property(DEP_MODULE_NAME ${req} GO_PACKAGE_NAME)
+        get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
+
+        string(APPEND REQUIRE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION}\n")
+        string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
+    endforeach()
+    foreach(req ${TRANSITIVE_DEPS})
+        get_target_property(DEP_MODULE_NAME ${req} GO_PACKAGE_NAME)
+        get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
+        string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
+    endforeach()
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.mod ${GO_MOD_PATH} @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.sum ${GO_MOD_PATH} @ONLY)
+
+    add_custom_target(${TARGET_NAME} ALL
+            COMMAND ${GO_EXECUTABLE} get
+            COMMAND ${GO_EXECUTABLE} build
+            WORKING_DIRECTORY ${GO_MOD_PATH}
+            DEPENDS ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
+
+    set_target_properties(${TARGET_NAME} PROPERTIES PROTO_IMPORT_DIRS "${FINAL_IMPORT_DIRS}")
+    set_target_properties(${TARGET_NAME} PROPERTIES GO_MODULE_PATH "${GO_MOD_PATH}")
+    set_target_properties(${TARGET_NAME} PROPERTIES GO_PACKAGE_NAME "${GO_PACKAGE_NAME}")
+    set_target_properties(${TARGET_NAME} PROPERTIES DEPENDS_ON "${DEPENDS}")
+    set_target_properties(${TARGET_NAME} PROPERTIES TRANSITIVE_DEPS "${TRANSITIVE_DEPS}")
 endfunction()
 
 function(define_grpc_target)
