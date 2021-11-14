@@ -52,7 +52,7 @@ endfunction()
 function(define_proto_go_target)
     set(_options "")
     set(_singleargs TARGET_NAME GO_PACKAGE_NAME GO_MOD_PATH PROTO_ROOT)
-    set(_multiargs DEPENDS PROTO_IMPORT_DIRS PROTOS REQUIRES)
+    set(_multiargs DEPENDS PROTO_IMPORT_DIRS PROTOS GRPC_PROTOS REQUIRES)
     cmake_parse_arguments(define_proto_go_target "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
 
     set(TARGET_NAME ${define_proto_go_target_TARGET_NAME})
@@ -62,6 +62,7 @@ function(define_proto_go_target)
     set(PROTO_ROOT ${define_proto_go_target_PROTO_ROOT})
     set(GO_PACKAGE_NAME ${define_proto_go_target_GO_PACKAGE_NAME})
     set(REQUIRES ${define_proto_go_target_REQUIRES})
+    set(GRPC_PROTOS ${define_proto_go_target_GRPC_PROTOS})
 
     list(APPEND REQUIRES "google.golang.org/protobuf v1.27.1")
 
@@ -69,6 +70,7 @@ function(define_proto_go_target)
     message(STATUS "[Protobuf][Go]   Depends on: ${DEPENDS}")
     message(STATUS "[Protobuf][Go]   Import dirs: ${PROTO_IMPORT_DIRS}")
     message(STATUS "[Protobuf][Go]   Proto files: ${PROTOS}")
+    message(STATUS "[Protobuf][Go]   gRPC proto files: ${GRPC_PROTOS}")
     message(STATUS "[Protobuf][Go]   Proto root: ${PROTO_ROOT}")
     message(STATUS "[Protobuf][Go]   Go package name: ${GO_PACKAGE_NAME}")
     message(STATUS "[Protobuf][Go]   Requires: ${REQUIRES}")
@@ -77,6 +79,7 @@ function(define_proto_go_target)
     get_target_property(GOOGLE_PROTOBUF_IMPORT_DIR protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
 
     list(APPEND IMPORTED_IMPORT_DIRS ${GOOGLE_PROTOBUF_IMPORT_DIR})
+    list(APPEND IMPORTED_IMPORT_DIRS "${CMAKE_SOURCE_DIR}/apps/google-annotations")
 
     foreach(dep ${DEPENDS})
         get_target_property(${dep}_IMPORTED_DIRS ${dep} PROTO_IMPORT_DIRS)
@@ -103,7 +106,18 @@ function(define_proto_go_target)
         list(APPEND GO_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_go}")
     endforeach()
 
+    foreach(proto ${GRPC_PROTOS})
+        find_file(full_proto_path ${proto} PATHS ${FINAL_IMPORT_DIRS} REQUIRED)
+        list(APPEND FULL_GRPC_PROTOS "${full_proto_path}")
+        unset(full_proto_path CACHE)
+        string(REPLACE ".proto" "_grpc.pb.go" proto_grpc ${proto})
+        list(APPEND GO_GRPC_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_grpc}")
+        string(REPLACE ".proto" ".pb.go" proto_grpc_go ${proto})
+        list(APPEND GO_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_grpc_go}")
+    endforeach()
+
     message(STATUS "[Protobuf][Go]   Expected sources: ${GO_SOURCE_OUTPUTS}")
+    message(STATUS "[Protobuf][Go]   Expected gRPC sources: ${GO_GRPC_SOURCE_OUTPUTS}")
 
     file(MAKE_DIRECTORY ${GO_MOD_PATH})
 
@@ -128,31 +142,35 @@ function(define_proto_go_target)
             ARGS
             ${PROTO_INCLUDE_STRINGS}
             --go_out ${CMAKE_CURRENT_BINARY_DIR}
-            ${PROTOS}
+            ${PROTOS} ${GRPC_PROTOS}
             WORKING_DIRECTORY ${PROTO_ROOT}
+            DEPENDS ${FULL_PROTOS} ${FULL_GRPC_PROTOS}
             COMMENT "[Protobuf][Go] Generating go sources for ${TARGET_NAME}"
             VERBATIM
     )
 
     add_custom_command(
-            OUTPUT ${GO_MOD_PATH}/go.sum
-            COMMAND ${GO_EXECUTABLE} mod tidy
-            WORKING_DIRECTORY ${GO_MOD_PATH}
-            DEPENDS ${GO_SOURCE_OUTPUTS}
-            COMMENT "[Protobuf][Go] Processing go dependencies for ${TARGET_NAME}"
+            OUTPUT "${GO_GRPC_SOURCE_OUTPUTS}"
+            COMMAND protobuf::protoc
+            ARGS
+            ${PROTO_INCLUDE_STRINGS}
+            --go-grpc_out ${CMAKE_CURRENT_BINARY_DIR}
+            ${GRPC_PROTOS}
+            DEPENDS "${FULL_GRPC_PROTOS}"
+            WORKING_DIRECTORY ${PROTO_ROOT}
+            COMMENT "[Protobuf][Go] Generating go gRPC sources for ${TARGET_NAME}"
             VERBATIM
     )
 
     add_custom_target(${TARGET_NAME} ALL
+            COMMAND ${GO_EXECUTABLE} get
             COMMAND ${GO_EXECUTABLE} build
-            COMMAND ${GO_EXECUTABLE} install
             WORKING_DIRECTORY ${GO_MOD_PATH}
-            DEPENDS ${GO_SOURCE_OUTPUTS} ${GO_MOD_PATH}/go.sum)
+            DEPENDS ${GO_GRPC_SOURCE_OUTPUTS} ${GO_SOURCE_OUTPUTS} ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
 
     set_target_properties(${TARGET_NAME} PROPERTIES PROTO_IMPORT_DIRS "${FINAL_IMPORT_DIRS}")
     set_target_properties(${TARGET_NAME} PROPERTIES GO_MODULE_PATH "${GO_MOD_PATH}")
     set_target_properties(${TARGET_NAME} PROPERTIES GO_PACKAGE_NAME "${GO_PACKAGE_NAME}")
-    set_target_properties(${TARGET_NAME} PROPERTIES IMPORTED_IMPORT_DIRS "${FINAL_IMPORT_DIRS}")
 endfunction()
 
 function(define_grpc_target)
@@ -166,10 +184,10 @@ function(define_grpc_target)
     set(PROTO_IMPORT_DIRS ${define_grpc_target_PROTO_IMPORT_DIRS})
     set(PROTOS ${define_grpc_target_PROTOS})
 
-    message(STATUS "[gRPC] Generating gRPC definition target: ${TARGET_NAME}")
-    message(STATUS "[gRPC]   Depends on: ${DEPENDS}")
-    message(STATUS "[gRPC]   Import dirs: ${PROTO_IMPORT_DIRS}")
-    message(STATUS "[gRPC]   Proto files: ${PROTOS}")
+    message(STATUS "[gRPC][C++] Generating gRPC definition target: ${TARGET_NAME}")
+    message(STATUS "[gRPC][C++]   Depends on: ${DEPENDS}")
+    message(STATUS "[gRPC][C++]   Import dirs: ${PROTO_IMPORT_DIRS}")
+    message(STATUS "[gRPC][C++]   Proto files: ${PROTOS}")
 
     find_package(protobuf CONFIG REQUIRED)
     find_package(gRPC CONFIG REQUIRED)
@@ -188,12 +206,12 @@ function(define_grpc_target)
         target_link_libraries(${TARGET_NAME} PUBLIC ${dep})
     endforeach()
 
-    message(STATUS "[gRPC]   Imported proto import dirs: ${IMPORTED_IMPORT_DIRS}")
+    message(STATUS "[gRPC][C++]   Imported proto import dirs: ${IMPORTED_IMPORT_DIRS}")
 
     set(FINAL_IMPORT_DIRS ${PROTO_IMPORT_DIRS} ${IMPORTED_IMPORT_DIRS})
     list(REMOVE_DUPLICATES FINAL_IMPORT_DIRS)
 
-    message(STATUS "[gRPC]   Summarized proto import dirs: ${FINAL_IMPORT_DIRS}")
+    message(STATUS "[gRPC][C++]   Summarized proto import dirs: ${FINAL_IMPORT_DIRS}")
 
     set(OUT_SUFFIX proto/cpp)
 

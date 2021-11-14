@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "assfire.org/api/v1/tsp";
+
 package assfire.api.v1.tsp;
 
 message TwoOptAlgorithmState {

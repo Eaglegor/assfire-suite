@@ -7,6 +7,7 @@ define_proto_go_target(
         PROTO_IMPORT_DIRS ${PROTO_PREFIX}
         DEPENDS assfire-concepts-proto-go
         PROTOS assfire/api/v1/router/concepts.proto
+        GRPC_PROTOS assfire/api/v1/router/service.proto
         PROTO_ROOT ${PROTO_PREFIX}
         GO_PACKAGE_NAME assfire.org/api/v1/router
 )

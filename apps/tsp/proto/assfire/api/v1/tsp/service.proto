@@ -4,7 +4,6 @@ package assfire.api.v1.tsp;
 option go_package = "assfire.org/api/v1/tsp";
 
 import "assfire/api/v1/router/concepts.proto";
-import "assfire/api/v1/scheduler/concepts.proto";
 import "assfire/api/v1/tsp/concepts.proto";
 import "google/api/annotations.proto";
 

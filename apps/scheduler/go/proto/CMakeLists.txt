@@ -9,6 +9,7 @@ define_proto_go_target(
         assfire-concepts-proto-go
         assfire-router-proto-go
         PROTOS assfire/api/v1/scheduler/concepts.proto
+        GRPC_PROTOS assfire/api/v1/scheduler/service.proto
         PROTO_ROOT ${PROTO_PREFIX}
         GO_PACKAGE_NAME assfire.org/api/v1/scheduler
 )
