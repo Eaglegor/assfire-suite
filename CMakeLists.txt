@@ -32,7 +32,7 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG True)
 
 option(ASSFIRE_DEBUG_MODE "Enable debug mode" ON)
 option(ASSFIRE_GENERATE_GO "Generate go sources" ON)
-option(ASSFIRE_GENERATE_GRPC_GATEWAYS "Generate reverse HTTP proxy services for gRPC (needs golang compiler to be installed)" OFF)
+option(ASSFIRE_GENERATE_GRPC_GATEWAYS "Generate reverse HTTP proxy services for gRPC (needs golang compiler to be installed)" ON)
 option(ASSFIRE_PACKAGE_BUILD_RPM "Build RPM packages" OFF)
 
 if(ASSFIRE_GENERATE_GRPC_GATEWAYS OR ASSFIRE_GENERATE_GO)

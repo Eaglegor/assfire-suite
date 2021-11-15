@@ -9,7 +9,7 @@ import (
 
   "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
   "google.golang.org/grpc"
-
+  gw "@ASSFIRE_GO_PACKAGE_NAME@"
 )
 
 var (

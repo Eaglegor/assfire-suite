@@ -249,7 +249,7 @@ function(define_go_target)
 
     add_custom_target(${TARGET_NAME} ALL
             COMMAND ${GO_EXECUTABLE} get
-            COMMAND ${GO_EXECUTABLE} build
+            COMMAND ${GO_EXECUTABLE} build -o ${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX}
             WORKING_DIRECTORY ${GO_MOD_PATH}
             DEPENDS ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
 
@@ -372,9 +372,11 @@ function(generate_grpc_gateway_endpoints_source)
     set(ENABLE_CORS ${ASSFIRE_ALLOW_CORS_IN_GRPC_GATEWAY})
     set(GO_PACKAGE_NAME ${generate_grpc_gateway_endpoints_source_GO_PACKAGE_NAME})
 
+    set(ASSFIRE_GO_PACKAGE_NAME ${GO_PACKAGE_NAME})
+
     foreach(service ${SERVICES})
         string(APPEND ASSFIRE_REGISTER_GRPC_SERVICE_ENDPOINTS "
-  err := Register${service}HandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
+  err := gw.Register${service}HandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
   if err != nil {
    return err
   }
@@ -391,7 +393,7 @@ endfunction()
 
 function(define_go_grpc_proxy_target)
     set(_options "")
-    set(_singleargs TARGET_NAME RPM_COMPONENT_NAME GO_PACKAGE_NAME)
+    set(_singleargs TARGET_NAME RPM_COMPONENT_NAME GO_SUBPACKAGE_NAME GO_PACKAGE_PREFIX)
     set(_multiargs DEPENDS PROTO_IMPORT_DIRS PROTOS)
     cmake_parse_arguments(define_go_grpc_proxy_target "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
 
@@ -399,8 +401,9 @@ function(define_go_grpc_proxy_target)
     set(DEPENDS ${define_go_grpc_proxy_target_DEPENDS})
     set(PROTO_IMPORT_DIRS ${define_go_grpc_proxy_target_PROTO_IMPORT_DIRS})
     set(PROTOS ${define_go_grpc_proxy_target_PROTOS})
-    set(GO_PACKAGE_NAME ${define_go_grpc_proxy_target_GO_PACKAGE_NAME})
+    set(GO_SUBPACKAGE_NAME ${define_go_grpc_proxy_target_GO_SUBPACKAGE_NAME})
     set(RPM_COMPONENT_NAME ${define_go_grpc_proxy_target_RPM_COMPONENT_NAME})
+    set(GO_PACKAGE_PREFIX ${define_go_grpc_proxy_target_GO_PACKAGE_PREFIX})
 
     message(STATUS "[Gateway][Go] Generating grpc-gateway target: ${TARGET_NAME}")
     message(VERBOSE "[Gateway][Go]   Depends on: ${DEPENDS}")
@@ -444,13 +447,13 @@ function(define_go_grpc_proxy_target)
 
     message(DEBUG "Parsed service names: ${SERVICE_NAMES}")
 
-    generate_grpc_gateway_endpoints_source(
-            OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${GO_PACKAGE_NAME}
-            SERVICES "${SERVICE_NAMES}"
-            GO_PACKAGE_NAME "${GO_PACKAGE_NAME}"
-    )
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/router)
 
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${GO_PACKAGE_NAME})
+    generate_grpc_gateway_endpoints_source(
+            OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}
+            SERVICES "${SERVICE_NAMES}"
+            GO_PACKAGE_NAME "${GO_SUBPACKAGE_NAME}"
+    )
 
     add_custom_command(
             OUTPUT ${GO_GW_SOURCE_OUTPUTS}
@@ -459,6 +462,7 @@ function(define_go_grpc_proxy_target)
             ${PROTO_INCLUDE_STRINGS}
             --grpc-gateway_out ${CMAKE_CURRENT_BINARY_DIR}
             --grpc-gateway_opt standalone=true
+            --grpc-gateway_opt module=${GO_PACKAGE_PREFIX}
             ${PROTOS}
             DEPENDS ${FULL_PROTOS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -479,8 +483,10 @@ function(define_go_grpc_proxy_target)
             VERBATIM
     )
 
-    add_custom_target(${TARGET_NAME}_generate_gw_impl
+    add_custom_target(${TARGET_NAME}-generate-gw-impl
             DEPENDS ${GO_GW_SOURCE_OUTPUTS} ${GO_SW_SOURCE_OUTPUTS})
+
+    string(REGEX REPLACE "(.*)/.+" "\\1" GO_PACKAGE_NAME ${GO_SUBPACKAGE_NAME})
 
     define_go_target(
             TARGET_NAME ${TARGET_NAME}
@@ -489,11 +495,11 @@ function(define_go_grpc_proxy_target)
             "github.com/grpc-ecosystem/grpc-gateway/v2 v2.2.0"
             "google.golang.org/grpc v1.35.0"
             "google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea"
-            GO_PACKAGE_NAME ${GO_PACKAGE_NAME}/gw
-            GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR}/${GO_PACKAGE_NAME}
+            GO_PACKAGE_NAME ${GO_PACKAGE_NAME}
+            GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-    add_dependencies(${TARGET_NAME} ${TARGET_NAME}_generate_gw_impl)
+    add_dependencies(${TARGET_NAME} ${DEPENDS} ${TARGET_NAME}-generate-gw-impl)
 
     install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX} COMPONENT ${RPM_COMPONENT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
     if(ASSFIRE_PACKAGE_BUILD_RPM)
