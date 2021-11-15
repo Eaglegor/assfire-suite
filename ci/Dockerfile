@@ -44,12 +44,6 @@ ENV VCPKG_ROOT /opt/vcpkg
 ENV GOPATH /root/go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 
-RUN go get \
-    github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
-    github.com/grpc-ecosystem/grpc-gateway/protoc-gen-openapiv2 \
-    github.com/golang/protobuf/protoc-gen-go \
-    google.golang.org/grpc/cmd/protoc-gen-go-grpc
-
 RUN npm install -g react-scripts
 
 RUN curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
