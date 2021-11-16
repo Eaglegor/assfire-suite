@@ -136,6 +136,3 @@ modules.xml
 .idea/sonarlint
 
 # End of https://www.toptal.com/developers/gitignore/api/clion+all
-
-apps/tsp/go/server/go.mod
-apps/tsp/go/server/go.sum
