@@ -18,9 +18,9 @@ RUN git clone --depth 1 --branch v1.10.2 https://github.com/ninja-build/ninja.gi
        rm -rf /opt/ninja
 
 # Installing vcpkg (used to manage dependencies)
-RUN git clone --branch 2020.11-1 https://github.com/Microsoft/vcpkg.git /opt/vcpkg &&  \
+RUN git clone --branch 2021.05.12 https://github.com/Microsoft/vcpkg.git /opt/vcpkg &&  \
     cd /opt/vcpkg && \
-    git cherry-pick -n 557ecbe253f87d75c6914b9a522ea92fc15eb20f && \
+#     git cherry-pick -n 557ecbe253f87d75c6914b9a522ea92fc15eb20f && \
     ./bootstrap-vcpkg.sh --useSystemBinaries && \
     ./vcpkg integrate install
 
