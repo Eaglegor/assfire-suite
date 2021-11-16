@@ -3,7 +3,7 @@ FROM amd64/alpine:3.14.3
 RUN apk update && apk add --no-cache bash g++ git curl make linux-headers perl npm openssl openssl-dev rpm go git
 
 # Installing cmake (using one of the latest versions that may be not available in official alpine repo)
-RUN git clone --depth 1 --branch v3.19.5 https://github.com/Kitware/CMake.git  /opt/cmake && \
+RUN git clone --depth 1 --branch v3.21.4 https://github.com/Kitware/CMake.git  /opt/cmake && \
        cd /opt/cmake && \
        ./configure && \
        make install && \
