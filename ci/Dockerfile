@@ -1,4 +1,4 @@
-FROM amd64/alpine:3.13.2
+FROM amd64/alpine:3.14.3
 
 RUN apk update && apk add --no-cache bash g++ git curl make linux-headers perl npm openssl openssl-dev rpm go git
 
@@ -26,7 +26,7 @@ RUN git clone --branch 2021.05.12 https://github.com/Microsoft/vcpkg.git /opt/vc
 
 # Installing dependencies
 RUN /opt/vcpkg/vcpkg install \
-    --triplet x64-linux  \
+    --triplet x64-linux --host-triplet x64-linux \
     grpc \
     cpp-redis \
     cxxopts \
