@@ -25,7 +25,8 @@ RUN git clone --branch 2021.05.12 https://github.com/Microsoft/vcpkg.git /opt/vc
     ./vcpkg integrate install
 
 # Installing dependencies
-RUN /opt/vcpkg/vcpkg install --debug \
+RUN /opt/vcpkg/vcpkg install \
+    --triplet x64-linux  \
     grpc \
     cpp-redis \
     cxxopts \
@@ -35,7 +36,7 @@ RUN /opt/vcpkg/vcpkg install --debug \
     cpprestsdk \
     gtest \
     librabbitmq \
-    --triplet x64-linux && \
+    && \
     rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 
 
