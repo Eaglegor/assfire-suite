@@ -90,7 +90,7 @@ namespace assfire::util {
 
         SPDLOG_INFO("Declaring RabbitMQ queue {} (channel {})", queue_name, channel_id);
         amqp_queue_declare(connection, channel_id, amqp_cstring_bytes(queue_name.c_str()),
-                           0, 0, 0, 1, amqp_empty_table);
+                           0, 0, 0, 0, amqp_empty_table);
         reply = amqp_get_rpc_reply(connection);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to declare RabbitMQ queue");
@@ -177,7 +177,7 @@ namespace assfire::util {
 
         SPDLOG_INFO("Declaring RabbitMQ queue {} (channel {})", queue_name, channel_id);
         amqp_queue_declare(connection, channel_id, amqp_cstring_bytes(queue_name.c_str()),
-                           0, 0, 0, 1, amqp_empty_table);
+                           0, 0, 0, 0, amqp_empty_table);
         reply = amqp_get_rpc_reply(connection);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to declare RabbitMQ queue");

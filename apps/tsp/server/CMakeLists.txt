@@ -5,7 +5,6 @@ set(SOURCES
         assfire/tsp/RabbitMQWorkerTransport.cpp
         assfire/tsp/NopTspTaskStorage.cpp
         assfire/tsp/RedisTspTaskStorage.cpp
-        assfire/tsp/AsyncTspService.cpp
         )
 set(HEADERS
         assfire/tsp/TspService.hpp
@@ -18,7 +17,6 @@ set(HEADERS
         assfire/tsp/TspTaskStorage.hpp
         assfire/tsp/NopTspTaskStorage.hpp
         assfire/tsp/RedisTspTaskStorage.hpp
-        assfire/tsp/AsyncTspService.hpp
         )
 
 find_package(cxxopts CONFIG REQUIRED)

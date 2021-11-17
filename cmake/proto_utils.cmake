@@ -246,7 +246,9 @@ function(define_go_target)
     message(VERBOSE "[Server][Go] Resolved go.mod replace directives: ${REPLACE_DIRECTIVES}")
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.mod ${GO_MOD_PATH} @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.sum ${GO_MOD_PATH} @ONLY)
+
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/dev.gitignore ${CMAKE_CURRENT_SOURCE_DIR}/.gitignore)
+
 
     add_custom_target(${TARGET_NAME} ALL
             COMMAND ${GO_EXECUTABLE} get
