@@ -17,10 +17,6 @@ import (
 )
 
 var (
-	tls        = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	certFile   = flag.String("cert_file", "", "The TLS cert file")
-	keyFile    = flag.String("key_file", "", "The TLS key file")
-	jsonDBFile = flag.String("json_db_file", "", "A json file containing a list of features")
 	port       = flag.Int("port", 50051, "The server port")
 )
 
@@ -46,25 +42,118 @@ func formatInProgressKey(taskName string) string {
 	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":in.progress")
 }
 
-func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequest) (*tsp.StartTspResponse, error) {
-	taskId := uuid.New().String()
-	log.Printf("Starting new TSP task %s", taskId)
-	workerTask := tsp.WorkerTask{TaskId: taskId, Task: request.Task}
+func publishTask(ctx context.Context, task *tsp.WorkerTask, redisClient *redis.Client) error {
+	serializedTask, err := proto.Marshal(task)
+	if err == nil {
+		result := redisClient.Set(ctx, formatTaskKey(task.TaskId), serializedTask, 0)
+		return result.Err()
+	} else {
+		return err
+	}
+}
 
-	serializedTask, _ := proto.Marshal(&workerTask)
-	server.redisClient.Set(ctx, formatTaskKey(taskId), serializedTask, 0)
-	server.redisClient.Set(ctx, formatInProgressKey(taskId), 1, 0)
+func hasTask(ctx context.Context, taskId string, redisClient *redis.Client) (bool, error) {
+	response := redisClient.Exists(ctx, formatTaskKey(taskId))
+	return response.Err() == nil, response.Err()
+}
 
-	server.rabbitChannel.Publish(
-		"amq.direct",
-		server.rabbitTaskQueue.Name,
+func loadSolution(ctx context.Context, taskId string, redisClient *redis.Client) (*tsp.TspSolution, error) {
+	response := redisClient.Get(ctx, formatSolutionKey(taskId))
+	if response.Err() != nil {
+		return nil, response.Err()
+	}
+
+	var tspSolution tsp.TspSolution
+
+	bytes, err := response.Bytes()
+	if err != nil {
+		return nil, err
+	}
+	err = proto.Unmarshal(bytes, &tspSolution)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tspSolution, nil
+}
+
+func removeTask(ctx context.Context, taskId string, redisClient *redis.Client) error {
+	return redisClient.Del(ctx, formatTaskKey(taskId)).Err()
+}
+
+const (
+	START = iota
+	STOP  = iota
+)
+
+const SIGNAL_EXCHANGE = "amq.topic"
+const SIGNAL_QUEUE = "org.assfire.tsp.worker.signal"
+
+const STATUS_EXCHANGE = "amq.topic"
+const STATUS_QUEUE = "org.assfire.tsp.worker.status"
+
+func sendSignal(ctx context.Context, taskId string, signal int, rabbitChannel *amqp.Channel) error {
+
+	var signalType tsp.WorkerControlSignal_Type
+	if signal == START {
+		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_START
+	} else if signal == STOP {
+		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_STOP
+	}
+
+	signalObject := tsp.WorkerControlSignal{
+		TaskId:     taskId,
+		SignalType: signalType,
+	}
+
+	message, err := proto.Marshal(&signalObject)
+	if err != nil {
+		return err
+	}
+
+	err = rabbitChannel.Publish(
+		SIGNAL_EXCHANGE,
+		SIGNAL_QUEUE,
 		false,
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        serializedTask,
+			Body:        message,
 		},
 	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func sendStartSignal(ctx context.Context, taskId string, rabbitChannel *amqp.Channel) error {
+	return sendSignal(ctx, taskId, START, rabbitChannel)
+}
+
+func sendStopSignal(ctx context.Context, taskId string, rabbitChannel *amqp.Channel) error {
+	return sendSignal(ctx, taskId, STOP, rabbitChannel)
+}
+
+func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequest) (*tsp.StartTspResponse, error) {
+	taskId := uuid.New().String()
+	log.Printf("Starting new TSP task %s", taskId)
+
+	log.Printf("Publishing task %s", taskId)
+	err := publishTask(ctx, &tsp.WorkerTask{TaskId: taskId, Task: request.Task}, server.redisClient)
+	if err != nil {
+		log.Printf("Failed to publish task %s: %s", taskId, err.Error())
+		return nil, status.Errorf(codes.Internal, "Failed to publish task %s", taskId)
+	}
+
+	log.Printf("Sending start signal %s", taskId)
+	err = sendStartSignal(ctx, taskId, server.rabbitChannel)
+	if err != nil {
+		log.Printf("Failed to send start signal for task %s: %s", taskId, err.Error())
+		return nil, status.Errorf(codes.Internal, "Failed to start task %s", taskId)
+	}
 
 	return &tsp.StartTspResponse{
 		TaskId: taskId,
@@ -74,125 +163,166 @@ func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 func (server *tspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequest) (*tsp.PauseTspResponse, error) {
 	log.Printf("Pausing TSP task %s", request.TaskId)
 
-	controlSignal := tsp.WorkerControlSignal{
-		TaskId:     request.TaskId,
-		SignalType: tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_PAUSE,
+	if exists, err := hasTask(ctx, request.TaskId, server.redisClient); !exists {
+		log.Printf("Failed to find task %s: %s", request.TaskId, err.Error())
+		if err == redis.Nil {
+			return nil, status.Errorf(codes.NotFound, "Failed to pause task %s - task not found", request.TaskId)
+		} else {
+			return nil, status.Errorf(codes.Internal, "Failed to pause task %s", request.TaskId)
+		}
 	}
 
-	serializedSignal, _ := proto.Marshal(&controlSignal)
-	server.rabbitChannel.Publish(
-		"amq.topic",
-		server.rabbitControlSignalQueue.Name,
-		false,
-		false,
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        serializedSignal,
-		},
-	)
-
-	solution_value := server.redisClient.Get(ctx, formatSolutionKey(request.TaskId))
-	var tspSolution tsp.TspSolution
-
-	bytes, err := solution_value.Bytes()
+	err := sendStopSignal(ctx, request.TaskId, server.rabbitChannel)
 	if err != nil {
-		return &tsp.PauseTspResponse{
-			Solution: nil,
-		}, nil
+		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
+		return nil, status.Errorf(codes.Internal, "Failed to pause task %s", request.TaskId)
 	}
-	proto.Unmarshal(bytes, &tspSolution)
 
-	server.redisClient.Set(ctx, formatInProgressKey(request.TaskId), 0, 0)
+	solution, err := loadSolution(ctx, request.TaskId, server.redisClient)
+	if err == redis.Nil {
+		return &tsp.PauseTspResponse{}, nil
+	} else if err != nil {
+		log.Printf("Failed to lookup for solution for task %s: %s", request.TaskId, err.Error())
+		return &tsp.PauseTspResponse{}, nil
+	}
 
 	return &tsp.PauseTspResponse{
-		Solution: &tspSolution,
+		Solution: solution,
 	}, nil
 }
 
 func (server *tspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRequest) (*tsp.ResumeTspResponse, error) {
 	log.Printf("Resuming TSP task %s", request.TaskId)
 
-	redisResponse := server.redisClient.Get(ctx, formatTaskKey(request.TaskId))
-	if redisResponse.Err() != redis.Nil {
-		bytes, _ := redisResponse.Bytes()
-		server.rabbitChannel.Publish(
-			"amq.direct",
-			server.rabbitTaskQueue.Name,
-			false,
-			false,
-			amqp.Publishing{
-				ContentType: "text/plain",
-				Body:        bytes,
-			},
-		)
-
-		server.redisClient.Set(ctx, formatInProgressKey(request.TaskId), 1, 0)
-
-		return &tsp.ResumeTspResponse{}, nil
-	} else {
-		return nil, status.Errorf(codes.NotFound, "Task %s not found", request.TaskId)
+	if exists, err := hasTask(ctx, request.TaskId, server.redisClient); !exists {
+		log.Printf("Failed to find task %s: %s", request.TaskId, err.Error())
+		if err == redis.Nil {
+			return nil, status.Errorf(codes.NotFound, "Failed to resume task %s - task not found", request.TaskId)
+		} else {
+			return nil, status.Errorf(codes.Internal, "Failed to resume task %s", request.TaskId)
+		}
 	}
+
+	err := sendStartSignal(ctx, request.TaskId, server.rabbitChannel)
+	if err != nil {
+		log.Printf("Failed to send start signal for task %s: %s", request.TaskId, err.Error())
+		return nil, status.Errorf(codes.Internal, "Failed to resume task %s", request.TaskId)
+	}
+
+	return &tsp.ResumeTspResponse{}, nil
 }
 
 func (server *tspServer) StopTsp(ctx context.Context, request *tsp.StopTspRequest) (*tsp.StopTspResponse, error) {
 	log.Printf("Stopping TSP task %s", request.TaskId)
 
-	controlSignal := tsp.WorkerControlSignal{
-		TaskId:     request.TaskId,
-		SignalType: tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT,
+	if exists, err := hasTask(ctx, request.TaskId, server.redisClient); !exists {
+		log.Printf("Failed to find task %s: %s", request.TaskId, err.Error())
+		if err == redis.Nil {
+			return nil, status.Errorf(codes.NotFound, "Failed to stop task %s - task not found", request.TaskId)
+		} else {
+			return nil, status.Errorf(codes.Internal, "Failed to stop task %s", request.TaskId)
+		}
 	}
 
-	serializedSignal, _ := proto.Marshal(&controlSignal)
-	server.rabbitChannel.Publish(
-		"amq.topic",
-		server.rabbitControlSignalQueue.Name,
-		false,
-		false,
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        serializedSignal,
-		},
-	)
-
-	solution_value := server.redisClient.Get(ctx, formatSolutionKey(request.TaskId))
-	var tspSolution tsp.TspSolution
-
-	bytes, err := solution_value.Bytes()
+	err := sendStopSignal(ctx, request.TaskId, server.rabbitChannel)
 	if err != nil {
-		return &tsp.StopTspResponse{
-			Solution: nil,
-		}, nil
+		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
+		return nil, status.Errorf(codes.Internal, "Failed to stop task %s", request.TaskId)
 	}
-	proto.Unmarshal(bytes, &tspSolution)
 
-	server.redisClient.Set(ctx, formatInProgressKey(request.TaskId), 0, 0)
+	solution, err := loadSolution(ctx, request.TaskId, server.redisClient)
+	if err == redis.Nil {
+		return &tsp.StopTspResponse{}, nil
+	} else if err != nil {
+		log.Printf("Failed to lookup for solution for task %s: %s", request.TaskId, err.Error())
+		return &tsp.StopTspResponse{}, nil
+	}
+
+	err = removeTask(ctx, request.TaskId, server.redisClient)
+	if err != nil {
+		log.Printf("Failed to remove task %s: %s", request.TaskId, err.Error())
+		return &tsp.StopTspResponse{}, nil
+	}
 
 	return &tsp.StopTspResponse{
-		Solution: &tspSolution,
+		Solution: solution,
 	}, nil
 }
 
 func (server *tspServer) GetLatestSolution(ctx context.Context, request *tsp.GetLatestSolutionRequest) (*tsp.GetLatestSolutionResponse, error) {
 	log.Printf("Retrieving latest solution for TSP task %s", request.TaskId)
 
-	solution_value := server.redisClient.Get(ctx, formatSolutionKey(request.TaskId))
-	var tspSolution tsp.TspSolution
-
-	bytes, err := solution_value.Bytes()
-	if err != nil {
-		return &tsp.GetLatestSolutionResponse{
-			Solution: nil,
-		}, nil
+	solution, err := loadSolution(ctx, request.TaskId, server.redisClient)
+	if err == redis.Nil {
+		return &tsp.GetLatestSolutionResponse{}, nil
+	} else if err != nil {
+		log.Printf("Failed to lookup for solution for task %s: %s", request.TaskId, err.Error())
+		return nil, status.Errorf(codes.Internal, "Failed to retrieve solution for task %s", request.TaskId)
 	}
-	proto.Unmarshal(bytes, &tspSolution)
 
 	return &tsp.GetLatestSolutionResponse{
-		Solution: &tspSolution,
+		Solution: solution,
 	}, nil
 }
 
+func parseStatusUpdate(msg []byte) (*tsp.WorkerTspStatusUpdate, error) {
+	var result *tsp.WorkerTspStatusUpdate
+	err := proto.Unmarshal(msg, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func convertStatusUpdateType(workerType tsp.WorkerTspStatusUpdate_Type) tsp.TspStatusUpdate_Type {
+	switch workerType {
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_ERROR:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_ERROR
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_FINISHED
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_PAUSED
+	default:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_UNKNOWN
+	}
+}
+
 func (server *tspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
-	return status.Errorf(codes.Unimplemented, "method SubscribeForStatusUpdates not implemented")
+	updates, err := server.rabbitChannel.Consume(
+		STATUS_QUEUE,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Printf("Failed to subscribe for status updates for task %s: %s", request.TaskId, err.Error())
+		return status.Errorf(codes.Internal, "Failed to subscribe for updates for task %s", request.TaskId)
+	}
+	for updateMessage := range updates {
+		update, err := parseStatusUpdate(updateMessage.Body)
+		if err != nil {
+			log.Printf("Failed to process status update for task %s: %s", request.TaskId, err.Error())
+		} else {
+			if update.GetTaskId() == request.TaskId {
+				err := observer.Send(&tsp.SubscribeForStatusUpdatesResponse{
+					StatusUpdate: &tsp.TspStatusUpdate{
+						NewSolutionCost:             update.Cost,
+						NewSolutionValidationResult: update.ValidationResult,
+						Type:                        convertStatusUpdateType(update.Type),
+					},
+				})
+				if err != nil {
+					log.Printf("Failed to publish status update for task %s: %s", request.TaskId, err.Error())
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func newServer() *tspServer {
@@ -205,8 +335,8 @@ func newServer() *tspServer {
 	rabbitConnection, _ := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	rabbitChannel, _ := rabbitConnection.Channel()
 
-	rabbitTaskQueue, _ := rabbitChannel.QueueDeclare(
-		"org.assfire.tsp.worker.task",
+	rabbitChannel.QueueDeclare(
+		SIGNAL_QUEUE,
 		false,
 		false,
 		false,
@@ -214,8 +344,8 @@ func newServer() *tspServer {
 		nil,
 	)
 
-	rabbitControlSignalQueue, _ := rabbitChannel.QueueDeclare(
-		"org.assfire.tsp.worker.control_signal",
+	rabbitChannel.QueueDeclare(
+		STATUS_QUEUE,
 		false,
 		false,
 		false,
@@ -227,8 +357,6 @@ func newServer() *tspServer {
 		redisClient:              redisClient,
 		rabbitConnection:         rabbitConnection,
 		rabbitChannel:            rabbitChannel,
-		rabbitTaskQueue:          rabbitTaskQueue,
-		rabbitControlSignalQueue: rabbitControlSignalQueue,
 	}
 
 	return s

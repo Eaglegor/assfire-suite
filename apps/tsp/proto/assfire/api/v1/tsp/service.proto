@@ -54,10 +54,22 @@ message SubscribeForStatusUpdatesRequest {
 }
 
 message TspStatusUpdate {
-  TspCost current_best_cost = 1;
-  TspValidationResult current_best_validation_result = 2;
-  bool is_finished = 3;
-  bool is_error = 4;
+  enum Type {
+    TSP_STATUS_UPDATE_TYPE_UNKNOWN = 0;
+    TSP_STATUS_UPDATE_TYPE_STARTED = 1;
+    TSP_STATUS_UPDATE_TYPE_PAUSED = 2;
+    TSP_STATUS_UPDATE_TYPE_FINISHED = 3;
+    TSP_STATUS_UPDATE_TYPE_ERROR = 4;
+    TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION = 5;
+  }
+
+  TspCost new_solution_cost = 1;
+  TspValidationResult new_solution_validation_result = 2;
+  Type type = 3;
+  TspCost current_best_cost = 4;
+  TspValidationResult current_best_validation_result = 5;
+  bool is_finished = 6;
+  bool is_error = 7;
 }
 
 message SubscribeForStatusUpdatesResponse {

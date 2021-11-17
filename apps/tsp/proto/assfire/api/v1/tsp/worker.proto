@@ -16,6 +16,8 @@ message WorkerControlSignal {
     WORKER_CONTROL_SIGNAL_TYPE_UNKNOWN = 0;
     WORKER_CONTROL_SIGNAL_TYPE_PAUSE = 1;
     WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT = 2;
+    WORKER_CONTROL_SIGNAL_TYPE_STOP = 3;
+    WORKER_CONTROL_SIGNAL_TYPE_START = 4;
   }
 
   string task_id = 1;
@@ -33,8 +35,11 @@ message WorkerTspStatusUpdate {
     WORKER_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION = 1;
     WORKER_TSP_STATUS_UPDATE_TYPE_ERROR = 2;
     WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED= 3;
+    WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED = 4;
   }
 
   string task_id = 1;
   Type type = 2;
+  TspCost cost = 3;
+  TspValidationResult validation_result = 4;
 }

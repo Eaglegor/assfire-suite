@@ -33,8 +33,12 @@ std::string startTsp() {
 
     grpc::ClientContext context;
     assfire::api::v1::tsp::StartTspResponse response;
-    stub->StartTsp(&context, request, &response);
-    std::cout << "Started task " << response.task_id() << std::endl;
+    ::grpc::Status status = stub->StartTsp(&context, request, &response);
+    if(!status.ok()) {
+        std::cout << "Failed to start task: " << status.error_message() << std::endl;
+    } else {
+        std::cout << "Started task " << response.task_id() << std::endl;
+    }
     return response.task_id();
 }
 
