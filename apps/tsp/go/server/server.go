@@ -17,7 +17,16 @@ import (
 )
 
 var (
-	port       = flag.Int("port", 50051, "The server port")
+	bindAddress    = flag.String("bind-address", "localhost", "Server bind address")
+	port           = flag.Int("port", 50051, "Server port")
+	redisEndpoint  = flag.String("redis-endpoint", "localhost", "Redis endpoint")
+	redisPort      = flag.Int("redis-port", 6379, "Redis port")
+	redisPassword  = flag.String("redis-password", "", "Redis password")
+	redisDatabase  = flag.Int("redis-database", 0, "Redis database id")
+	rabbitEndpoint = flag.String("rabbit-endpoint", "localhost", "Rabbit MQ endpoint")
+	rabbitPort     = flag.Int("rabbit-port", 5672, "Rabbit MQ port")
+	rabbitUser     = flag.String("rabbit-user", "guest", "Rabbit MQ user")
+	rabbitPassword = flag.String("rabbit-password", "guest", "Rabbit MQ password")
 )
 
 type tspServer struct {
@@ -145,14 +154,14 @@ func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 	err := publishTask(ctx, &tsp.WorkerTask{TaskId: taskId, Task: request.Task}, server.redisClient)
 	if err != nil {
 		log.Printf("Failed to publish task %s: %s", taskId, err.Error())
-		return nil, status.Errorf(codes.Internal, "Failed to publish task %s", taskId)
+		return nil, status.Errorf(status.Code(err), "Failed to publish task %s", taskId)
 	}
 
 	log.Printf("Sending start signal %s", taskId)
 	err = sendStartSignal(ctx, taskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send start signal for task %s: %s", taskId, err.Error())
-		return nil, status.Errorf(codes.Internal, "Failed to start task %s", taskId)
+		return nil, status.Errorf(status.Code(err), "Failed to start task %s", taskId)
 	}
 
 	return &tsp.StartTspResponse{
@@ -175,7 +184,7 @@ func (server *tspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequ
 	err := sendStopSignal(ctx, request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
-		return nil, status.Errorf(codes.Internal, "Failed to pause task %s", request.TaskId)
+		return nil, status.Errorf(status.Code(err), "Failed to pause task %s", request.TaskId)
 	}
 
 	solution, err := loadSolution(ctx, request.TaskId, server.redisClient)
@@ -206,7 +215,7 @@ func (server *tspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRe
 	err := sendStartSignal(ctx, request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send start signal for task %s: %s", request.TaskId, err.Error())
-		return nil, status.Errorf(codes.Internal, "Failed to resume task %s", request.TaskId)
+		return nil, status.Errorf(status.Code(err), "Failed to resume task %s", request.TaskId)
 	}
 
 	return &tsp.ResumeTspResponse{}, nil
@@ -227,7 +236,7 @@ func (server *tspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 	err := sendStopSignal(ctx, request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
-		return nil, status.Errorf(codes.Internal, "Failed to stop task %s", request.TaskId)
+		return nil, status.Errorf(status.Code(err), "Failed to stop task %s", request.TaskId)
 	}
 
 	solution, err := loadSolution(ctx, request.TaskId, server.redisClient)
@@ -257,7 +266,7 @@ func (server *tspServer) GetLatestSolution(ctx context.Context, request *tsp.Get
 		return &tsp.GetLatestSolutionResponse{}, nil
 	} else if err != nil {
 		log.Printf("Failed to lookup for solution for task %s: %s", request.TaskId, err.Error())
-		return nil, status.Errorf(codes.Internal, "Failed to retrieve solution for task %s", request.TaskId)
+		return nil, status.Errorf(status.Code(err), "Failed to retrieve solution for task %s", request.TaskId)
 	}
 
 	return &tsp.GetLatestSolutionResponse{
@@ -289,6 +298,11 @@ func convertStatusUpdateType(workerType tsp.WorkerTspStatusUpdate_Type) tsp.TspS
 	}
 }
 
+func isTerminalState(update tsp.WorkerTspStatusUpdate_Type) bool {
+	return update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_ERROR ||
+		update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED
+}
+
 func (server *tspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
 	updates, err := server.rabbitChannel.Consume(
 		STATUS_QUEUE,
@@ -301,7 +315,7 @@ func (server *tspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 	)
 	if err != nil {
 		log.Printf("Failed to subscribe for status updates for task %s: %s", request.TaskId, err.Error())
-		return status.Errorf(codes.Internal, "Failed to subscribe for updates for task %s", request.TaskId)
+		return status.Errorf(status.Code(err), "Failed to subscribe for updates for task %s", request.TaskId)
 	}
 	for updateMessage := range updates {
 		update, err := parseStatusUpdate(updateMessage.Body)
@@ -318,6 +332,10 @@ func (server *tspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 				})
 				if err != nil {
 					log.Printf("Failed to publish status update for task %s: %s", request.TaskId, err.Error())
+					return status.Errorf(status.Code(err), "Failed to publish status update for task %s: %s", request.TaskId, err.Error())
+				}
+				if isTerminalState(update.Type) {
+					return nil
 				}
 			}
 		}
@@ -327,15 +345,28 @@ func (server *tspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 
 func newServer() *tspServer {
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "172.18.227.52:6379",
-		Password: "",
-		DB:       0,
+		Addr:     fmt.Sprintf("%s:%d", *redisEndpoint, *redisPort),
+		Password: *redisPassword,
+		DB:       *redisDatabase,
 	})
 
-	rabbitConnection, _ := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	rabbitChannel, _ := rabbitConnection.Channel()
+	rabbitConnection, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d",
+		*rabbitUser,
+		*rabbitPassword,
+		*rabbitEndpoint,
+		*rabbitPort))
 
-	rabbitChannel.QueueDeclare(
+	if err != nil {
+		log.Fatalf("Couldn't initialize rabbitMQ connection: %s", err.Error())
+	}
+
+	rabbitChannel, err := rabbitConnection.Channel()
+
+	if err != nil {
+		log.Fatalf("Couldn't initialize rabbitMQ channel: %s", err.Error())
+	}
+
+	_, err = rabbitChannel.QueueDeclare(
 		SIGNAL_QUEUE,
 		false,
 		false,
@@ -344,7 +375,11 @@ func newServer() *tspServer {
 		nil,
 	)
 
-	rabbitChannel.QueueDeclare(
+	if err != nil {
+		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", SIGNAL_QUEUE, err.Error())
+	}
+
+	_, err = rabbitChannel.QueueDeclare(
 		STATUS_QUEUE,
 		false,
 		false,
@@ -353,10 +388,14 @@ func newServer() *tspServer {
 		nil,
 	)
 
+	if err != nil {
+		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", STATUS_QUEUE, err.Error())
+	}
+
 	s := &tspServer{
-		redisClient:              redisClient,
-		rabbitConnection:         rabbitConnection,
-		rabbitChannel:            rabbitChannel,
+		redisClient:      redisClient,
+		rabbitConnection: rabbitConnection,
+		rabbitChannel:    rabbitChannel,
 	}
 
 	return s
@@ -364,19 +403,24 @@ func newServer() *tspServer {
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Starting server at localhost:%d\n", *port)
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	log.Printf("Starting listening at %s:%d\n", *bindAddress, *port)
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddress, *port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen: %v", err)
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	fmt.Println("Registering handlers")
+	log.Println("Creating server...")
 	server := newServer()
+	log.Println("Registering server handlers...")
 	tsp.RegisterTspServiceServer(grpcServer, server)
 
 	defer server.rabbitConnection.Close()
 	defer server.rabbitChannel.Close()
 
-	grpcServer.Serve(lis)
+	log.Println("Starting accepting requests...")
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		log.Fatalf("Server failed with error: %v", err)
+	}
 }
