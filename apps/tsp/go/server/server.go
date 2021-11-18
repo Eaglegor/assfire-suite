@@ -47,10 +47,6 @@ func formatSolutionKey(taskName string) string {
 	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":solution")
 }
 
-func formatInProgressKey(taskName string) string {
-	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":in.progress")
-}
-
 func publishTask(ctx context.Context, task *tsp.WorkerTask, redisClient *redis.Client) error {
 	serializedTask, err := proto.Marshal(task)
 	if err == nil {
@@ -98,10 +94,9 @@ const (
 const SIGNAL_EXCHANGE = "amq.topic"
 const SIGNAL_QUEUE = "org.assfire.tsp.worker.signal"
 
-const STATUS_EXCHANGE = "amq.topic"
 const STATUS_QUEUE = "org.assfire.tsp.worker.status"
 
-func sendSignal(ctx context.Context, taskId string, signal int, rabbitChannel *amqp.Channel) error {
+func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 
 	var signalType tsp.WorkerControlSignal_Type
 	if signal == START {
@@ -138,12 +133,12 @@ func sendSignal(ctx context.Context, taskId string, signal int, rabbitChannel *a
 	return nil
 }
 
-func sendStartSignal(ctx context.Context, taskId string, rabbitChannel *amqp.Channel) error {
-	return sendSignal(ctx, taskId, START, rabbitChannel)
+func sendStartSignal(taskId string, rabbitChannel *amqp.Channel) error {
+	return sendSignal(taskId, START, rabbitChannel)
 }
 
-func sendStopSignal(ctx context.Context, taskId string, rabbitChannel *amqp.Channel) error {
-	return sendSignal(ctx, taskId, STOP, rabbitChannel)
+func sendStopSignal(taskId string, rabbitChannel *amqp.Channel) error {
+	return sendSignal(taskId, STOP, rabbitChannel)
 }
 
 func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequest) (*tsp.StartTspResponse, error) {
@@ -158,7 +153,7 @@ func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 	}
 
 	log.Printf("Sending start signal %s", taskId)
-	err = sendStartSignal(ctx, taskId, server.rabbitChannel)
+	err = sendStartSignal(taskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send start signal for task %s: %s", taskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to start task %s", taskId)
@@ -181,7 +176,7 @@ func (server *tspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequ
 		}
 	}
 
-	err := sendStopSignal(ctx, request.TaskId, server.rabbitChannel)
+	err := sendStopSignal(request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to pause task %s", request.TaskId)
@@ -212,7 +207,7 @@ func (server *tspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRe
 		}
 	}
 
-	err := sendStartSignal(ctx, request.TaskId, server.rabbitChannel)
+	err := sendStartSignal(request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send start signal for task %s: %s", request.TaskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to resume task %s", request.TaskId)
@@ -233,7 +228,7 @@ func (server *tspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 		}
 	}
 
-	err := sendStopSignal(ctx, request.TaskId, server.rabbitChannel)
+	err := sendStopSignal(request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to stop task %s", request.TaskId)
@@ -415,8 +410,20 @@ func main() {
 	log.Println("Registering server handlers...")
 	tsp.RegisterTspServiceServer(grpcServer, server)
 
-	defer server.rabbitConnection.Close()
-	defer server.rabbitChannel.Close()
+	defer func(rabbitConnection *amqp.Connection) {
+		log.Println("Closing rabbit MQ connection...")
+		err := rabbitConnection.Close()
+		if err != nil {
+			log.Fatalf("Failed to close Rabbit MQ connection gracefully: %v", err)
+		}
+	}(server.rabbitConnection)
+	defer func(rabbitChannel *amqp.Channel) {
+		log.Println("Closing rabbit MQ channel...")
+		err := rabbitChannel.Close()
+		if err != nil {
+			log.Fatalf("Failed to close Rabbit MQ channel gracefully: %v", err)
+		}
+	}(server.rabbitChannel)
 
 	log.Println("Starting accepting requests...")
 	err = grpcServer.Serve(lis)
