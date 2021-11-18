@@ -495,7 +495,7 @@ function(define_go_grpc_proxy_target)
             TARGET_NAME ${TARGET_NAME}
             DEPENDS ${DEPENDS}
             REQUIRES
-            "github.com/grpc-ecosystem/grpc-gateway/v2 v2.2.0"
+            "github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0"
             "google.golang.org/grpc v1.35.0"
             "google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea"
             GO_PACKAGE_NAME ${GO_PACKAGE_NAME}
