@@ -87,21 +87,22 @@ func removeTask(ctx context.Context, taskId string, redisClient *redis.Client) e
 }
 
 const (
-	START = iota
-	STOP  = iota
+	PAUSE     = iota
+	INTERRUPT = iota
 )
 
 const SignalExchange = "amq.topic"
 const SignalQueue = "org.assfire.tsp.worker.signal"
 const StatusQueue = "org.assfire.tsp.worker.status"
+const TaskQueue = "org.assfire.tsp.worker.task"
 
 func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 
 	var signalType tsp.WorkerControlSignal_Type
-	if signal == START {
-		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_START
-	} else if signal == STOP {
-		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_STOP
+	if signal == INTERRUPT {
+		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT
+	} else if signal == PAUSE {
+		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_PAUSE
 	}
 
 	signalObject := tsp.WorkerControlSignal{
@@ -133,11 +134,16 @@ func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 }
 
 func sendStartSignal(taskId string, rabbitChannel *amqp.Channel) error {
-	return sendSignal(taskId, START, rabbitChannel)
+	// Send start task signal
+	return nil
 }
 
-func sendStopSignal(taskId string, rabbitChannel *amqp.Channel) error {
-	return sendSignal(taskId, STOP, rabbitChannel)
+func sendPauseSignal(taskId string, rabbitChannel *amqp.Channel) error {
+	return sendSignal(taskId, PAUSE, rabbitChannel)
+}
+
+func sendInterruptSignal(taskId string, rabbitChannel *amqp.Channel) error {
+	return sendSignal(taskId, INTERRUPT, rabbitChannel)
 }
 
 func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequest) (*tsp.StartTspResponse, error) {
@@ -175,7 +181,7 @@ func (server *tspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequ
 		}
 	}
 
-	err := sendStopSignal(request.TaskId, server.rabbitChannel)
+	err := sendPauseSignal(request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to pause task %s", request.TaskId)
@@ -227,7 +233,7 @@ func (server *tspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 		}
 	}
 
-	err := sendStopSignal(request.TaskId, server.rabbitChannel)
+	err := sendInterruptSignal(request.TaskId, server.rabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to stop task %s", request.TaskId)
@@ -287,6 +293,10 @@ func convertStatusUpdateType(workerType tsp.WorkerTspStatusUpdate_Type) tsp.TspS
 		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_FINISHED
 	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED:
 		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_PAUSED
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_INTERRUPTED
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_STARTED:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_STARTED
 	default:
 		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_UNKNOWN
 	}
@@ -337,6 +347,32 @@ func (server *tspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 	return nil
 }
 
+func declareRabbitQueue(rabbitChannel *amqp.Channel, name string) {
+	_, err := rabbitChannel.QueueDeclare(
+		name,
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("Couldn't declare rabbitMQ queue %s: %s", name, err.Error())
+	}
+}
+
+func declareSignalQueue(rabbitChannel *amqp.Channel) {
+	declareRabbitQueue(rabbitChannel, SignalQueue)
+}
+
+func declareStatusQueue(rabbitChannel *amqp.Channel) {
+	declareRabbitQueue(rabbitChannel, StatusQueue)
+}
+
+func declareTaskQueue(rabbitChannel *amqp.Channel) {
+	declareRabbitQueue(rabbitChannel, TaskQueue)
+}
+
 func newServer() *tspServer {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", *redisEndpoint, *redisPort),
@@ -349,42 +385,18 @@ func newServer() *tspServer {
 		*rabbitPassword,
 		*rabbitEndpoint,
 		*rabbitPort))
-
 	if err != nil {
 		log.Fatalf("Couldn't initialize rabbitMQ connection: %s", err.Error())
 	}
 
 	rabbitChannel, err := rabbitConnection.Channel()
-
 	if err != nil {
 		log.Fatalf("Couldn't initialize rabbitMQ channel: %s", err.Error())
 	}
 
-	_, err = rabbitChannel.QueueDeclare(
-		SignalQueue,
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-
-	if err != nil {
-		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", SignalQueue, err.Error())
-	}
-
-	_, err = rabbitChannel.QueueDeclare(
-		StatusQueue,
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-
-	if err != nil {
-		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", StatusQueue, err.Error())
-	}
+	declareSignalQueue(rabbitChannel)
+	declareStatusQueue(rabbitChannel)
+	declareTaskQueue(rabbitChannel)
 
 	s := &tspServer{
 		redisClient:      redisClient,
