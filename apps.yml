@@ -9,3 +9,9 @@ scheduler:
   trigger:
     include: apps/scheduler/pipeline.yml
     strategy: depend
+
+tsp:
+  stage: build applications
+  trigger:
+    include: apps/tsp/pipeline.yml
+    strategy: depend
