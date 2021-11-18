@@ -4,11 +4,11 @@
 #include <amqp_tcp_socket.h>
 #include <memory>
 #include <string>
-#include "TaskProcessor.hpp"
-#include "SolutionPublisher.hpp"
-#include "SavedStateManager.hpp"
+#include "assfire/tsp/worker/TaskProcessor.hpp"
+#include "assfire/tsp/worker/SolutionPublisher.hpp"
+#include "assfire/tsp/worker/SavedStateManager.hpp"
 #include "RabbitMqControlChannelListener.hpp"
-#include "assfire/util/amqp/RabbitMqConnector.hpp"
+#include "RabbitMqConnector.hpp"
 
 namespace assfire::tsp {
     class TspSolverEngine;

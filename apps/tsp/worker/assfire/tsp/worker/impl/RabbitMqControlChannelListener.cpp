@@ -1,7 +1,7 @@
 #include "RabbitMqControlChannelListener.hpp"
 #include <spdlog/spdlog.h>
 #include <assfire/api/v1/tsp/worker.pb.h>
-#include "assfire/tsp/TspAmqpConstants.hpp"
+#include "TspImplConstants.hpp"
 
 namespace assfire::tsp {
     RabbitMqControlChannelListener::RabbitMqControlChannelListener(const std::string &host, int port, const std::string &login, const std::string &password) :

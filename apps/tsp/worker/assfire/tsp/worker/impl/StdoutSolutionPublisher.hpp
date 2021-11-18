@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "SolutionPublisher.hpp"
+#include "assfire/tsp/worker/SolutionPublisher.hpp"
 
 namespace assfire::tsp {
     class StdoutSolutionPublisher : public SolutionPublisher {

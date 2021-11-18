@@ -5,10 +5,10 @@
 #include <cxxopts.hpp>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
-#include <assfire/tsp/worker/RabbitMqTaskProcessor.hpp>
-#include <assfire/tsp/worker/StdoutSolutionPublisher.hpp>
-#include <assfire/tsp/worker/RedisSolutionPublisher.hpp>
-#include <assfire/tsp/worker/NopSavedStateManager.hpp>
+#include <assfire/tsp/worker/impl/RabbitMqTaskProcessor.hpp>
+#include <assfire/tsp/worker/impl/StdoutSolutionPublisher.hpp>
+#include <assfire/tsp/worker/impl/RedisSolutionPublisher.hpp>
+#include <assfire/tsp/worker/impl/NopSavedStateManager.hpp>
 #include <numeric>
 
 #ifdef _WIN32
@@ -94,6 +94,7 @@ int main(int argc, char **argv) {
 
 
         task_processor->startProcessing();
+        //worker->start();
     } catch (const std::exception &e) {
         SPDLOG_ERROR("Exception occurred: {}", e.what());
         return 1;

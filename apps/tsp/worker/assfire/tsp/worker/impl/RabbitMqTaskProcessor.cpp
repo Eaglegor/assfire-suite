@@ -5,7 +5,7 @@
 #include <assfire/tsp/api/TspSolution.hpp>
 #include <assfire/tsp/api/TspTask.hpp>
 #include <assfire/api/v1/tsp/translators/TspTaskTranslator.hpp>
-#include "assfire/tsp/TspAmqpConstants.hpp"
+#include "TspImplConstants.hpp"
 #include <chrono>
 
 namespace assfire::tsp {

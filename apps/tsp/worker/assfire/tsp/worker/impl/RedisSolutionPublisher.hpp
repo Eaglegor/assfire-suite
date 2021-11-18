@@ -2,7 +2,7 @@
 
 #include <string>
 #include <memory>
-#include "SolutionPublisher.hpp"
+#include "assfire/tsp/worker/SolutionPublisher.hpp"
 
 namespace cpp_redis {
     class client;

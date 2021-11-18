@@ -9,4 +9,8 @@ namespace assfire::tsp {
     void NopSavedStateManager::saveState(const std::string &task_id, const SavedStateManager::State &state) {
 
     }
+
+    void NopSavedStateManager::clearState(const std::string &task_id) {
+
+    }
 }

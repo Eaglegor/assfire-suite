@@ -4,7 +4,7 @@
 #include <cpp_redis/core/client.hpp>
 #include <assfire/api/v1/tsp/translators/TspSolutionTranslator.hpp>
 #include <assfire/api/v1/tsp/worker.pb.h>
-#include <assfire/tsp/TspRedisConstants.hpp>
+#include <assfire/tsp/worker/impl/TspImplConstants.hpp>
 #include <future>
 
 namespace assfire::tsp {

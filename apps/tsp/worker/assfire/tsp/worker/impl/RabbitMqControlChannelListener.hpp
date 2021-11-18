@@ -4,7 +4,7 @@
 #include <functional>
 #include <string>
 #include <future>
-#include "assfire/util/amqp/RabbitMqConnector.hpp"
+#include "RabbitMqConnector.hpp"
 
 namespace assfire::tsp {
     class RabbitMqControlChannelListener {

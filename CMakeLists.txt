@@ -48,6 +48,7 @@ endif()
 option(ASSFIRE_APPS_BUILD_ALL "Build all applications" ON)
 option(ASSFIRE_APPS_BUILD_ROUTER "Build Assfire Router Application" OFF)
 option(ASSFIRE_APPS_BUILD_SCHEDULER "Build Assfire Scheduler Application" OFF)
+option(ASSFIRE_APPS_BUILD_TSP "Build Assfire TSP Application" OFF)
 
 if(ASSFIRE_DEBUG_MODE)
 	message(STATUS "Debug mode enabled")

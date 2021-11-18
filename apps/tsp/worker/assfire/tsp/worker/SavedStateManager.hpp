@@ -13,5 +13,6 @@ namespace assfire::tsp {
         virtual std::optional<State> loadState(const std::string &task_id) = 0;
 
         virtual void saveState(const std::string &task_id, const State &state) = 0;
+        virtual void clearState(const std::string &task_id) = 0;
     };
 }
