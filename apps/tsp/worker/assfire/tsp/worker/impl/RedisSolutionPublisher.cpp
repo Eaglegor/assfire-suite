@@ -47,7 +47,7 @@ namespace assfire::tsp {
     }
 
     namespace {
-        std::string formatTaskKey(const std::string &task_id) {
+        std::string taskKey(const std::string &task_id) {
             return std::string(TSP_REDIS_WORKER_KEY_PREFIX) + task_id + std::string(TSP_REDIS_WORKER_SOLUTION_KEY_SUFFIX);
         }
 
@@ -55,7 +55,7 @@ namespace assfire::tsp {
 
         void publishResult(cpp_redis::client &client, const std::string &task_id, const assfire::api::v1::tsp::TspSolutionResult &result) {
             try {
-                std::string key = formatTaskKey(task_id);
+                std::string key = taskKey(task_id);
                 client.set(key, result.SerializeAsString(), [](const cpp_redis::reply &rpl) {
                     if (rpl.is_error()) {
                         SPDLOG_ERROR("Couldn't save TSP result to Redis storage: {}", rpl.error());

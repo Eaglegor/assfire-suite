@@ -7,7 +7,7 @@ set(SOURCES
         assfire/tsp/worker/impl/RabbitMqControlChannelListener.cpp
         assfire/tsp/worker/impl/RabbitMqConnector.cpp
         assfire/tsp/worker/Worker.cpp
-        )
+        assfire/tsp/worker/impl/RedisTaskProvider.cpp)
 
 set(HEADERS
         assfire/tsp/worker/SolutionPublisher.hpp
@@ -25,7 +25,7 @@ set(HEADERS
         assfire/tsp/worker/StatusPublisher.hpp
         assfire/tsp/worker/Worker.hpp
         assfire/tsp/worker/TaskQueueListener.hpp
-        )
+        assfire/tsp/worker/impl/RedisTaskProvider.hpp)
 
 find_package(rabbitmq-c CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)

@@ -83,7 +83,7 @@ func loadSolution(ctx context.Context, taskId string, redisClient *redis.Client)
 }
 
 func removeTask(ctx context.Context, taskId string, redisClient *redis.Client) error {
-	return redisClient.Del(ctx, formatTaskKey(taskId)).Err()
+	return redisClient.Del(ctx, taskKey(taskId)).Err()
 }
 
 const (
