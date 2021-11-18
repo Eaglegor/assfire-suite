@@ -1,6 +1,6 @@
 FROM amd64/alpine:3.14.3
 
-RUN apk update && apk add --no-cache bash g++ git curl make linux-headers perl npm openssl openssl-dev rpm go git
+RUN apk update && apk add --no-cache bash g++ git curl make linux-headers perl npm openssl openssl-dev rpm go git zip
 
 # Installing cmake (using one of the latest versions that may be not available in official alpine repo)
 RUN git clone --depth 1 --branch v3.21.4 https://github.com/Kitware/CMake.git  /opt/cmake && \
@@ -21,7 +21,7 @@ RUN git clone --depth 1 --branch v1.10.2 https://github.com/ninja-build/ninja.gi
 RUN git clone --branch master https://github.com/Microsoft/vcpkg.git /opt/vcpkg &&  \
     cd /opt/vcpkg && \
 #     git cherry-pick -n 557ecbe253f87d75c6914b9a522ea92fc15eb20f && \
-    ./bootstrap-vcpkg.sh --useSystemBinaries && \
+    VCPKG_FORCE_SYSTEM_BINARIES=1 ./bootstrap-vcpkg.sh && \
     ./vcpkg integrate install
 
 # Installing dependencies
