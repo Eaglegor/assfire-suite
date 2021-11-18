@@ -91,10 +91,9 @@ const (
 	STOP  = iota
 )
 
-const SIGNAL_EXCHANGE = "amq.topic"
-const SIGNAL_QUEUE = "org.assfire.tsp.worker.signal"
-
-const STATUS_QUEUE = "org.assfire.tsp.worker.status"
+const SignalExchange = "amq.topic"
+const SignalQueue = "org.assfire.tsp.worker.signal"
+const StatusQueue = "org.assfire.tsp.worker.status"
 
 func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 
@@ -116,8 +115,8 @@ func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 	}
 
 	err = rabbitChannel.Publish(
-		SIGNAL_EXCHANGE,
-		SIGNAL_QUEUE,
+		SignalExchange,
+		SignalQueue,
 		false,
 		false,
 		amqp.Publishing{
@@ -300,7 +299,7 @@ func isTerminalState(update tsp.WorkerTspStatusUpdate_Type) bool {
 
 func (server *tspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
 	updates, err := server.rabbitChannel.Consume(
-		STATUS_QUEUE,
+		StatusQueue,
 		"",
 		true,
 		false,
@@ -362,7 +361,7 @@ func newServer() *tspServer {
 	}
 
 	_, err = rabbitChannel.QueueDeclare(
-		SIGNAL_QUEUE,
+		SignalQueue,
 		false,
 		false,
 		false,
@@ -371,11 +370,11 @@ func newServer() *tspServer {
 	)
 
 	if err != nil {
-		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", SIGNAL_QUEUE, err.Error())
+		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", SignalQueue, err.Error())
 	}
 
 	_, err = rabbitChannel.QueueDeclare(
-		STATUS_QUEUE,
+		StatusQueue,
 		false,
 		false,
 		false,
@@ -384,7 +383,7 @@ func newServer() *tspServer {
 	)
 
 	if err != nil {
-		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", STATUS_QUEUE, err.Error())
+		log.Fatalf("Couldn't initialize rabbitMQ queue %s: %s", StatusQueue, err.Error())
 	}
 
 	s := &tspServer{
