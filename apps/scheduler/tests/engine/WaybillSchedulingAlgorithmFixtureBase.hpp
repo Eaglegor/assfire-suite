@@ -23,6 +23,10 @@ namespace assfire::scheduler {
             std::time_t time = tp.toEpochSeconds();
             return os << std::put_time(std::gmtime(&time), "%H:%M:%S");
         }
+        std::wostream &operator<<(std::wostream &os, const TimePoint &tp) {
+            std::time_t time = tp.toEpochSeconds();
+            return os << std::put_time(std::gmtime(&time), "%H:%M:%S");
+        }
     }
 
     class WaybillSchedulingAlgorithmFixtureBase : public testing::Test {
