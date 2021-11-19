@@ -39,7 +39,7 @@ type tspServer struct {
 	rabbitControlSignalQueue amqp.Queue
 }
 
-func formatTaskKey(taskName string) string {
+func taskKey(taskName string) string {
 	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":task")
 }
 
@@ -50,7 +50,7 @@ func formatSolutionKey(taskName string) string {
 func publishTask(ctx context.Context, task *tsp.WorkerTask, redisClient *redis.Client) error {
 	serializedTask, err := proto.Marshal(task)
 	if err == nil {
-		result := redisClient.Set(ctx, formatTaskKey(task.TaskId), serializedTask, 0)
+		result := redisClient.Set(ctx, taskKey(task.TaskId), serializedTask, 0)
 		return result.Err()
 	} else {
 		return err
@@ -58,7 +58,7 @@ func publishTask(ctx context.Context, task *tsp.WorkerTask, redisClient *redis.C
 }
 
 func hasTask(ctx context.Context, taskId string, redisClient *redis.Client) (bool, error) {
-	response := redisClient.Exists(ctx, formatTaskKey(taskId))
+	response := redisClient.Exists(ctx, taskKey(taskId))
 	return response.Err() == nil, response.Err()
 }
 
