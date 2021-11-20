@@ -13,7 +13,7 @@ namespace assfire::tsp {
     class Worker {
     public:
         Worker(std::unique_ptr<TaskQueueListener> task_queue_listener,
-               std::unique_ptr<InterruptListener> signal_listener,
+               std::unique_ptr<InterruptListener> interrupt_listener,
                std::unique_ptr<TaskProvider> task_provider,
                std::unique_ptr<StatusPublisher> status_publisher,
                std::unique_ptr<SavedStateManager> saved_state_manager,
@@ -25,7 +25,7 @@ namespace assfire::tsp {
 
     private:
         std::unique_ptr<TaskQueueListener> task_queue_listener;
-        std::unique_ptr<InterruptListener> signal_listener;
+        std::unique_ptr<InterruptListener> interrupt_listener;
         std::unique_ptr<TaskProvider> task_provider;
         std::unique_ptr<StatusPublisher> status_publisher;
         std::unique_ptr<SavedStateManager> saved_state_manager;

@@ -9,14 +9,14 @@
 
 namespace assfire::tsp {
     Worker::Worker(std::unique_ptr<TaskQueueListener> task_queue_listener,
-                   std::unique_ptr<InterruptListener> signal_listener,
+                   std::unique_ptr<InterruptListener> interrupt_listener,
                    std::unique_ptr<TaskProvider> task_provider,
                    std::unique_ptr<StatusPublisher> status_publisher,
                    std::unique_ptr<SavedStateManager> saved_state_manager,
                    std::unique_ptr<SolutionPublisher> solution_publisher,
                    std::unique_ptr<TspSolverEngine> engine) :
             task_queue_listener(std::move(task_queue_listener)),
-            signal_listener(std::move(signal_listener)),
+            interrupt_listener(std::move(interrupt_listener)),
             task_provider(std::move(task_provider)),
             status_publisher(std::move(status_publisher)),
             saved_state_manager(std::move(saved_state_manager)),
@@ -84,7 +84,7 @@ namespace assfire::tsp {
                 TspSolutionSession session = engine->solveTsp(*task, saved_state_container, solution_listener);
                 status_publisher->publishStarted(task_id);
 
-                signal_listener->subscribe(task_id, [&](int signal) {
+                interrupt_listener->subscribe(task_id, [&](int signal) {
                     switch (signal) {
                         case InterruptListener::PAUSE:
                             SPDLOG_INFO("Got PAUSE signal for task {}", task_id);
