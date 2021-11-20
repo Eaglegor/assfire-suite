@@ -47,10 +47,10 @@ func formatSolutionKey(taskName string) string {
 	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":solution")
 }
 
-func publishTask(ctx context.Context, task *tsp.WorkerTask, redisClient *redis.Client) error {
+func publishTask(ctx context.Context, taskId string, task *tsp.TspTask, redisClient *redis.Client) error {
 	serializedTask, err := proto.Marshal(task)
 	if err == nil {
-		result := redisClient.Set(ctx, taskKey(task.TaskId), serializedTask, 0)
+		result := redisClient.Set(ctx, taskKey(taskId), serializedTask, 0)
 		return result.Err()
 	} else {
 		return err
@@ -91,6 +91,7 @@ const (
 	INTERRUPT = iota
 )
 
+const TaskExchange = "amq.direct"
 const SignalExchange = "amq.topic"
 const SignalQueue = "org.assfire.tsp.worker.signal"
 const StatusQueue = "org.assfire.tsp.worker.status"
@@ -126,16 +127,28 @@ func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 		},
 	)
 
+	return err
+}
+
+func sendStartSignal(taskId string, rabbitChannel *amqp.Channel) error {
+	task := tsp.WorkerTask{TaskId: taskId}
+	message, err := proto.Marshal(&task)
+
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
+	err = rabbitChannel.Publish(
+		TaskExchange,
+		TaskQueue,
+		true,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        message,
+		})
 
-func sendStartSignal(taskId string, rabbitChannel *amqp.Channel) error {
-	// Send start task signal
-	return nil
+	return err
 }
 
 func sendPauseSignal(taskId string, rabbitChannel *amqp.Channel) error {
@@ -151,7 +164,7 @@ func (server *tspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 	log.Printf("Starting new TSP task %s", taskId)
 
 	log.Printf("Publishing task %s", taskId)
-	err := publishTask(ctx, &tsp.WorkerTask{TaskId: taskId, Task: request.Task}, server.redisClient)
+	err := publishTask(ctx, taskId, request.Task, server.redisClient)
 	if err != nil {
 		log.Printf("Failed to publish task %s: %s", taskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to publish task %s", taskId)

@@ -8,7 +8,9 @@ set(SOURCES
         assfire/tsp/worker/impl/RabbitMqConnector.cpp
         assfire/tsp/worker/Worker.cpp
         assfire/tsp/worker/impl/RedisTaskProvider.cpp
-        assfire/tsp/worker/impl/AmqpInterruptListener.cpp assfire/tsp/worker/impl/AmqpStatusPublisher.cpp assfire/tsp/worker/impl/AmqpStatusPublisher.hpp)
+        assfire/tsp/worker/impl/AmqpInterruptListener.cpp
+        assfire/tsp/worker/impl/AmqpStatusPublisher.cpp
+        assfire/tsp/worker/impl/AmqpTaskQueueListener.cpp)
 
 set(HEADERS
         assfire/tsp/worker/SolutionPublisher.hpp
@@ -27,7 +29,9 @@ set(HEADERS
         assfire/tsp/worker/Worker.hpp
         assfire/tsp/worker/TaskQueueListener.hpp
         assfire/tsp/worker/impl/RedisTaskProvider.hpp
-        assfire/tsp/worker/impl/AmqpInterruptListener.hpp)
+        assfire/tsp/worker/impl/AmqpInterruptListener.hpp
+        assfire/tsp/worker/impl/AmqpStatusPublisher.hpp
+        assfire/tsp/worker/impl/AmqpTaskQueueListener.hpp)
 
 find_package(rabbitmq-c CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)

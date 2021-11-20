@@ -22,7 +22,7 @@ namespace assfire::tsp {
                     TSP_AMQP_WORKER_CONTROL_SIGNAL_QUEUE_NAME,
                     TSP_AMQP_WORKER_CONTROL_SIGNAL_EXCHANGE_NAME,
                     TSP_AMQP_WORKER_CONTROL_SIGNAL_CHANNEL_ID,
-                    [&](const amqp_envelope_t_ &envelope) {
+                    [&](const amqp_envelope_t &envelope) {
                         assfire::api::v1::tsp::WorkerControlSignal worker_signal;
                         worker_signal.ParseFromArray(envelope.message.body.bytes, envelope.message.body.len);
 

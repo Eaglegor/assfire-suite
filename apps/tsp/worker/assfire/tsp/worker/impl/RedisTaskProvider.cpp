@@ -70,10 +70,10 @@ namespace assfire::tsp
             return std::nullopt;
         }
 
-        api::v1::tsp::WorkerTask protoTask;
+        api::v1::tsp::TspTask protoTask;
         protoTask.ParseFromString(task.as_string());
 
-        return api::v1::tsp::TspTaskTranslator::fromProto(protoTask.task());
+        return api::v1::tsp::TspTaskTranslator::fromProto(protoTask);
     }
 
     bool RedisTaskProvider::tryLock(const std::string &task_id) {

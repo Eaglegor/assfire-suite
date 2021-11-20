@@ -79,59 +79,10 @@ namespace assfire::tsp {
     }
 
     void RabbitMqConnector::listen(const std::string &queue_name, const std::string &exchange_name, int channel_id, const RabbitMqConnector::MessageCallback &message_callback) {
-        is_interrupted = false;
-
-        SPDLOG_INFO("Opening RabbitMQ channel {} for {}", channel_id, name);
-        amqp_channel_open(connection, channel_id);
-        amqp_rpc_reply_t_ reply = amqp_get_rpc_reply(connection);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            processAmqpError(reply, "Failed to open RabbitMQ channel");
-        }
-
-        SPDLOG_INFO("Declaring RabbitMQ queue {} (channel {})", queue_name, channel_id);
-        amqp_queue_declare(connection, channel_id, amqp_cstring_bytes(queue_name.c_str()),
-                           0, 0, 0, 0, amqp_empty_table);
-        reply = amqp_get_rpc_reply(connection);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            processAmqpError(reply, "Failed to declare RabbitMQ queue");
-        }
-
-        SPDLOG_INFO("Binding RabbitMQ queue {} to exchange {} (channel {})", queue_name, exchange_name, channel_id);
-        amqp_queue_bind(connection, channel_id, amqp_cstring_bytes(queue_name.c_str()), amqp_cstring_bytes(exchange_name.c_str()),
-                        amqp_cstring_bytes(queue_name.c_str()), amqp_empty_table);
-        reply = amqp_get_rpc_reply(connection);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            processAmqpError(reply, "Failed to bind RabbitMQ queue");
-        }
-
-        SPDLOG_INFO("Subscribing for RabbitMQ queue {} (channel {})", queue_name, channel_id);
-        amqp_basic_consume(connection, channel_id, amqp_cstring_bytes(queue_name.c_str()),
-                           amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
-        reply = amqp_get_rpc_reply(connection);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            processAmqpError(reply, "Failed to subscribe to RabbitMQ queue");
-        }
-
         SPDLOG_INFO("Starting consuming RabbitMQ messages for queue {} (channel {})", queue_name, channel_id);
+        Listener listener = listen(queue_name, exchange_name, channel_id);
         while (!is_interrupted) {
-            amqp_envelope_t_ envelope;
-            amqp_maybe_release_buffers(connection);
-
-            SPDLOG_DEBUG("Waiting for next message from {}...", queue_name);
-            reply = amqp_consume_message(connection, &envelope, NULL, 0);
-            if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-                processAmqpError(reply, "There was an error while retrieving message from RabbitMQ queue");
-            }
-            SPDLOG_DEBUG("Received {} bytes from queue {}", envelope.message.body.len, queue_name);
-
-            SPDLOG_DEBUG("Passing message from {} to processing callback...", queue_name);
-            message_callback(envelope);
-        }
-
-        SPDLOG_INFO("Closing RabbitMQ channel {}...", channel_id);
-        reply = amqp_channel_close(connection, channel_id, AMQP_REPLY_SUCCESS);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            processAmqpError(reply, "Failed to close RabbitMQ channel");
+            listener.next(message_callback);
         }
     }
 
@@ -161,12 +112,16 @@ namespace assfire::tsp {
         return Publisher(name, connection, queue_name, exchange_name, channel_id);
     }
 
+    RabbitMqConnector::Listener RabbitMqConnector::listen(const std::string &queue_name, const std::string &exchange_name, int channel_id) {
+        return RabbitMqConnector::Listener(name, connection, queue_name, exchange_name, channel_id);
+    }
+
     RabbitMqConnector::Publisher::Publisher(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id) :
-            state(std::make_shared<State>(name,
-                                          connection,
-                                          queue_name,
-                                          exchange_name,
-                                          channel_id)) {
+    state(std::make_shared<State>(name,
+                                  connection,
+                                  queue_name,
+                                  exchange_name,
+                                  channel_id)) {
     }
 
     void RabbitMqConnector::Publisher::publish(void *bytes, int len) {
@@ -186,8 +141,8 @@ namespace assfire::tsp {
         }
     }
 
-    RabbitMqConnector::Publisher::State::State(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id)
-            : name(name), connection(connection), queue_name(queue_name), exchange_name(exchange_name), channel_id(channel_id) {
+    RabbitMqConnector::State::State(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id)
+    : name(name), connection(connection), queue_name(queue_name), exchange_name(exchange_name), channel_id(channel_id) {
         SPDLOG_INFO("Opening RabbitMQ channel {} for {}", channel_id, name);
         amqp_channel_open(connection, channel_id);
         amqp_rpc_reply_t_ reply = amqp_get_rpc_reply(connection);
@@ -212,11 +167,37 @@ namespace assfire::tsp {
         }
     }
 
-    RabbitMqConnector::Publisher::State::~State() {
+    RabbitMqConnector::State::~State() {
         SPDLOG_INFO("Closing RabbitMQ channel {}...", channel_id);
         amqp_rpc_reply_t reply = amqp_channel_close(connection, channel_id, AMQP_REPLY_SUCCESS);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to close RabbitMQ channel", false);
         }
+    }
+
+    RabbitMqConnector::Listener::Listener(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id) :
+    state(std::make_shared<State>(name, connection, queue_name, exchange_name, channel_id)) {
+        SPDLOG_INFO("Subscribing for RabbitMQ queue {} (channel {})", queue_name, channel_id);
+        amqp_basic_consume(connection, channel_id, amqp_cstring_bytes(queue_name.c_str()),
+                           amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
+        amqp_rpc_reply_t_ reply = amqp_get_rpc_reply(connection);
+        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+            processAmqpError(reply, "Failed to subscribe to RabbitMQ queue");
+        }
+    }
+
+    void RabbitMqConnector::Listener::next(const std::function<void(const amqp_envelope_t &)> &message_callback) {
+        amqp_envelope_t envelope;
+        amqp_maybe_release_buffers(state->connection);
+
+        SPDLOG_DEBUG("Waiting for next message from {}...", state->queue_name);
+        amqp_rpc_reply_t reply = amqp_consume_message(state->connection, &envelope, NULL, 0);
+        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+            processAmqpError(reply, "There was an error while retrieving message from RabbitMQ queue");
+        }
+        SPDLOG_DEBUG("Received {} bytes from queue {}", envelope.message.body.len, state->queue_name);
+
+        SPDLOG_DEBUG("Passing message from {} to processing callback...", state->queue_name);
+        message_callback(envelope);
     }
 }
