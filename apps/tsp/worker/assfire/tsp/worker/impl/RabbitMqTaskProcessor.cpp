@@ -28,7 +28,7 @@ namespace assfire::tsp {
     void RabbitMqTaskProcessor::startProcessing() {
         SPDLOG_INFO("Starting RabbitMQ tasks processing");
 
-        util::RabbitMqConnector::Publisher status_publisher = status_rabbit_mq_connector.publish(
+        RabbitMqConnector::Publisher status_publisher = status_rabbit_mq_connector.publish(
                 TSP_AMQP_WORKER_STATUS_UPDATE_QUEUE_NAME,
                 TSP_AMQP_WORKER_STATUS_UPDATE_EXCHANGE_NAME,
                 TSP_AMQP_WORKER_STATUS_UPDATE_CHANNEL_ID);

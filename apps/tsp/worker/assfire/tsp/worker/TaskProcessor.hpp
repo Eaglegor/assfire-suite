@@ -5,6 +5,6 @@ namespace assfire::tsp {
     public:
         virtual void startProcessing() = 0;
 
-        virtual ~TaskProcessor() {};
+        virtual ~TaskProcessor() = default;
     };
 }

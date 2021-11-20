@@ -1,6 +1,6 @@
 stages:
   - build
-#  - test
+  - test
 #  - rpm
 #  - docker
 #  - publish
@@ -36,16 +36,16 @@ build:
     - cd out
     - make -j
 
-#test:
-#  image: $BUILD_IMAGE_NAME
-#  stage: test
-#  script:
-#    - cd out
-#    - make test
-#  dependencies:
-#    - build
-#  needs:
-#    - build
+test:
+  image: $BUILD_IMAGE_NAME
+  stage: test
+  script:
+    - cd out
+    - make test
+  dependencies:
+    - build
+  needs:
+    - build
 
 #.install-service:
 #  before_script:

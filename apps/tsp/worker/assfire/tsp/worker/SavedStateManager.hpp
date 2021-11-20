@@ -8,7 +8,7 @@ namespace assfire::tsp {
     public:
         using State = assfire::api::v1::tsp::TspAlgorithmState;
 
-        virtual ~SavedStateManager() {}
+        virtual ~SavedStateManager() = default;
 
         virtual std::optional<State> loadState(const std::string &task_id) = 0;
 

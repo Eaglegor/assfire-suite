@@ -1,11 +1,12 @@
 #pragma once
 
+#include <string>
 #include <functional>
 
 namespace assfire::tsp {
     class InterruptListener {
     public:
-        using SignalProcessor = std::function<void(bool)>;
+        using SignalProcessor = std::function<void(int)>;
         virtual ~InterruptListener() = default;
 
         static constexpr int INTERRUPT = 0;

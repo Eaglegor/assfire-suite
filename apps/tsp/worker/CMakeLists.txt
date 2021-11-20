@@ -7,7 +7,8 @@ set(SOURCES
         assfire/tsp/worker/impl/RabbitMqControlChannelListener.cpp
         assfire/tsp/worker/impl/RabbitMqConnector.cpp
         assfire/tsp/worker/Worker.cpp
-        assfire/tsp/worker/impl/RedisTaskProvider.cpp)
+        assfire/tsp/worker/impl/RedisTaskProvider.cpp
+        assfire/tsp/worker/impl/AmqpInterruptListener.cpp)
 
 set(HEADERS
         assfire/tsp/worker/SolutionPublisher.hpp
@@ -25,7 +26,8 @@ set(HEADERS
         assfire/tsp/worker/StatusPublisher.hpp
         assfire/tsp/worker/Worker.hpp
         assfire/tsp/worker/TaskQueueListener.hpp
-        assfire/tsp/worker/impl/RedisTaskProvider.hpp)
+        assfire/tsp/worker/impl/RedisTaskProvider.hpp
+        assfire/tsp/worker/impl/AmqpInterruptListener.hpp)
 
 find_package(rabbitmq-c CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
@@ -37,11 +39,11 @@ vcpkg_find_cpp_redis()
 
 add_executable(assfire-tsp-worker ${SOURCES} ${HEADERS})
 
-if(WIN32)
+if (WIN32)
     set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq rabbitmq::rabbitmq-static)
-else()
+else ()
     set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq-static)
-endif()
+endif ()
 
 target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis ${RABBIT_MQ_TARGETS})
 

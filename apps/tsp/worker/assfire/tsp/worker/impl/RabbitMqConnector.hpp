@@ -6,7 +6,7 @@
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
 
-namespace assfire::util {
+namespace assfire::tsp {
     class RabbitMqConnector {
     public:
         using MessageCallback = std::function<void(const amqp_envelope_t_ &)>;
@@ -16,7 +16,7 @@ namespace assfire::util {
             Publisher(const std::string& name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id);
             Publisher(Publisher&&);
             Publisher(const Publisher&) = delete;
-            virtual ~Publisher();
+            ~Publisher();
 
             void publish(void* bytes, int len);
 
