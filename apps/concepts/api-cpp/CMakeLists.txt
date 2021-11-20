@@ -4,6 +4,6 @@ add_library(assfire-concepts-api
         assfire/concepts/Speed.hpp assfire/concepts/Speed.cpp
         assfire/concepts/Location.hpp assfire/concepts/Location.cpp
         assfire/concepts/Distance.hpp assfire/concepts/Distance.cpp
-        assfire/concepts/Coordinate.hpp assfire/concepts/Coordinate.cpp assfire/concepts/io/Streams.cpp assfire/concepts/io/Fmt.hpp)
+        assfire/concepts/Coordinate.hpp assfire/concepts/Coordinate.cpp assfire/concepts/io/Streams.cpp)
 
 target_include_directories(assfire-concepts-api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
