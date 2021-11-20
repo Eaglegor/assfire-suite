@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
     std::size_t redis_port = options[REDIS_PORT].as<std::size_t>();
     std::string amqp_host = options[AMQP_HOST].as<std::string>();
     std::size_t amqp_port = options[AMQP_PORT].as<std::size_t>();
-    std::string amqp_login = options[AMQP_HOST].as<std::string>();
+    std::string amqp_login = options[AMQP_LOGIN].as<std::string>();
     std::string amqp_password = options[AMQP_PASSWORD].as<std::string>();
 
     try {
