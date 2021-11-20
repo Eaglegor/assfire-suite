@@ -2,8 +2,10 @@
 
 #include <cpprest/http_client.h>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include "CpprestWstringConvert.hpp"
 #include <spdlog/spdlog.h>
+#include "assfire/concepts/io/Streams.hpp"
 
 using namespace assfire::router;
 using namespace web;
@@ -13,7 +15,7 @@ using namespace web::http::client;
 OsrmRouteProviderEngine::OsrmRouteProviderEngine(const RoutingProfile &routingProfile, const OsrmGeometry &geometry, std::unique_ptr<OsrmConnector> connector) :
         routing_profile(routingProfile),
         geometry(geometry),
-        client(std::move(connector)){}
+        client(std::move(connector)) {}
 
 RouteInfo OsrmRouteProviderEngine::getSingleRouteInfo(const Location &origin, const Location &destination) const {
     metrics_collector.recordSingleOsrmRouteInfoCalculation(geometry);
@@ -25,8 +27,7 @@ RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &orig
     return calculateRouteDetails(origin, destination);
 }
 
-RouteDetails OsrmRouteProviderEngine::calculateRouteDetails(const assfire::Location &origin, const assfire::Location &destination) const
-{
+RouteDetails OsrmRouteProviderEngine::calculateRouteDetails(const assfire::Location &origin, const assfire::Location &destination) const {
     if (origin == destination) return RouteDetails::zero(origin, destination);
 
     auto stopwatch = metrics_collector.measureSingleOsrmRouteDetailsCalculation(geometry);
@@ -87,10 +88,7 @@ RouteDetails OsrmRouteProviderEngine::calculateRouteDetails(const assfire::Locat
         waypoints.emplace_back(destination);
     }
 
-    SPDLOG_TRACE("OSRM route calculated ({},{})->({},{}) = (dist: {}, time: {})",
-                 origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
-                 destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue(),
-                 distance.toMeters(), duration.toSeconds());
+    SPDLOG_TRACE("OSRM route calculated {}->{} = (dist: {}, time: {})", origin, destination, distance, duration);
 
 
     return RouteDetails(distance, duration, waypoints);

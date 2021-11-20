@@ -8,7 +8,7 @@ add_executable(assfire-scheduler-test
         engine/LinearWaybillSchedulingAlgorithmTest.cpp
         engine/BilinearWaybillSchedulingAlgorithmTest.cpp
         assfire/scheduler/tests/io/markdown/MarkdownTableParser.hpp
-        assfire/scheduler/tests/io/markdown/MarkdownTableParser.cpp)
+        assfire/scheduler/tests/io/markdown/MarkdownTableParser.cpp engine/WaybillSchedulingAlgorithmFixtureBase.cpp)
 target_link_libraries(assfire-scheduler-test PRIVATE GTest::gtest GTest::gtest_main assfire-scheduler-engine assfire-scheduler-api assfire-scheduler-client assfire-router-test-base)
 
 gtest_discover_tests(assfire-scheduler-test
