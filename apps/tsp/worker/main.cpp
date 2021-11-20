@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
         SPDLOG_INFO("Starting worker");
         worker->start();
     } catch (const std::exception &e) {
-        SPDLOG_ERROR("Exception occurred: {}", e.what());
+        SPDLOG_ERROR("Unhandled exception: {}", e.what());
         return 1;
     }
 

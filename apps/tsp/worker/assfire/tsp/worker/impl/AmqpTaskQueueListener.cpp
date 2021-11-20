@@ -1,5 +1,6 @@
 #include "AmqpTaskQueueListener.hpp"
 #include "assfire/api/v1/tsp/worker.pb.h"
+#include "TspImplConstants.hpp"
 
 namespace assfire::tsp {
     AmqpTaskQueueListener::AmqpTaskQueueListener(std::unique_ptr<RabbitMqConnector> rabbit_mq_connector)
@@ -9,7 +10,7 @@ namespace assfire::tsp {
         listener = std::make_unique<RabbitMqConnector::Listener>(rabbit_mq_connector->listen(
                 "org.assfire.tsp.worker.task",
                 "amq.direct",
-                0
+                TSP_AMQP_TASK_QUEUE_CHANNEL_ID
         ));
     }
 

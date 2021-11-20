@@ -1,6 +1,7 @@
 #include "AmqpInterruptListener.hpp"
 #include <assfire/api/v1/tsp/worker.pb.h>
 #include <spdlog/spdlog.h>
+#include "TspImplConstants.hpp"
 
 namespace assfire::tsp {
 
@@ -12,7 +13,7 @@ namespace assfire::tsp {
             rabbit_mq_connector->listen(
                     "org.assfire.tsp.worker.signal",
                     "amq.topic",
-                    0,
+                    TSP_AMQP_INTERRUPT_SIGNALS_CHANNEL_ID,
                     [&](const amqp_envelope_t_ &envelope) {
                         assfire::api::v1::tsp::WorkerControlSignal worker_signal;
                         worker_signal.ParseFromArray(envelope.message.body.bytes, envelope.message.body.len);
@@ -51,6 +52,8 @@ namespace assfire::tsp {
     }
 
     AmqpInterruptListener::~AmqpInterruptListener() {
-        control_state.wait();
+        if(control_state.valid()) {
+            control_state.wait();
+        }
     }
 }

@@ -199,5 +199,7 @@ namespace assfire::tsp {
 
         SPDLOG_DEBUG("Passing message from {} to processing callback...", state->queue_name);
         message_callback(envelope);
+
+        amqp_basic_ack(state->connection, state->channel_id, envelope.delivery_tag, false);
     }
 }

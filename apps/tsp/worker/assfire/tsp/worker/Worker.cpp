@@ -29,6 +29,9 @@ namespace assfire::tsp {
         std::mutex cv_mutex;
         std::unique_lock<std::mutex> cv_lock(cv_mutex);
 
+        task_queue_listener->startListening();
+        interrupt_listener->startListening();
+
         while (true) {
             std::atomic_bool done = false;
             SPDLOG_INFO("Waiting for the next task...");

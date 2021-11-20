@@ -27,7 +27,7 @@ namespace assfire::tsp
         }
 
         std::string taskKey(const std::string &task_id) {
-            return std::string(TSP_REDIS_WORKER_KEY_PREFIX) + task_id + std::string(TSP_REDIS_WORKER_SOLUTION_KEY_SUFFIX);
+            return std::string(TSP_REDIS_WORKER_KEY_PREFIX) + task_id + std::string(TSP_REDIS_WORKER_TASK_KEY_SUFFIX);
         }
     }
 
