@@ -84,11 +84,18 @@ namespace assfire::tsp {
     }
 
     TspSolutionSession TspSolverEngine::solveTsp(const TspTask &task, TspSolutionListener solution_listener) const {
-        return solveTsp(task, TspAlgorithmStateContainer(), solution_listener);
+        return solveTsp(generateSessionId(), task, TspAlgorithmStateContainer(), solution_listener);
     }
 
     TspSolutionSession TspSolverEngine::solveTsp(const TspTask &task, TspAlgorithmStateContainer saved_state, TspSolutionListener solution_listener) const {
-        TspSolutionController::SessionId session_id = generateSessionId();
+        return solveTsp(generateSessionId(), task, std::move(saved_state), std::move(solution_listener));
+    }
+
+    TspSolutionSession TspSolverEngine::solveTsp(const std::string &session_id, const TspTask &task, TspSolutionListener solution_listener) const {
+        return solveTsp(session_id, task, TspAlgorithmStateContainer(), std::move(solution_listener));
+    }
+
+    TspSolutionSession TspSolverEngine::solveTsp(const std::string &session_id, const TspTask &task, TspAlgorithmStateContainer saved_state, TspSolutionListener solution_listener) const {
         SPDLOG_INFO("Starting TSP session {}", session_id);
         router::DistanceMatrix distance_matrix = createDistanceMatrix(*router, task.getSolverSettings().getRoutingSettings(), session_id);
         TspEstimator::CostFunctionPtr cost_function = createCostFunction(task, distance_matrix, session_id);
@@ -96,7 +103,7 @@ namespace assfire::tsp {
         TspEstimator estimator(validator, cost_function);
         EngineTspSolutionController::AlgorithmPtr algorithm = createAlgorithm(task, estimator, session_id);
 
-        std::unique_ptr<EngineTspSolutionController> solution_controller = std::make_unique<EngineTspSolutionController>(session_id, task, algorithm, std::move(saved_state), solution_listener);
+        std::unique_ptr<EngineTspSolutionController> solution_controller = std::make_unique<EngineTspSolutionController>(session_id, task, algorithm, std::move(saved_state), std::move(solution_listener));
         solution_controller->start();
         return TspSolutionSession(std::move(solution_controller));
     }

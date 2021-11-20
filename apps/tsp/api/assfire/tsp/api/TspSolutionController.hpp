@@ -9,6 +9,8 @@ namespace assfire::tsp {
     public:
         using SessionId = std::string;
 
+        virtual ~TspSolutionController() = default;
+
         virtual void interrupt() = 0;
 
         virtual void pause() = 0;
@@ -19,6 +21,6 @@ namespace assfire::tsp {
 
         virtual void waitFor(long milliseconds) = 0;
 
-        virtual const SessionId &getSessionId() const = 0;
+        virtual SessionId getSessionId() const = 0;
     };
 }

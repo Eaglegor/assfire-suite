@@ -52,8 +52,10 @@ namespace assfire::tsp {
     }
 
     EngineTspSolutionController::~EngineTspSolutionController() {
+        SPDLOG_DEBUG("Destroying TSP engine controller for {}", session_id);
         is_interrupted = true;
         waitForTaskStop();
+        SPDLOG_DEBUG("TSP engine controller destroyed for {}", session_id);
     }
 
     void EngineTspSolutionController::launchTask() {
@@ -81,6 +83,7 @@ namespace assfire::tsp {
                         SPDLOG_ERROR("Error occurred while notifying about error for task {}: {}", session_id, e.what());
                     }
                 }
+                SPDLOG_DEBUG("TSP task is finished for {}", session_id);
                 is_started = false;
             });
         } else {
@@ -95,7 +98,7 @@ namespace assfire::tsp {
         }
     }
 
-    const EngineTspSolutionController::SessionId &EngineTspSolutionController::getSessionId() const {
+    EngineTspSolutionController::SessionId EngineTspSolutionController::getSessionId() const {
         return session_id;
     }
 

@@ -1,6 +1,7 @@
 #include "TspSolutionSession.hpp"
 
 #include <utility>
+#include "spdlog/spdlog.h"
 
 namespace assfire::tsp {
     TspSolutionSession::TspSolutionSession(std::unique_ptr<TspSolutionController> solution_controller)
@@ -28,5 +29,9 @@ namespace assfire::tsp {
 
     const TspSolutionSession::Id &TspSolutionSession::getId() const {
         return solution_controller->getSessionId();
+    }
+
+    TspSolutionSession::~TspSolutionSession() {
+        SPDLOG_DEBUG("Destroying TSP solution session");
     }
 }

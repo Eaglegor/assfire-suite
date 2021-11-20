@@ -38,6 +38,18 @@ std::string startTsp() {
         std::cout << "Failed to start task: " << status.error_message() << std::endl;
     } else {
         std::cout << "Started task " << response.task_id() << std::endl;
+        assfire::api::v1::tsp::SubscribeForStatusUpdatesRequest status_request;
+        status_request.set_task_id(response.task_id());
+        grpc::ClientContext context2;
+        std::unique_ptr<::grpc::ClientReader<assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse>> reader(stub->SubscribeForStatusUpdates(&context2, status_request));
+        assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse status_response;
+        while(reader->Read(&status_response)) {
+            std::cout << "Got status update for task: " << response.task_id() << " :: " << assfire::api::v1::tsp::TspStatusUpdate_Type_Name(status_response.status_update().type()) << std::endl;
+            if(status_response.status_update().type() == assfire::api::v1::tsp::TspStatusUpdate_Type_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION) {
+                std::cout << "Solution cost: " << status_response.status_update().new_solution_cost().value() << std::endl;
+            }
+        }
+        reader->Finish();
     }
     return response.task_id();
 }

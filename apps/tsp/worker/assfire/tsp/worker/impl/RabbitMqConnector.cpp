@@ -130,14 +130,14 @@ namespace assfire::tsp {
         message_bytes.bytes = bytes;
         SPDLOG_DEBUG("Sending {} bytes from {} to RabbitMQ queue {} on channel {}", len, state->name, state->queue_name, state->channel_id);
         auto status = amqp_basic_publish(state->connection, state->channel_id, amqp_cstring_bytes(state->exchange_name.c_str()),
-                                         amqp_cstring_bytes(state->queue_name.c_str()), 1, 0,
+                                         amqp_cstring_bytes(state->queue_name.c_str()), 0, 0,
                                          nullptr, message_bytes);
         if (status != AMQP_STATUS_OK) {
             SPDLOG_ERROR("Error while publishing RabbitMQ message: {}", amqp_error_string2(status));
         }
         amqp_rpc_reply_t reply = amqp_get_rpc_reply(state->connection);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            processAmqpError(reply, "Failed to send task to RabbitMQ");
+            processAmqpError(reply, "Failed to send message to RabbitMQ");
         }
     }
 

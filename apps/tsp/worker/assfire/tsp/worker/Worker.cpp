@@ -89,7 +89,7 @@ namespace assfire::tsp {
                 status_publisher->publishStarted(task_id);
                 task_provider->sendStarted(task_id);
 
-                TspSolutionSession session = engine->solveTsp(*task, saved_state_container, solution_listener);
+                TspSolutionSession session = engine->solveTsp(task_id, *task, saved_state_container, solution_listener);
 
                 interrupt_listener->subscribe(task_id, [&](int signal) {
                     switch (signal) {

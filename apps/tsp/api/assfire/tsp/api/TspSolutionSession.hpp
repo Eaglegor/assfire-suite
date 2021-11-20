@@ -10,6 +10,8 @@
 namespace assfire::tsp {
     class TspSolutionSession {
     public:
+        ~TspSolutionSession();
+
         using Id = TspSolutionController::SessionId;
 
         explicit TspSolutionSession(std::unique_ptr<TspSolutionController> solution_controller);

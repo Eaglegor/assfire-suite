@@ -35,7 +35,7 @@ namespace assfire::tsp {
 
         bool isInterrupted() const;
 
-        const SessionId &getSessionId() const override;
+        SessionId getSessionId() const override;
 
         virtual ~EngineTspSolutionController();
 
