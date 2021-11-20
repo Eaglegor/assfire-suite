@@ -105,7 +105,7 @@ namespace assfire::tsp
         client->sync_commit();
 
         auto reply = freply.get();
-        auto reply1 = freply.get();
+        auto reply1 = freply1.get();
         auto ka = fka.get();
 
         if (reply.is_error()) {

@@ -71,6 +71,7 @@ namespace assfire::tsp {
                     if (solution.isFinalSolution()) {
                         SPDLOG_INFO("Got final solution for task {}, cost: {}", task_id, solution.getCost().getValue());
                         status_publisher->publishFinished(task_id);
+                        task_provider->sendFinished(task_id);
                         done = true;
                         cv.notify_all();
                     }
@@ -79,13 +80,16 @@ namespace assfire::tsp {
                 solution_listener.setOnErrorCallback([&] {
                     SPDLOG_ERROR("Error while calculating solution for task {}", task_id);
                     status_publisher->publishError(task_id);
+                    task_provider->sendError(task_id);
                     done = true;
                     cv.notify_all();
                 });
 
                 SPDLOG_DEBUG("Starting TSP session for task {}", task_id);
-                TspSolutionSession session = engine->solveTsp(*task, saved_state_container, solution_listener);
                 status_publisher->publishStarted(task_id);
+                task_provider->sendStarted(task_id);
+
+                TspSolutionSession session = engine->solveTsp(*task, saved_state_container, solution_listener);
 
                 interrupt_listener->subscribe(task_id, [&](int signal) {
                     switch (signal) {
@@ -93,6 +97,7 @@ namespace assfire::tsp {
                             SPDLOG_INFO("Got PAUSE signal for task {}", task_id);
                             session.pause();
                             status_publisher->publishPaused(task_id);
+                            task_provider->sendStopped(task_id);
                             done = true;
                             cv.notify_all();
                             break;
@@ -100,6 +105,7 @@ namespace assfire::tsp {
                             SPDLOG_INFO("Got INTERRUPT signal for task {}", task_id);
                             session.interrupt();
                             status_publisher->publishInterrupted(task_id);
+                            task_provider->sendStopped(task_id);
                             saved_state_manager->clearState(task_id);
                             done = true;
                             cv.notify_all();
@@ -119,6 +125,7 @@ namespace assfire::tsp {
             } catch (const std::exception &e) {
                 SPDLOG_INFO("There was an error while processing task {}: {}", task_id, e.what());
                 status_publisher->publishError(task_id);
+                task_provider->sendError(task_id);
             }
 
             SPDLOG_INFO("Finished processing TSP task {}", task_id);
