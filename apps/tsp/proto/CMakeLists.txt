@@ -35,6 +35,7 @@ define_proto_cpp_api_translation_target(
         assfire/api/v1/tsp/translators/TspRoutingSettingsTranslator.hpp
         assfire/api/v1/tsp/translators/TspAlgorithmSettingsTranslator.hpp
         assfire/api/v1/tsp/translators/TspAlgorithmTypeTranslator.hpp
+        assfire/api/v1/tsp/translators/TspCostTranslator.hpp
         SOURCES
         assfire/api/v1/tsp/translators/TspCostFunctionSettingsTranslator.cpp
         assfire/api/v1/tsp/translators/TspEstimatorSettingsTranslator.cpp
@@ -47,6 +48,7 @@ define_proto_cpp_api_translation_target(
         assfire/api/v1/tsp/translators/TspRoutingSettingsTranslator.cpp
         assfire/api/v1/tsp/translators/TspAlgorithmSettingsTranslator.cpp
         assfire/api/v1/tsp/translators/TspAlgorithmTypeTranslator.cpp
+        assfire/api/v1/tsp/translators/TspCostTranslator.cpp
         PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
 )

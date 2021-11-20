@@ -162,12 +162,32 @@ namespace assfire::tsp {
     }
 
     RabbitMqConnector::Publisher::Publisher(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id) :
-            name(name),
-            connection(connection),
-            queue_name(queue_name),
-            exchange_name(exchange_name),
-            channel_id(channel_id) {
+            state(std::make_shared<State>(name,
+                                          connection,
+                                          queue_name,
+                                          exchange_name,
+                                          channel_id)) {
+    }
 
+    void RabbitMqConnector::Publisher::publish(void *bytes, int len) {
+        amqp_bytes_t message_bytes;
+        message_bytes.len = len;
+        message_bytes.bytes = bytes;
+        SPDLOG_DEBUG("Sending {} bytes from {} to RabbitMQ queue {} on channel {}", len, state->name, state->queue_name, state->channel_id);
+        auto status = amqp_basic_publish(state->connection, state->channel_id, amqp_cstring_bytes(state->exchange_name.c_str()),
+                                         amqp_cstring_bytes(state->queue_name.c_str()), 1, 0,
+                                         nullptr, message_bytes);
+        if (status != AMQP_STATUS_OK) {
+            SPDLOG_ERROR("Error while publishing RabbitMQ message: {}", amqp_error_string2(status));
+        }
+        amqp_rpc_reply_t reply = amqp_get_rpc_reply(state->connection);
+        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+            processAmqpError(reply, "Failed to send task to RabbitMQ");
+        }
+    }
+
+    RabbitMqConnector::Publisher::State::State(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id)
+            : name(name), connection(connection), queue_name(queue_name), exchange_name(exchange_name), channel_id(channel_id) {
         SPDLOG_INFO("Opening RabbitMQ channel {} for {}", channel_id, name);
         amqp_channel_open(connection, channel_id);
         amqp_rpc_reply_t_ reply = amqp_get_rpc_reply(connection);
@@ -192,38 +212,11 @@ namespace assfire::tsp {
         }
     }
 
-    void RabbitMqConnector::Publisher::publish(void *bytes, int len) {
-        amqp_bytes_t message_bytes;
-        message_bytes.len = len;
-        message_bytes.bytes = bytes;
-        SPDLOG_DEBUG("Sending {} bytes from {} to RabbitMQ queue {} on channel {}", len, name, queue_name, channel_id);
-        auto status = amqp_basic_publish(connection, channel_id, amqp_cstring_bytes(exchange_name.c_str()),
-                                         amqp_cstring_bytes(queue_name.c_str()), 1, 0,
-                                         nullptr, message_bytes);
-        if (status != AMQP_STATUS_OK) {
-            SPDLOG_ERROR("Error while publishing RabbitMQ message: {}", amqp_error_string2(status));
-        }
-        amqp_rpc_reply_t reply = amqp_get_rpc_reply(connection);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            processAmqpError(reply, "Failed to send task to RabbitMQ");
-        }
-    }
-
-    RabbitMqConnector::Publisher::~Publisher() {
-        if (is_moved) return;
+    RabbitMqConnector::Publisher::State::~State() {
         SPDLOG_INFO("Closing RabbitMQ channel {}...", channel_id);
         amqp_rpc_reply_t reply = amqp_channel_close(connection, channel_id, AMQP_REPLY_SUCCESS);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to close RabbitMQ channel", false);
         }
-    }
-
-    RabbitMqConnector::Publisher::Publisher(RabbitMqConnector::Publisher &&rhs) {
-        rhs.is_moved = true;
-        this->connection = std::move(rhs.connection);
-        this->name = std::move(rhs.name);
-        this->queue_name = std::move(rhs.queue_name);
-        this->exchange_name = std::move(rhs.exchange_name);
-        this->channel_id = rhs.channel_id;
     }
 }

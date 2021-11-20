@@ -8,7 +8,7 @@ set(SOURCES
         assfire/tsp/worker/impl/RabbitMqConnector.cpp
         assfire/tsp/worker/Worker.cpp
         assfire/tsp/worker/impl/RedisTaskProvider.cpp
-        assfire/tsp/worker/impl/AmqpInterruptListener.cpp)
+        assfire/tsp/worker/impl/AmqpInterruptListener.cpp assfire/tsp/worker/impl/AmqpStatusPublisher.cpp assfire/tsp/worker/impl/AmqpStatusPublisher.hpp)
 
 set(HEADERS
         assfire/tsp/worker/SolutionPublisher.hpp

@@ -14,19 +14,22 @@ namespace assfire::tsp {
         class Publisher {
         public:
             Publisher(const std::string& name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id);
-            Publisher(Publisher&&);
-            Publisher(const Publisher&) = delete;
-            ~Publisher();
 
             void publish(void* bytes, int len);
 
         private:
-            std::string name;
-            amqp_connection_state_t connection;
-            std::string queue_name;
-            std::string exchange_name;
-            int channel_id;
-            bool is_moved;
+            struct State {
+                State(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id);
+                ~State();
+
+                std::string name;
+                amqp_connection_state_t connection;
+                std::string queue_name;
+                std::string exchange_name;
+                int channel_id;
+            };
+
+            std::shared_ptr<State> state;
         };
 
         RabbitMqConnector(const std::string &name);
