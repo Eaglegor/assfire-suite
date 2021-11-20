@@ -4,6 +4,7 @@
 #include <atomic>
 #include <functional>
 #include <amqp.h>
+#include <memory>
 #include <amqp_tcp_socket.h>
 
 namespace assfire::tsp {
