@@ -67,31 +67,28 @@ namespace assfire::tsp {
     }
 
     RabbitMqConnector::Publisher AmqpStatusPublisher::getPublisher(const std::string &task_id) {
-//        {
-//            std::lock_guard<std::mutex> lock(publishers_lock);
-//            auto iter = publishers.find(task_id);
-//            if (iter != publishers.end()) return iter->second;
-//        }
-
-        if (!publisher) {
-            publisher = std::make_unique<RabbitMqConnector::Publisher>(rabbit_mq_connector->publish(
-                    "org.assfire.tsp.worker.status",
-                    "amq.topic",
-                    TSP_AMQP_STATUS_UPDATE_CHANNEL_ID
-            ));
+        {
+            std::lock_guard<std::mutex> lock(publishers_lock);
+            auto iter = publishers.find(task_id);
+            if (iter != publishers.end()) return iter->second;
         }
 
-//        {
-//            std::lock_guard<std::mutex> lock(publishers_lock);
-//            publishers.emplace(task_id, publisher);
-//        }
+        RabbitMqConnector::Publisher publisher = rabbit_mq_connector->publish(
+                std::string("assfire.tsp.") + task_id + std::string(".worker.status"),
+                "amq.topic",
+                TSP_AMQP_STATUS_UPDATE_CHANNEL_ID
+        );
 
-        return *publisher;
+        {
+            std::lock_guard<std::mutex> lock(publishers_lock);
+            publishers.emplace(task_id, publisher);
+        }
+
+        return publisher;
     }
 
     void AmqpStatusPublisher::releasePublisher(const std::string &task_id) {
-        return;
-//        std::lock_guard<std::mutex> lock(publishers_lock);
-//        publishers.erase(task_id);
+        std::lock_guard<std::mutex> lock(publishers_lock);
+        publishers.erase(task_id);
     }
 }

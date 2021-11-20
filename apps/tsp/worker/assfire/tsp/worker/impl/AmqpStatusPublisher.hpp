@@ -30,7 +30,6 @@ namespace assfire::tsp {
         void releasePublisher(const std::string &task_id);
 
         std::unique_ptr<RabbitMqConnector> rabbit_mq_connector;
-//        std::unordered_map<std::string, RabbitMqConnector::Publisher> publishers;
-        std::unique_ptr<RabbitMqConnector::Publisher> publisher;
+        std::unordered_map<std::string, RabbitMqConnector::Publisher> publishers;
     };
 }
