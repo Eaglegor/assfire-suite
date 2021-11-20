@@ -36,7 +36,14 @@ include(pkg_utils)
 vcpkg_find_cpp_redis()
 
 add_executable(assfire-tsp-worker ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis rabbitmq::rabbitmq rabbitmq::rabbitmq-static)
+
+if(WIN32)
+    set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq rabbitmq::rabbitmq-static)
+else()
+    set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq-static)
+endif()
+
+target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis ${RABBIT_MQ_TARGETS})
 
 install(TARGETS assfire-tsp-worker COMPONENT tsp-worker)
 if (ASSFIRE_PACKAGE_BUILD_RPM)

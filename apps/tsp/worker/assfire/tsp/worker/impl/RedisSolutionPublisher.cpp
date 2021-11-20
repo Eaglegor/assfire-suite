@@ -83,4 +83,8 @@ namespace assfire::tsp {
         result.set_is_success(false);
         publishResult(*client, task_id, result);
     }
+
+    RedisSolutionPublisher::~RedisSolutionPublisher() {
+
+    }
 }

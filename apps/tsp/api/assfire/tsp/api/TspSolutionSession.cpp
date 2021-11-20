@@ -1,5 +1,3 @@
-#pragma once
-
 #include "TspSolutionSession.hpp"
 
 #include <utility>
