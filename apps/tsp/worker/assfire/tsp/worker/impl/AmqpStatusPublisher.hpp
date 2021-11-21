@@ -12,6 +12,8 @@ namespace assfire::tsp {
     public:
         AmqpStatusPublisher(std::unique_ptr<RabbitMqConnector> rabbit_mq_connector);
 
+        void release(const std::string &task_id) override;
+
         void publishStarted(std::string &task_id) override;
 
         void publishPaused(std::string &task_id) override;

@@ -46,7 +46,7 @@ const (
 	InterruptQueue    = "assfire.tsp.worker.interrupt"
 	TaskQueue         = "assfire.tsp.worker.task"
 	AmqpPrefix        = "assfire.tsp."
-	StatusQueueSuffix = ".status"
+	StatusQueueSuffix = ".worker.status"
 )
 
 func taskKey(taskId string) string {
@@ -93,7 +93,8 @@ func getTaskStatus(ctx context.Context, taskId string, redisClient *redis.Client
 		log.Printf("Failed to determine current status for task %s: %v", taskId, response.Err())
 		return tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN, errors.New("failed to determine current task status")
 	}
-	return tsp.WorkerTspStatusUpdate_Type(tsp.WorkerTspStatusUpdate_Type_value[response.String()]), nil
+	code := tsp.WorkerTspStatusUpdate_Type_value[response.Val()]
+	return tsp.WorkerTspStatusUpdate_Type(code), nil
 }
 
 func isResumeable(ctx context.Context, taskId string, redisClient *redis.Client) (bool, error) {
@@ -284,7 +285,31 @@ func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 		return nil, status.Errorf(codes.NotFound, "%s - task not found", request.TaskId)
 	}
 
-	err := sendInterruptSignal(request.TaskId, server.signalRabbitChannel)
+	taskStatus, err := getTaskStatus(ctx, request.TaskId, server.redisClient)
+	if err == nil && taskStatus == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED {
+		log.Printf("Sending forced interrupt signal for paused task %s", request.TaskId)
+		server.redisClient.Set(ctx, statusKey(request.TaskId), tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED.String(), 0)
+
+		forcedStatusUpdate := &tsp.WorkerTspStatusUpdate{
+			TaskId: request.TaskId,
+			Type:   tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED,
+		}
+		bytes, err := proto.Marshal(forcedStatusUpdate)
+		if err == nil {
+			err = server.statusRabbitChannel.Publish(
+				StatusExchange,
+				statusQueueName(request.TaskId),
+				false,
+				false,
+				amqp.Publishing{
+					ContentType: "text/plain",
+					Body:        bytes,
+				},
+			)
+		}
+	}
+
+	err = sendInterruptSignal(request.TaskId, server.signalRabbitChannel)
 	if err != nil {
 		log.Printf("Failed to send stop signal for task %s: %s", request.TaskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to stop task %s", request.TaskId)

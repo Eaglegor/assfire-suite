@@ -93,4 +93,8 @@ namespace assfire::tsp {
         std::lock_guard<std::mutex> lock(publishers_lock);
         publishers.erase(task_id);
     }
+
+    void AmqpStatusPublisher::release(const std::string &task_id) {
+        releasePublisher(task_id);
+    }
 }

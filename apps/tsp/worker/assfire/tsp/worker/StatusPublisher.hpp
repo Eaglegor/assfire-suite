@@ -8,6 +8,7 @@ namespace assfire::tsp {
     public:
         virtual ~StatusPublisher() = default;
 
+        virtual void release(const std::string& task_id) = 0;
         virtual void publishStarted(std::string& task_id) = 0;
         virtual void publishPaused(std::string& task_id) = 0;
         virtual void publishInterrupted(std::string& task_id) = 0;

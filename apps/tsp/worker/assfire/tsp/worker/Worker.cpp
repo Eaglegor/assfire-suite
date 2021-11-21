@@ -146,6 +146,8 @@ namespace assfire::tsp {
             }
 
             SPDLOG_INFO("Finished processing TSP task {}", task_id);
+
+            status_publisher->release(task_id);
             interrupt_listener->unsubscribe(task_id);
             task_provider->unlock(task_id);
         }
