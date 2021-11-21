@@ -39,14 +39,11 @@ const (
 	StatusSuffix   = ".status"
 	SolutionSuffix = ".solution"
 
-	TaskExchange      = "amq.direct"
-	InterruptExchange = "amq.topic"
-	StatusExchange    = "amq.topic"
+	TaskExchange       = "amq.direct"
+	InterruptExchange  = "assfire.tsp.worker.interrupt"
+	StatusExchangeName = "assfire.tsp.worker.status"
 
-	InterruptQueue    = "assfire.tsp.worker.interrupt"
-	TaskQueue         = "assfire.tsp.worker.task"
-	AmqpPrefix        = "assfire.tsp."
-	StatusQueueSuffix = ".worker.status"
+	TaskQueue      = "assfire.tsp.worker.task"
 )
 
 func taskKey(taskId string) string {
@@ -59,10 +56,6 @@ func statusKey(taskId string) string {
 
 func solutionKey(taskId string) string {
 	return fmt.Sprintf("%s%s%s", RedisPrefix, taskId, SolutionSuffix)
-}
-
-func statusQueueName(taskId string) string {
-	return fmt.Sprintf("%s%s%s", AmqpPrefix, taskId, StatusQueueSuffix)
 }
 
 type TspServer struct {
@@ -164,7 +157,7 @@ func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 
 	err = rabbitChannel.Publish(
 		InterruptExchange,
-		InterruptQueue,
+		taskId,
 		false,
 		false,
 		amqp.Publishing{
@@ -297,8 +290,8 @@ func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 		bytes, err := proto.Marshal(forcedStatusUpdate)
 		if err == nil {
 			err = server.statusRabbitChannel.Publish(
-				StatusExchange,
-				statusQueueName(request.TaskId),
+				StatusExchangeName,
+				request.TaskId,
 				false,
 				false,
 				amqp.Publishing{
@@ -396,9 +389,8 @@ func retrieveLatestStatus(ctx context.Context, taskId string, redisClient *redis
 func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
 	log.Printf("Subscribing for status updates for TSP task %s", request.TaskId)
 
-	queueName := statusQueueName(request.TaskId)
-	_, err := server.statusRabbitChannel.QueueDeclare(
-		queueName,
+	queue, err := server.statusRabbitChannel.QueueDeclare(
+		"",
 		false,
 		true,
 		false,
@@ -406,13 +398,21 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 		nil,
 	)
 	if err != nil {
-		log.Fatalf("Couldn't declare rabbitMQ queue %s: %s", queueName, err.Error())
+		log.Printf("Couldn't declare temporary rabbitMQ queue %s: %s", queue.Name, err.Error())
+		return status.Errorf(status.Code(err), "Couldn't declare temporary rabbitMQ status queue for task %s", request.TaskId)
 	}
+
+	err = server.statusRabbitChannel.QueueBind(
+		queue.Name,
+		request.TaskId,
+		StatusExchangeName,
+		false,
+		nil)
 
 	consumerId := uuid.NewString()
 
 	updates, err := server.statusRabbitChannel.Consume(
-		queueName,
+		queue.Name,
 		consumerId,
 		false,
 		false,
@@ -428,7 +428,12 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 	latestStatusChan := make(chan tsp.WorkerTspStatusUpdate_Type)
 	go retrieveLatestStatus(observer.Context(), request.TaskId, server.redisClient, latestStatusChan)
 
-	defer server.statusRabbitChannel.Cancel(consumerId, false)
+	defer func(statusRabbitChannel *amqp.Channel, consumer string, noWait bool) {
+		err := statusRabbitChannel.Cancel(consumer, noWait)
+		if err != nil {
+			log.Printf("Failed to cancel AMQP subscription to %s: %v", queue.Name, err)
+		}
+	}(server.statusRabbitChannel, consumerId, false)
 
 	for {
 		select {
@@ -480,12 +485,12 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 			return nil
 		}
 	}
-	return nil
 }
 
-func declareRabbitQueue(rabbitChannel *amqp.Channel, name string) {
-	_, err := rabbitChannel.QueueDeclare(
-		name,
+func declareInterruptExchange(rabbitChannel *amqp.Channel) {
+	err := rabbitChannel.ExchangeDeclare(
+		InterruptExchange,
+		amqp.ExchangeFanout,
 		false,
 		false,
 		false,
@@ -493,16 +498,37 @@ func declareRabbitQueue(rabbitChannel *amqp.Channel, name string) {
 		nil,
 	)
 	if err != nil {
-		log.Fatalf("Couldn't declare rabbitMQ queue %s: %s", name, err.Error())
+		log.Fatalf("Failed to declare interrupt AMQP exchange %s: %v", InterruptExchange, err)
 	}
 }
 
-func declareInterruptQueue(rabbitChannel *amqp.Channel) {
-	declareRabbitQueue(rabbitChannel, InterruptQueue)
+func declareTaskQueue(rabbitChannel *amqp.Channel) {
+	_, err := rabbitChannel.QueueDeclare(
+		TaskQueue,
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("Couldn't declare task AMQP queue %s: %v", TaskQueue, err)
+	}
 }
 
-func declareTaskQueue(rabbitChannel *amqp.Channel) {
-	declareRabbitQueue(rabbitChannel, TaskQueue)
+func declareStatusExchange(rabbitChannel *amqp.Channel) {
+	err := rabbitChannel.ExchangeDeclare(
+		StatusExchangeName,
+		amqp.ExchangeFanout,
+		false,
+		true,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("Failed to declare tsp status AMQP exchange %s: %v", StatusExchangeName, err)
+	}
 }
 
 func newServer() *TspServer {
@@ -534,8 +560,9 @@ func newServer() *TspServer {
 		log.Fatalf("Couldn't initialize status rabbitMQ channel: %s", err.Error())
 	}
 
-	declareInterruptQueue(singalRabbitChannel)
+	declareInterruptExchange(singalRabbitChannel)
 	declareTaskQueue(taskRabbitChannel)
+	declareStatusExchange(statusRabbitChannel)
 
 	s := &TspServer{
 		redisClient:         redisClient,

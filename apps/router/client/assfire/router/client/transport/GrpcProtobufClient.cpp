@@ -27,7 +27,7 @@ GrpcProtobufClient::GetSingleRouteResponse GrpcProtobufClient::getRoute(const Ge
     grpc::Status result = stub->GetSingleRoute(&client_context, request, &response);
 
     if (!result.ok()) {
-        SPDLOG_ERROR("Error while processing gRPC call: {}", result.error_message());
+        SPDLOG_ERROR("Error while processing getRoute() gRPC call: {}", result.error_message());
         throw std::runtime_error(result.error_message());
     }
 
@@ -47,7 +47,7 @@ void GrpcProtobufClient::getRoutesBatch(const GetRoutesBatchRequest &request, co
     grpc::Status result = reader->Finish();
 
     if (!result.ok()) {
-        SPDLOG_ERROR("Error while processing gRPC call: {}", result.error_message());
+        SPDLOG_ERROR("Error while processing getRoutesBatch() gRPC call: {}", result.error_message());
         throw std::runtime_error(result.error_message());
     }
 }
@@ -70,7 +70,7 @@ void GrpcProtobufClient::getRoutesBatch(const RequestSupplier &request_supplier,
     grpc::Status result = reader_writer->Finish();
 
     if (!result.ok()) {
-        SPDLOG_ERROR("Error while processing gRPC call: {}", result.error_message());
+        SPDLOG_ERROR("Error while processing getRoutesBatch() gRPC call: {}", result.error_message());
         throw std::logic_error(result.error_message());
     }
 }

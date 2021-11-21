@@ -29,8 +29,4 @@ namespace assfire::tsp {
     std::string solutionKey(const std::string &task_id) {
         return TSP_WORKER_REDIS_PREFIX + task_id + TSP_WORKER_SOLUTION_SUFFIX;
     }
-
-    std::string statusQueueName(const std::string &task_id) {
-        return std::string(TSP_WORKER_AMQP_PREFIX) + task_id + TSP_WORKER_AMQP_STATUS_SUFFIX;
-    }
 }

@@ -10,8 +10,7 @@ namespace assfire::tsp {
         listener = std::make_unique<RabbitMqConnector::Listener>(rabbit_mq_connector->listen(
                 TSP_WORKER_AMQP_TASK_QUEUE_NAME,
                 TSP_WORKER_AMQP_TASK_EXCHANGE,
-                TSP_WORKER_AMQP_TASK_CHANNEL
-        ));
+                TSP_WORKER_AMQP_TASK_CHANNEL));
     }
 
     std::string AmqpTaskQueueListener::nextTask() {

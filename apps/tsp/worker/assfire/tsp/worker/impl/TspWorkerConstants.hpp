@@ -15,14 +15,13 @@ namespace assfire::tsp {
     constexpr const char *TSP_WORKER_KEEPALIVE_VALUE = "1";
     constexpr int TSP_WORKER_KEEPALIVE_EXPIRY_SEC = 30;
 
-    constexpr const char *TSP_WORKER_AMQP_PREFIX = "assfire.tsp.";
-    constexpr const char *TSP_WORKER_AMQP_STATUS_SUFFIX = ".worker.status";
+    constexpr const char *TSP_WORKER_AMQP_STATUS_EXCHANGE = "assfire.tsp.worker.status";
+    constexpr const char *TSP_WORKER_AMQP_STATUS_EXCHANGE_TYPE = "fanout";
     constexpr const char *TSP_WORKER_AMQP_TASK_QUEUE_NAME = "assfire.tsp.worker.task";
-    constexpr const char *TSP_WORKER_AMQP_INTERRUPT_QUEUE_NAME = "assfire.tsp.worker.interrupt";
 
     constexpr const char *TSP_WORKER_AMQP_TASK_EXCHANGE = "amq.direct";
-    constexpr const char *TSP_WORKER_AMQP_INTERRUPT_EXCHANGE = "amq.topic";
-    constexpr const char *TSP_WORKER_AMQP_STATUS_EXCHANGE = "amq.topic";
+    constexpr const char *TSP_WORKER_AMQP_INTERRUPT_EXCHANGE = "assfire.tsp.worker.interrupt";
+    constexpr const char *TSP_WORKER_AMQP_INTERRUPT_EXCHANGE_TYPE = "fanout";
 
     constexpr int TSP_WORKER_AMQP_TASK_CHANNEL = 1;
     constexpr int TSP_WORKER_AMQP_INTERRUPT_CHANNEL = 2;

@@ -35,6 +35,7 @@ namespace assfire::tsp {
 
         while (true) {
             std::atomic_bool done = false;
+            std::atomic_bool interrupted = false;
             SPDLOG_INFO("Waiting for the next task...");
             std::string task_id = task_queue_listener->nextTask();
 
@@ -83,7 +84,9 @@ namespace assfire::tsp {
                 solution_listener.setOnNextSolutionCallback([&](const TspSolution &solution) {
                     SPDLOG_DEBUG("Got new solution for task {}, current_cost: {}", task_id, solution.getCost().getValue());
                     solution_publisher->publish(task_id, *task, solution);
-                    status_publisher->publishNewSolution(task_id, solution.getCost(), solution.getValidationResult());
+                    if (!interrupted) {
+                        status_publisher->publishNewSolution(task_id, solution.getCost(), solution.getValidationResult());
+                    }
 
                     if (solution.isFinalSolution()) {
                         SPDLOG_INFO("Got final solution for task {}, cost: {}", task_id, solution.getCost().getValue());
@@ -112,6 +115,7 @@ namespace assfire::tsp {
                     switch (signal) {
                         case InterruptListener::PAUSE:
                             SPDLOG_INFO("Got PAUSE signal for task {}", task_id);
+                            interrupted = true;
                             session.pause();
                             status_publisher->publishPaused(task_id);
                             task_provider->sendPaused(task_id);
@@ -120,9 +124,10 @@ namespace assfire::tsp {
                             break;
                         case InterruptListener::INTERRUPT:
                             SPDLOG_INFO("Got INTERRUPT signal for task {}", task_id);
+                            interrupted = true;
                             session.interrupt();
                             status_publisher->publishInterrupted(task_id);
-                            task_provider->sendPaused(task_id);
+                            task_provider->sendInterrupted(task_id);
                             saved_state_manager->clearState(task_id);
                             done = true;
                             cv.notify_all();

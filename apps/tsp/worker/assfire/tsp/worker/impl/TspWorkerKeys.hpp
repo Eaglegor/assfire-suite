@@ -16,6 +16,4 @@ namespace assfire::tsp {
     std::string keepAliveKey(const std::string &task_id);
 
     std::string solutionKey(const std::string &task_id);
-
-    std::string statusQueueName(const std::string &task_id);
 }

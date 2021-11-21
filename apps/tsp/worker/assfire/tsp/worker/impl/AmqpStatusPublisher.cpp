@@ -75,8 +75,9 @@ namespace assfire::tsp {
         }
 
         RabbitMqConnector::Publisher publisher = rabbit_mq_connector->publish(
-                statusQueueName(task_id),
+                task_id,
                 TSP_WORKER_AMQP_STATUS_EXCHANGE,
+                TSP_WORKER_AMQP_STATUS_EXCHANGE_TYPE,
                 TSP_WORKER_AMQP_STATUS_CHANNEL,
                 true
         );

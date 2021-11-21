@@ -10,9 +10,10 @@ namespace assfire::tsp {
             : rabbit_mq_connector(std::move(rabbit_mq_connector)) {}
 
     void AmqpInterruptListener::startListening() {
+        rabbit_mq_connector->declareExchange(TSP_WORKER_AMQP_INTERRUPT_EXCHANGE, TSP_WORKER_AMQP_INTERRUPT_EXCHANGE_TYPE, TSP_WORKER_AMQP_INTERRUPT_CHANNEL);
         control_state = std::async(std::launch::async, [&]() {
             rabbit_mq_connector->listen(
-                    TSP_WORKER_AMQP_INTERRUPT_QUEUE_NAME,
+                    "",
                     TSP_WORKER_AMQP_INTERRUPT_EXCHANGE,
                     TSP_WORKER_AMQP_INTERRUPT_CHANNEL,
                     [&](const amqp_envelope_t_ &envelope) {
