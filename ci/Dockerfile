@@ -34,6 +34,7 @@ RUN /opt/vcpkg/vcpkg install cpprestsdk --triplet x64-linux --host-triplet x64-l
 RUN /opt/vcpkg/vcpkg install gtest --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install librabbitmq --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 RUN /opt/vcpkg/vcpkg install crossguid --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install cxxopts --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 
 ENV VCPKG_ROOT /opt/vcpkg
 
