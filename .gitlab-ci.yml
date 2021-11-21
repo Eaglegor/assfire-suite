@@ -1,45 +1,49 @@
+# You can override the included template(s) by including variable overrides
+# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
+# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-  - build ci image
-  - publish master ci image
-  - build applications
-
+- build ci image
+- publish master ci image
+- build applications
 variables:
-  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
-  BRANCH_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-ref-$CI_COMMIT_REF_NAME
+  MASTER_BUILD_IMAGE_NAME: "$CI_REGISTRY/assfire/assfire-suite/buildimage:latest"
+  BRANCH_BUILD_IMAGE_NAME: "$CI_REGISTRY/assfire/assfire-suite/buildimage:ci-ref-$CI_COMMIT_REF_NAME"
   TEMP_IMAGE_TAG_NAME: ci-$CI_COMMIT_SHORT_SHA
-  BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_SHORT_SHA
+  BUILD_IMAGE_NAME: "$CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_SHORT_SHA"
   DOCKER_BUILDKIT: 1
-  APPLICATION_VERSION: $CI_COMMIT_REF_NAME
-
+  APPLICATION_VERSION: "$CI_COMMIT_REF_NAME"
 build-ci-image:
   image: docker:stable
   services:
-    - docker:dind
+  - docker:dind
   stage: build ci image
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - cd ci
-    - docker build . -t $BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
-    - docker push $BUILD_IMAGE_NAME
-    - docker image tag $BUILD_IMAGE_NAME $BRANCH_BUILD_IMAGE_NAME
-    - docker push $BRANCH_BUILD_IMAGE_NAME
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - cd ci
+  - docker build . -t $BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from
+    $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
+  - docker push $BUILD_IMAGE_NAME
+  - docker image tag $BUILD_IMAGE_NAME $BRANCH_BUILD_IMAGE_NAME
+  - docker push $BRANCH_BUILD_IMAGE_NAME
   needs: []
-
 publish-master-ci-image:
   image: docker:stable
   services:
-    - docker:dind
+  - docker:dind
   stage: publish master ci image
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $BUILD_IMAGE_NAME
-    - docker tag $BUILD_IMAGE_NAME $MASTER_BUILD_IMAGE_NAME
-    - docker push $MASTER_BUILD_IMAGE_NAME
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker pull $BUILD_IMAGE_NAME
+  - docker tag $BUILD_IMAGE_NAME $MASTER_BUILD_IMAGE_NAME
+  - docker push $MASTER_BUILD_IMAGE_NAME
   only:
     refs:
-      - master
+    - master
   needs:
-    - build-ci-image
-
+  - build-ci-image
 include:
-  - apps.yml
+- apps.yml
+- template: Security/SAST-IaC.latest.gitlab-ci.yml
