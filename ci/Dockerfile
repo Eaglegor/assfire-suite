@@ -25,20 +25,15 @@ RUN git clone --branch master https://github.com/Microsoft/vcpkg.git /opt/vcpkg 
     ./vcpkg integrate install
 
 # Installing dependencies
-RUN /opt/vcpkg/vcpkg install \
-    --triplet x64-linux --host-triplet x64-linux \
-    grpc \
-    cpp-redis \
-    cxxopts \
-    spdlog \
-    catch2 \
-    prometheus-cpp \
-    cpprestsdk \
-    gtest \
-    librabbitmq \
-    && \
-    rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
-
+RUN /opt/vcpkg/vcpkg install grpc --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install cpp-redis --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install spdlog --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install catch2 --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install prometheus-cpp --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install cpprestsdk --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install gtest --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install librabbitmq --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
+RUN /opt/vcpkg/vcpkg install crossguid --triplet x64-linux --host-triplet x64-linux --no-binarycaching && rm -rf /opt/vcpkg/downloads /opt/vcpkg/buildtrees
 
 ENV VCPKG_ROOT /opt/vcpkg
 

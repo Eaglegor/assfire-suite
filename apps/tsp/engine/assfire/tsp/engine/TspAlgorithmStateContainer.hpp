@@ -10,6 +10,7 @@ namespace assfire::tsp {
     public:
         using TspAlgorithmStateDto = assfire::api::v1::tsp::TspAlgorithmState;
         using TwoOptAlgorithmStateDto = assfire::api::v1::tsp::TwoOptAlgorithmState;
+        using TimeWastingAlgorithmStateDto = assfire::api::v1::tsp::TimeWastingAlgorithmState;
         using Persister = std::function<void(const TspAlgorithmStateDto &)>;
 
         explicit TspAlgorithmStateContainer(Persister persister = [](const TspAlgorithmStateDto &) {});
@@ -36,7 +37,9 @@ namespace assfire::tsp {
 
         bool canBeUsedFor(const TspTask &task) const;
 
-        bool containsTwoOptState() const;
+        bool containsTwoOptAlgorithmState() const;
+
+        bool containsTimeWastingAlgorithmState() const;
 
         void persist();
 

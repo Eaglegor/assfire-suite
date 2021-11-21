@@ -62,7 +62,7 @@ namespace assfire::tsp {
         return isConsistent() && isCompatibleWith(task);
     }
 
-    bool TspAlgorithmStateContainer::containsTwoOptState() const {
+    bool TspAlgorithmStateContainer::containsTwoOptAlgorithmState() const {
         return state.has_two_opt_algorithm_state();
     }
 
@@ -72,5 +72,9 @@ namespace assfire::tsp {
 
     void TspAlgorithmStateContainer::persist() {
         persister(state);
+    }
+
+    bool TspAlgorithmStateContainer::containsTimeWastingAlgorithmState() const {
+        return state.has_time_wasting_algorithm_state();
     }
 }

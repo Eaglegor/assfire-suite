@@ -3,6 +3,7 @@ package main
 import (
 	"assfire.org/api/v1/tsp"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -49,6 +50,10 @@ func formatSolutionKey(taskName string) string {
 	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":solution")
 }
 
+func stateKey(taskName string) string {
+	return taskName + ".state"
+}
+
 func publishTask(ctx context.Context, taskId string, task *tsp.TspTask, redisClient *redis.Client) error {
 	serializedTask, err := proto.Marshal(task)
 	if err == nil {
@@ -59,9 +64,29 @@ func publishTask(ctx context.Context, taskId string, task *tsp.TspTask, redisCli
 	}
 }
 
-func hasTask(ctx context.Context, taskId string, redisClient *redis.Client) (bool, error) {
+func isResumeable(ctx context.Context, taskId string, redisClient *redis.Client) (bool, error) {
+	response := redisClient.Get(ctx, stateKey(taskId))
+	if response.Err() != nil {
+		log.Printf("Failed to determine current state for task %s: %v", taskId, response.Err())
+		return false, errors.New("failed to determine current task state")
+	}
+
+	if response.Val() == "IN_PROGRESS" {
+		return false, errors.New("task is already in progress")
+	}
+	if response.Val() == "FINISHED" {
+		return false, errors.New("task is already finished")
+	}
+
+	return true, nil
+}
+
+func hasTask(ctx context.Context, taskId string, redisClient *redis.Client) bool {
 	response := redisClient.Exists(ctx, taskKey(taskId))
-	return response.Err() == nil, response.Err()
+	if response.Err() != nil {
+		log.Printf("Failed to determine if task %s exists: %v", taskId, response.Err())
+	}
+	return response.Err() == nil && response.Val() != 0
 }
 
 func loadSolution(ctx context.Context, taskId string, redisClient *redis.Client) (*tsp.TspSolution, error) {
@@ -190,13 +215,9 @@ func (server *TspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 func (server *TspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequest) (*tsp.PauseTspResponse, error) {
 	log.Printf("Pausing TSP task %s", request.TaskId)
 
-	if exists, err := hasTask(ctx, request.TaskId, server.redisClient); !exists {
-		log.Printf("Failed to find task %s: %s", request.TaskId, err.Error())
-		if err == redis.Nil {
-			return nil, status.Errorf(codes.NotFound, "Failed to pause task %s - task not found", request.TaskId)
-		} else {
-			return nil, status.Errorf(codes.Internal, "Failed to pause task %s", request.TaskId)
-		}
+	if exists := hasTask(ctx, request.TaskId, server.redisClient); !exists {
+		log.Printf("Failed to find task %s", request.TaskId)
+		return nil, status.Errorf(codes.NotFound, "%s - task not found", request.TaskId)
 	}
 
 	err := sendPauseSignal(request.TaskId, server.signalRabbitChannel)
@@ -221,18 +242,19 @@ func (server *TspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequ
 func (server *TspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRequest) (*tsp.ResumeTspResponse, error) {
 	log.Printf("Resuming TSP task %s", request.TaskId)
 
-	if exists, err := hasTask(ctx, request.TaskId, server.redisClient); !exists {
-		log.Printf("Failed to find task %s: %s", request.TaskId, err.Error())
-		if err == redis.Nil {
-			return nil, status.Errorf(codes.NotFound, "Failed to resume task %s - task not found", request.TaskId)
-		} else {
-			return nil, status.Errorf(codes.Internal, "Failed to resume task %s", request.TaskId)
-		}
+	if exists := hasTask(ctx, request.TaskId, server.redisClient); !exists {
+		log.Printf("Failed to find task %s", request.TaskId)
+		return nil, status.Errorf(codes.NotFound, "%s - task not found", request.TaskId)
+	}
+
+	if resumeable, err := isResumeable(ctx, request.TaskId, server.redisClient); !resumeable {
+		log.Printf("Task %s can't be resumed: %v", request.TaskId, err)
+		return nil, status.Errorf(codes.AlreadyExists, "%s - task can't be resumed: %v", request.TaskId, err)
 	}
 
 	err := sendStartSignal(request.TaskId, server.signalRabbitChannel)
 	if err != nil {
-		log.Printf("Failed to send start signal for task %s: %s", request.TaskId, err.Error())
+		log.Printf("Failed to send start signal for task %s: %v", request.TaskId, err)
 		return nil, status.Errorf(status.Code(err), "Failed to resume task %s", request.TaskId)
 	}
 
@@ -242,13 +264,9 @@ func (server *TspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRe
 func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspRequest) (*tsp.StopTspResponse, error) {
 	log.Printf("Stopping TSP task %s", request.TaskId)
 
-	if exists, err := hasTask(ctx, request.TaskId, server.redisClient); !exists {
-		log.Printf("Failed to find task %s: %s", request.TaskId, err.Error())
-		if err == redis.Nil {
-			return nil, status.Errorf(codes.NotFound, "Failed to stop task %s - task not found", request.TaskId)
-		} else {
-			return nil, status.Errorf(codes.Internal, "Failed to stop task %s", request.TaskId)
-		}
+	if exists := hasTask(ctx, request.TaskId, server.redisClient); !exists {
+		log.Printf("Failed to find task %s", request.TaskId)
+		return nil, status.Errorf(codes.NotFound, "%s - task not found", request.TaskId)
 	}
 
 	err := sendInterruptSignal(request.TaskId, server.signalRabbitChannel)
@@ -315,6 +333,8 @@ func convertStatusUpdateType(workerType tsp.WorkerTspStatusUpdate_Type) tsp.TspS
 		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_INTERRUPTED
 	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_STARTED:
 		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_STARTED
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS
 	default:
 		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_UNKNOWN
 	}
@@ -326,13 +346,16 @@ func isTerminalState(update tsp.WorkerTspStatusUpdate_Type) bool {
 }
 
 func retrieveLatestStatus(ctx context.Context, taskId string, redisClient *redis.Client, c chan tsp.WorkerTspStatusUpdate_Type) {
-	msg := redisClient.Get(ctx, taskId+".state")
+	msg := redisClient.Get(ctx, stateKey(taskId))
 	if msg.Err() == nil {
 		st := msg.Val()
 		log.Printf("Retrieved state %v for task %s", st, taskId)
 		switch st {
 		case "STARTED":
 			c <- tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_STARTED
+			break
+		case "IN_PROGRESS":
+			c <- tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS
 			break
 		case "FINISHED":
 			c <- tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED
@@ -362,9 +385,11 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 		log.Fatalf("Couldn't declare rabbitMQ queue %s: %s", queueName, err.Error())
 	}
 
+	consumerId := uuid.NewString()
+
 	updates, err := server.statusRabbitChannel.Consume(
 		queueName,
-		"",
+		consumerId,
 		false,
 		false,
 		false,
@@ -378,6 +403,8 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 
 	latestStatusChan := make(chan tsp.WorkerTspStatusUpdate_Type)
 	go retrieveLatestStatus(observer.Context(), request.TaskId, server.redisClient, latestStatusChan)
+
+	defer server.statusRabbitChannel.Cancel(consumerId, false)
 
 	for {
 		select {

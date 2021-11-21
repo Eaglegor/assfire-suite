@@ -62,6 +62,7 @@ message TspStatusUpdate {
     TSP_STATUS_UPDATE_TYPE_ERROR = 4;
     TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION = 5;
     TSP_STATUS_UPDATE_TYPE_INTERRUPTED = 6;
+    TSP_STATUS_UPDATE_TYPE_IN_PROGRESS = 7;
   }
 
   TspCost new_solution_cost = 1;

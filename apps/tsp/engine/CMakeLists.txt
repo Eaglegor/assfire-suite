@@ -9,7 +9,7 @@ set(HEADERS
         assfire/tsp/engine/TspValidator.hpp
         assfire/tsp/engine/NopTspValidator.hpp
         assfire/tsp/engine/TotalDistanceTspCostFunction.hpp
-        )
+        assfire/tsp/engine/algorithms/TimeWastingTspAlgorithm.hpp)
 
 set(SOURCES
         assfire/tsp/engine/TspEstimator.cpp
@@ -19,10 +19,11 @@ set(SOURCES
         assfire/tsp/engine/TspAlgorithmStateContainer.cpp
         assfire/tsp/engine/NopTspValidator.cpp
         assfire/tsp/engine/TotalDistanceTspCostFunction.cpp
-        )
+        assfire/tsp/engine/algorithms/TimeWastingTspAlgorithm.cpp)
 
 find_package(spdlog CONFIG REQUIRED)
+find_package(crossguid CONFIG REQUIRED)
 
 add_library(assfire-tsp-engine ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-tsp-engine PUBLIC spdlog::spdlog assfire-tsp-api assfire-scheduler-api assfire-router-api assfire-tsp-proto)
+target_link_libraries(assfire-tsp-engine PUBLIC spdlog::spdlog assfire-tsp-api assfire-scheduler-api assfire-router-api assfire-tsp-proto PRIVATE crossguid)
 target_include_directories(assfire-tsp-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

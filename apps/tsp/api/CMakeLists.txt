@@ -1,6 +1,7 @@
 set(SOURCES
         assfire/tsp/api/TspSolutionSession.cpp
         assfire/tsp/api/TspSolutionListener.cpp
+        assfire/tsp/api/io/Streams.cpp
         )
 set(HEADERS
         assfire/tsp/api/TspSolution.hpp
@@ -21,7 +22,7 @@ set(HEADERS
         assfire/tsp/api/TspSolutionSession.hpp
         assfire/tsp/api/TspSolutionController.hpp
         assfire/tsp/api/TspSolutionListener.hpp
-        )
+        assfire/tsp/api/io/Streams.hpp)
 
 find_package(spdlog CONFIG REQUIRED)
 

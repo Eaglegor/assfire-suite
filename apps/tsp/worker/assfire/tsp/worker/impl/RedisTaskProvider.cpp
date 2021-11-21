@@ -6,10 +6,8 @@
 #include "assfire/api/v1/tsp/worker.pb.h"
 #include "assfire/api/v1/tsp/translators/TspTaskTranslator.hpp"
 
-namespace assfire::tsp
-{
-    namespace
-    {
+namespace assfire::tsp {
+    namespace {
         std::string attemptsKey(const std::string &task_id) {
             return task_id + ".attempts";
         }
@@ -37,28 +35,16 @@ namespace assfire::tsp
     std::optional<TspTask> RedisTaskProvider::retrieveTask(const std::string &task_id) {
         auto ftask = client->get(taskKey(task_id));
         auto fattempts = client->get(attemptsKey(task_id));
-        auto fstate = client->get(stateKey(task_id));
         client->sync_commit();
 
         auto task = ftask.get();
         auto attempts = fattempts.get();
-        auto state = fstate.get();
-
-        if (state.is_error()) {
-            throw std::runtime_error(state.error());
-        }
-        if (!state.is_null() && state.is_string()) {
-            std::string st = state.as_string();
-            if (st == "FINISHED") {
-                return std::nullopt;
-            }
-        }
 
         if (attempts.is_error()) {
             throw std::runtime_error(attempts.error());
         }
         if (!attempts.is_null() && attempts.is_integer()) {
-            if (state.as_integer() > TSP_MAX_ATTEMPTS) {
+            if (attempts.as_integer() > TSP_MAX_ATTEMPTS) {
                 return std::nullopt;
             }
         }
@@ -166,5 +152,14 @@ namespace assfire::tsp
         if (reply.is_error()) {
             throw std::runtime_error(reply.error());
         }
+    }
+
+    bool RedisTaskProvider::isFinished(std::string &task_id) {
+        auto fstate = client->get(stateKey(task_id));
+        client->sync_commit();
+
+        auto state = fstate.get();
+        
+        return state.is_string() && state.as_string() == "FINISHED";
     }
 }

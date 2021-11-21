@@ -21,7 +21,7 @@ namespace assfire::api::v1::tsp {
             case TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION:
                 return ApiValidatorType::FAIL_ON_ANY_VIOLATION;
             default:
-                throw std::invalid_argument("Unknown tsp validator type: " + std::to_string(value));
+                throw std::invalid_argument("Unknown tsp validator type");
         }
     }
 
@@ -32,7 +32,7 @@ namespace assfire::api::v1::tsp {
             case ApiValidatorType::FAIL_ON_ANY_VIOLATION:
                 return TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION;
             default:
-                throw std::invalid_argument("Unknown tsp validator type: " + std::to_string(value));
+                throw std::invalid_argument("Unknown tsp validator type");
         }
     }
 }

@@ -18,8 +18,8 @@ namespace assfire::tsp {
         }
     }
 
-    void TwoOptTspAlgorithm::validateOrResetSavedState(const TspTask &task, TspAlgorithmStateContainer &saved_state,  const EngineTspSolutionController::SessionId& session_id) const {
-        if (!saved_state.containsTwoOptState()) {
+    void TwoOptTspAlgorithm::validateOrResetSavedState(const TspTask &task, TspAlgorithmStateContainer &saved_state, const EngineTspSolutionController::SessionId &session_id) const {
+        if (!saved_state.containsTwoOptAlgorithmState()) {
             SPDLOG_INFO("No saved 2-opt algorithm state found for session {}. Resetting state container", session_id);
             saved_state.reset();
         } else if (!saved_state.canBeUsedFor(task)) {
@@ -33,15 +33,15 @@ namespace assfire::tsp {
             int size = task.getPoints().size();
 
             if (i >= size || j >= size || k >= size) {
-                SPDLOG_WARN("Inconsistent saved two-opt state found for session {}: i = {}, j = {}, k = {} while size = {}. Resetting state container", i, j, k, size, session_id);
+                SPDLOG_WARN("Inconsistent saved two-opt state found for session {}: i = {}, j = {}, k = {} while size = {}. Resetting state container", session_id, i, j, k, size);
                 saved_state.reset();
             }
         }
     }
 
-    TspSolution TwoOptTspAlgorithm::createInitialSolution(const TspTask &task, const TspAlgorithmStateContainer &saved_state, const EngineTspSolutionController::SessionId& session_id) const {
+    TspSolution TwoOptTspAlgorithm::createInitialSolution(const TspTask &task, const TspAlgorithmStateContainer &saved_state, const EngineTspSolutionController::SessionId &session_id) const {
         TspSolution::Sequence initial_sequence;
-        if (saved_state.containsTwoOptState()) {
+        if (saved_state.containsTwoOptAlgorithmState()) {
             SPDLOG_INFO("Loading saved sequence for session {}", session_id);
             initial_sequence = saved_state.getSequence();
         } else {
@@ -82,7 +82,7 @@ namespace assfire::tsp {
                     current_solution = TspSolution(sequence, cost, validation_result, false);
                     solution_controller.publishSolution(current_solution);
                 } else {
-                    SPDLOG_TRACE("Solution {} rejected: cost {} >= {} (best)",  formatSequence(task, sequence), cost.getValue(), current_solution.getCost().getValue());
+                    SPDLOG_TRACE("Solution {} rejected: cost {} >= {} (best)", formatSequence(task, sequence), cost.getValue(), current_solution.getCost().getValue());
                     std::reverse(sequence.begin() + i, sequence.begin() + j);
                 }
             } else {
@@ -101,7 +101,8 @@ namespace assfire::tsp {
         SPDLOG_INFO("Finished 2-opt algorithm for tsp session {}", solution_controller.getSessionId());
     }
 
-    std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::createInitialState(const TspTask &task, const TspAlgorithmStateContainer &state_container,  const EngineTspSolutionController::SessionId& session_id) const {
+    std::optional<TwoOptTspAlgorithm::State>
+    TwoOptTspAlgorithm::createInitialState(const TspTask &task, const TspAlgorithmStateContainer &state_container, const EngineTspSolutionController::SessionId &session_id) const {
 
         std::optional<State> loaded_state = loadState(task, state_container);
         if (loaded_state) {
@@ -145,9 +146,8 @@ namespace assfire::tsp {
     }
 
     std::optional<TwoOptTspAlgorithm::State> TwoOptTspAlgorithm::loadState(const TspTask &task, const TspAlgorithmStateContainer &container) const {
-        const TspAlgorithmStateContainer::TspAlgorithmStateDto &dto = container.getDto();
-        if (dto.has_two_opt_algorithm_state()) {
-            const TspAlgorithmStateContainer::TwoOptAlgorithmStateDto &two_opt_state = dto.two_opt_algorithm_state();
+        if (container.containsTwoOptAlgorithmState()) {
+            const TspAlgorithmStateContainer::TwoOptAlgorithmStateDto &two_opt_state = container.getDto().two_opt_algorithm_state();
             int i = two_opt_state.i();
             int j = two_opt_state.j();
             int k = two_opt_state.k();

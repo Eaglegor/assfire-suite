@@ -44,6 +44,12 @@ namespace assfire::tsp {
                 continue;
             }
 
+            if(task_provider->isFinished(task_id)) {
+                SPDLOG_INFO("Task {} is already finished", task_id);
+                task_provider->unlock(task_id);
+                continue;
+            }
+
             try {
                 SPDLOG_DEBUG("Trying to retrieve task {} from storage", task_id);
                 std::optional<TspTask> task = task_provider->retrieveTask(task_id);
@@ -129,6 +135,7 @@ namespace assfire::tsp {
             }
 
             SPDLOG_INFO("Finished processing TSP task {}", task_id);
+            interrupt_listener->unsubscribe(task_id);
             task_provider->unlock(task_id);
         }
     }

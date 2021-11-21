@@ -11,8 +11,10 @@ namespace assfire::api::v1::tsp {
                 return ApiAlgorithmType::AUTO;
             case ProtoAlgorithmType::TSP_ALGORITHM_TYPE_TWO_OPT:
                 return ApiAlgorithmType::TWO_OPT;
+            case ProtoAlgorithmType::TSP_ALGORITHM_TYPE_TIME_WASTING:
+                return ApiAlgorithmType::TIME_WASTING;
             default:
-                throw std::invalid_argument("Unknown or unsupported tsp algorithm type code: " + std::to_string(type));
+                throw std::invalid_argument("Unknown or unsupported tsp algorithm type");
         }
     }
 
@@ -22,8 +24,10 @@ namespace assfire::api::v1::tsp {
                 return ProtoAlgorithmType::TSP_ALGORITHM_TYPE_AUTO;
             case ApiAlgorithmType::TWO_OPT:
                 return ProtoAlgorithmType::TSP_ALGORITHM_TYPE_TWO_OPT;
+            case ApiAlgorithmType::TIME_WASTING:
+                return ProtoAlgorithmType::TSP_ALGORITHM_TYPE_TIME_WASTING;
             default:
-                throw std::invalid_argument("Unknown or unsupported tsp algorithm type code: " + std::to_string(static_cast<std::underlying_type<ApiAlgorithmType>::type>(type)));
+                throw std::invalid_argument("Unknown or unsupported tsp algorithm type");
         }
     }
 }

@@ -13,6 +13,7 @@ namespace assfire::tsp {
         virtual bool tryLock(const std::string& task_id) = 0;
         virtual void unlock(const std::string& task_id) = 0;
 
+        virtual bool isFinished(std::string &task_id) = 0;
         virtual void sendStarted(const std::string& task_id) = 0;
         virtual void sendError(const std::string& task_id) = 0;
         virtual void sendInProgress(const std::string& task_id) = 0;

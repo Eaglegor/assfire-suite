@@ -10,10 +10,15 @@ message TwoOptAlgorithmState {
   int32 k = 3;
 }
 
+message TimeWastingAlgorithmState {
+  int32 counter = 1;
+}
+
 message TspAlgorithmState {
   repeated int32 points = 1;
   repeated int32 sequence = 2;
   oneof instance {
     TwoOptAlgorithmState two_opt_algorithm_state = 3;
+    TimeWastingAlgorithmState time_wasting_algorithm_state = 4;
   }
 }

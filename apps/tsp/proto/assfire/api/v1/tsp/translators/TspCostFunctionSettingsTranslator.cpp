@@ -23,7 +23,7 @@ namespace assfire::api::v1::tsp {
             case TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE:
                 return ApiCostFunctionType::TOTAL_DISTANCE;
             default:
-                throw std::invalid_argument("Unknown tsp cost function type: " + std::to_string(value));
+                throw std::invalid_argument("Unknown tsp cost function type");
         }
     }
 
@@ -34,7 +34,7 @@ namespace assfire::api::v1::tsp {
             case ApiCostFunctionType::TOTAL_DISTANCE:
                 return TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE;
             default:
-                throw std::invalid_argument("Unknown tsp cost function type: " + std::to_string(value));
+                throw std::invalid_argument("Unknown tsp cost function type");
         }
     }
 

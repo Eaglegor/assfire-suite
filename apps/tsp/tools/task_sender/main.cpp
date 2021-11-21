@@ -10,6 +10,8 @@
 #include <grpcpp/client_context.h>
 #include <iostream>
 
+#include <cxxopts.hpp>
+
 using namespace assfire;
 using namespace assfire::tsp;
 
@@ -27,6 +29,7 @@ std::string startTsp() {
 
     assfire::api::v1::tsp::StartTspRequest request;
     request.mutable_task()->CopyFrom(assfire::api::v1::tsp::TspTaskTranslator::toProto(task));
+    request.mutable_task()->mutable_solver_settings()->mutable_algorithm_settings()->set_algorithm_type(assfire::api::v1::tsp::TSP_ALGORITHM_TYPE_TIME_WASTING);
 
     auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
@@ -34,27 +37,33 @@ std::string startTsp() {
     grpc::ClientContext context;
     assfire::api::v1::tsp::StartTspResponse response;
     ::grpc::Status status = stub->StartTsp(&context, request, &response);
-    if(!status.ok()) {
+    if (!status.ok()) {
         std::cout << "Failed to start task: " << status.error_message() << std::endl;
     } else {
         std::cout << "Started task " << response.task_id() << std::endl;
-        assfire::api::v1::tsp::SubscribeForStatusUpdatesRequest status_request;
-        status_request.set_task_id(response.task_id());
-        grpc::ClientContext context2;
-        std::unique_ptr<::grpc::ClientReader<assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse>> reader(stub->SubscribeForStatusUpdates(&context2, status_request));
-        assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse status_response;
-        while(reader->Read(&status_response)) {
-            std::cout << "Got status update for task: " << response.task_id() << " :: " << assfire::api::v1::tsp::TspStatusUpdate_Type_Name(status_response.status_update().type()) << std::endl;
-            if(status_response.status_update().type() == assfire::api::v1::tsp::TspStatusUpdate_Type_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION) {
-                std::cout << "Solution cost: " << status_response.status_update().new_solution_cost().value() << std::endl;
-            }
-        }
-        reader->Finish();
     }
     return response.task_id();
 }
 
-void stopTsp(const std::string& id) {
+void listenToUpdates(const std::string &task) {
+    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
+
+    assfire::api::v1::tsp::SubscribeForStatusUpdatesRequest status_request;
+    status_request.set_task_id(task);
+    grpc::ClientContext context2;
+    std::unique_ptr<::grpc::ClientReader<assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse>> reader(stub->SubscribeForStatusUpdates(&context2, status_request));
+    assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse status_response;
+    while (reader->Read(&status_response)) {
+        std::cout << "Got status update for task: " << task << " :: " << assfire::api::v1::tsp::TspStatusUpdate_Type_Name(status_response.status_update().type()) << std::endl;
+        if (status_response.status_update().type() == assfire::api::v1::tsp::TspStatusUpdate_Type_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION) {
+            std::cout << "Solution cost: " << status_response.status_update().new_solution_cost().value() << std::endl;
+        }
+    }
+    reader->Finish();
+}
+
+void stopTsp(const std::string &id) {
 
     assfire::api::v1::tsp::StopTspRequest request;
     request.set_task_id(id);
@@ -64,10 +73,16 @@ void stopTsp(const std::string& id) {
 
     grpc::ClientContext context;
     assfire::api::v1::tsp::StopTspResponse response;
-    stub->StopTsp(&context, request, &response);
+    ::grpc::Status status = stub->StopTsp(&context, request, &response);
+
+    if (!status.ok()) {
+        std::cout << "Failed to stop task: " << status.error_message() << std::endl;
+    } else {
+        std::cout << "Stopped task " << id << std::endl;
+    }
 }
 
-void pauseTsp(const std::string& id) {
+void pauseTsp(const std::string &id) {
 
     assfire::api::v1::tsp::PauseTspRequest request;
     request.set_task_id(id);
@@ -77,10 +92,15 @@ void pauseTsp(const std::string& id) {
 
     grpc::ClientContext context;
     assfire::api::v1::tsp::PauseTspResponse response;
-    stub->PauseTsp(&context, request, &response);
+    ::grpc::Status status = stub->PauseTsp(&context, request, &response);
+    if (!status.ok()) {
+        std::cout << "Failed to pause task: " << status.error_message() << std::endl;
+    } else {
+        std::cout << "Paused task " << id << std::endl;
+    }
 }
 
-void resumeTsp(const std::string& id) {
+void resumeTsp(const std::string &id) {
 
     assfire::api::v1::tsp::ResumeTspRequest request;
     request.set_task_id(id);
@@ -90,15 +110,53 @@ void resumeTsp(const std::string& id) {
 
     grpc::ClientContext context;
     assfire::api::v1::tsp::ResumeTspResponse response;
-    stub->ResumeTsp(&context, request, &response);
+    ::grpc::Status status = stub->ResumeTsp(&context, request, &response);
+    if (!status.ok()) {
+        std::cout << "Failed to resume task: " << status.error_message() << std::endl;
+    } else {
+        std::cout << "Resumed task " << id << std::endl;
+    }
 }
 
-int main() {
+constexpr const char *ACTION = "action";
+constexpr const char *TASK_ID = "task-id";
 
-    startTsp();
-//    stopTsp("1");
-//    resumeTsp("2");
-//    pauseTsp("2");
+int main(int argc, char *argv[]) {
+
+    cxxopts::Options args_template("assfire-tsp-task-sender");
+
+    args_template
+            .custom_help("")
+            .positional_help("action [task_id]")
+            .show_positional_help();
+
+    args_template.add_options()
+    (ACTION, "Action to take (start/stop/pause/resume/listen)", cxxopts::value<std::string>())
+    (TASK_ID, "Task id to apply action to", cxxopts::value<std::string>()->default_value("<none>"));
+
+    args_template.parse_positional({ACTION, TASK_ID});
+
+    auto options = args_template.parse(argc, argv);
+
+    if(!options.count(ACTION)) {
+        std::cout << args_template.help() << std::endl;
+        exit(0);
+    }
+
+    std::string action = options[ACTION].as<std::string>();
+    std::string task = options.count(TASK_ID) > 0 ? options[TASK_ID].as<std::string>() : "";
+
+    if (action == "start") {
+        startTsp();
+    } else if (action == "stop") {
+        stopTsp(task);
+    } else if (action == "pause") {
+        pauseTsp(task);
+    } else if (action == "resume") {
+        resumeTsp(task);
+    } else if (action == "status" || action == "listen") {
+        listenToUpdates(task);
+    }
 
     return 0;
 }

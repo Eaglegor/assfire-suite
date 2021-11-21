@@ -16,6 +16,11 @@
 #include "TotalDistanceTspCostFunction.hpp"
 
 #include "algorithms/TwoOptTspAlgorithm.hpp"
+#include "algorithms/TimeWastingTspAlgorithm.hpp"
+
+#include <fmt/ostream.h>
+#include "assfire/tsp/api/io/Streams.hpp"
+#include <crossguid/guid.hpp>
 
 namespace assfire::tsp {
 
@@ -23,18 +28,21 @@ namespace assfire::tsp {
 
     namespace {
         EngineTspSolutionController::SessionId generateSessionId() {
-            return "<todo>";
+            return xg::newGuid().str();
         }
 
         EngineTspSolutionController::AlgorithmPtr createAlgorithm(const TspTask &task, TspEstimator estimator, const TspSolutionController::SessionId &session_id) {
             TspAlgorithmType type = task.getSolverSettings().getAlgorithmSettings().getAlgorithmType();
-            SPDLOG_INFO("Creating algorithm of type {} for TSP session {}", std::to_string(type), session_id);
+            SPDLOG_INFO("Creating algorithm of type {} for TSP session {}", type, session_id);
             switch (type) {
                 case TspAlgorithmType::AUTO:
                 case TspAlgorithmType::TWO_OPT:
                     return std::make_shared<TwoOptTspAlgorithm>(std::move(estimator));
+                case TspAlgorithmType::TIME_WASTING:
+                    return std::make_shared<TimeWastingTspAlgorithm>(std::move(estimator));
                 default:
-                    throw std::invalid_argument("Unsupported tsp solver type: " + std::to_string(type));
+                    SPDLOG_ERROR("Unsupported tsp algorithm type provided for session id {}", session_id);
+                    throw std::invalid_argument("Unsupported tsp algorithm type");
             }
         }
 
@@ -60,25 +68,27 @@ namespace assfire::tsp {
 
         TspEstimator::CostFunctionPtr createCostFunction(const TspTask &task, router::DistanceMatrix distance_matrix, const TspSolutionController::SessionId &session_id) {
             TspCostFunctionType type = task.getSolverSettings().getEstimatorSettings().getCostFunctionSettings().getType();
-            SPDLOG_INFO("Creating cost function of type {} for TSP session {}", std::to_string(type), session_id);
+            SPDLOG_INFO("Creating cost function of type {} for TSP session {}", type, session_id);
             switch (type) {
                 case TspCostFunctionType::DEFAULT:
                 case TspCostFunctionType::TOTAL_DISTANCE:
                     return std::make_shared<TotalDistanceTspCostFunction>(std::move(distance_matrix), indexLocations(task, distance_matrix));
                 default:
-                    throw std::invalid_argument("Unsupported tsp cost function type: " + std::to_string(type));
+                    SPDLOG_ERROR("Unsupported tsp cost function type provided for session id {}", session_id);
+                    throw std::invalid_argument("Unsupported tsp cost function type");
             }
         }
 
         TspEstimator::ValidatorPtr createValidator(const TspTask &task, router::DistanceMatrix distance_matrix, const TspSolutionController::SessionId &session_id) {
             TspValidatorType type = task.getSolverSettings().getEstimatorSettings().getValidatorSettings().getType();
-            SPDLOG_INFO("Creating validator of type {} for TSP session {}", std::to_string(type), session_id);
+            SPDLOG_INFO("Creating validator of type {} for TSP session {}", type, session_id);
             switch (type) {
                 case TspValidatorType::FAIL_ON_ANY_VIOLATION:
                 case TspValidatorType::DEFAULT:
                     return std::make_shared<NopTspValidator>();
                 default:
-                    throw std::invalid_argument("Unsupported tsp validator type: " + std::to_string(type));
+                    SPDLOG_ERROR("Unsupported tsp validator type provided for session id {}", session_id);
+                    throw std::invalid_argument("Unsupported tsp validator type");
             }
         }
     }
@@ -103,7 +113,8 @@ namespace assfire::tsp {
         TspEstimator estimator(validator, cost_function);
         EngineTspSolutionController::AlgorithmPtr algorithm = createAlgorithm(task, estimator, session_id);
 
-        std::unique_ptr<EngineTspSolutionController> solution_controller = std::make_unique<EngineTspSolutionController>(session_id, task, algorithm, std::move(saved_state), std::move(solution_listener));
+        std::unique_ptr<EngineTspSolutionController> solution_controller = std::make_unique<EngineTspSolutionController>(session_id, task, algorithm, std::move(saved_state),
+                                                                                                                         std::move(solution_listener));
         solution_controller->start();
         return TspSolutionSession(std::move(solution_controller));
     }

@@ -10,7 +10,7 @@ set(SOURCES
         assfire/tsp/worker/impl/RedisTaskProvider.cpp
         assfire/tsp/worker/impl/AmqpInterruptListener.cpp
         assfire/tsp/worker/impl/AmqpStatusPublisher.cpp
-        assfire/tsp/worker/impl/AmqpTaskQueueListener.cpp)
+        assfire/tsp/worker/impl/AmqpTaskQueueListener.cpp assfire/tsp/worker/impl/RedisSavedStateManager.cpp)
 
 set(HEADERS
         assfire/tsp/worker/SolutionPublisher.hpp
@@ -31,7 +31,7 @@ set(HEADERS
         assfire/tsp/worker/impl/RedisTaskProvider.hpp
         assfire/tsp/worker/impl/AmqpInterruptListener.hpp
         assfire/tsp/worker/impl/AmqpStatusPublisher.hpp
-        assfire/tsp/worker/impl/AmqpTaskQueueListener.hpp)
+        assfire/tsp/worker/impl/AmqpTaskQueueListener.hpp assfire/tsp/worker/impl/RedisSavedStateManager.hpp)
 
 find_package(rabbitmq-c CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
@@ -49,7 +49,7 @@ else ()
     set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq-static)
 endif ()
 
-target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis ${RABBIT_MQ_TARGETS})
+target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis cxxopts::cxxopts ${RABBIT_MQ_TARGETS})
 
 install(TARGETS assfire-tsp-worker COMPONENT tsp-worker)
 if (ASSFIRE_PACKAGE_BUILD_RPM)
