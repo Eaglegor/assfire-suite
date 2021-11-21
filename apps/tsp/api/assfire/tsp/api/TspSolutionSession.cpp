@@ -27,7 +27,7 @@ namespace assfire::tsp {
         solution_controller->waitFor(milliseconds);
     }
 
-    const TspSolutionSession::Id &TspSolutionSession::getId() const {
+    TspSolutionSession::Id TspSolutionSession::getId() const {
         return solution_controller->getSessionId();
     }
 

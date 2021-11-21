@@ -14,11 +14,11 @@ namespace assfire::tsp {
         }
     }
 
-    std::ostream &tsp::operator<<(std::ostream &str, const TspCost &value) {
+    std::ostream &operator<<(std::ostream &str, const TspCost &value) {
         return str << value.getValue();
     }
 
-    std::ostream &tsp::operator<<(std::ostream &str, const TspCostFunctionType &value) {
+    std::ostream &operator<<(std::ostream &str, const TspCostFunctionType &value) {
         switch (value) {
             case TspCostFunctionType::DEFAULT:
                 return str << "DEFAULT";
@@ -29,7 +29,7 @@ namespace assfire::tsp {
         }
     }
 
-    std::ostream &tsp::operator<<(std::ostream &str, const TspValidatorType &value) {
+    std::ostream &operator<<(std::ostream &str, const TspValidatorType &value) {
         switch(value) {
             case TspValidatorType::DEFAULT:
                 return str << "DEFAULT";

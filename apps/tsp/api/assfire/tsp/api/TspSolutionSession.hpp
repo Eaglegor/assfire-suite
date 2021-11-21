@@ -26,7 +26,7 @@ namespace assfire::tsp {
 
         void waitFor(long milliseconds);
 
-        const Id &getId() const;
+        Id getId() const;
 
     private:
         std::unique_ptr<TspSolutionController> solution_controller;
