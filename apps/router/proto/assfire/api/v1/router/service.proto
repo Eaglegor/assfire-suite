@@ -1,0 +1,51 @@
+syntax="proto3";
+
+package assfire.api.v1.router;
+option go_package = "assfire.org/api/v1/router";
+
+import public "assfire/api/v1/router/concepts.proto";
+import "google/api/annotations.proto";
+
+message GetSingleRouteRequest {
+  assfire.api.v1.concepts.Location origin = 1;
+  assfire.api.v1.concepts.Location destination = 2;
+  RouteProviderSettings settings = 3;
+  RoutingProfile routing_profile = 4;
+}
+
+message ResponseStatus {
+  enum Code {
+    RESPONSE_STATUS_CODE_UNSPECIFIED = 0;
+    RESPONSE_STATUS_CODE_OK = 1;
+    RESPONSE_STATUS_CODE_ERROR = 2;
+  }
+  Code code = 1;
+  string message = 2;
+}
+
+message GetSingleRouteResponse {
+  RouteInfo route_info = 1;
+  ResponseStatus status = 2;
+}
+
+message GetRoutesBatchRequest {
+  repeated assfire.api.v1.concepts.Location origins = 1;
+  repeated assfire.api.v1.concepts.Location destinations = 2;
+  RouteProviderSettings settings = 3;
+  RoutingProfile routing_profile = 4;
+}
+
+message GetRoutesBatchResponse {
+  repeated RouteInfo route_infos = 1;
+  ResponseStatus status = 2;
+}
+
+service RouterService {
+  rpc GetSingleRoute(GetSingleRouteRequest) returns (GetSingleRouteResponse){
+    option (google.api.http) = {
+      get: "/v1/route"
+    };
+  }
+  rpc GetRoutesBatch(GetRoutesBatchRequest) returns (stream GetRoutesBatchResponse) {}
+  rpc GetStreamingRoutesBatch(stream GetRoutesBatchRequest) returns (stream GetRoutesBatchResponse) {}
+}

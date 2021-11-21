@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package assfire.api.v1.tsp;
+option go_package = "assfire.org/api/v1/tsp";
+
+import "assfire/api/v1/router/concepts.proto";
+import "assfire/api/v1/tsp/concepts.proto";
+import "google/api/annotations.proto";
+
+message StartTspRequest {
+  TspTask task = 1;
+}
+
+message StartTspResponse {
+  string task_id = 1;
+}
+
+message StopTspRequest {
+  string task_id = 1;
+  bool get_latest_solution = 2;
+}
+
+message StopTspResponse {
+  TspSolution solution = 1;
+}
+
+message PauseTspRequest {
+  string task_id = 1;
+  bool get_latest_solution = 2;
+}
+
+message PauseTspResponse {
+  TspSolution solution = 1;
+}
+
+message ResumeTspRequest {
+  string task_id = 1;
+}
+
+message ResumeTspResponse {
+}
+
+message GetLatestSolutionRequest {
+  string task_id = 1;
+}
+
+message GetLatestSolutionResponse {
+  TspSolution solution = 1;
+}
+
+message SubscribeForStatusUpdatesRequest {
+  string task_id = 1;
+  int32 throttling_interval_ms = 2;
+}
+
+message TspStatusUpdate {
+  enum Type {
+    TSP_STATUS_UPDATE_TYPE_UNKNOWN = 0;
+    TSP_STATUS_UPDATE_TYPE_STARTED = 1;
+    TSP_STATUS_UPDATE_TYPE_PAUSED = 2;
+    TSP_STATUS_UPDATE_TYPE_FINISHED = 3;
+    TSP_STATUS_UPDATE_TYPE_ERROR = 4;
+    TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION = 5;
+    TSP_STATUS_UPDATE_TYPE_INTERRUPTED = 6;
+    TSP_STATUS_UPDATE_TYPE_IN_PROGRESS = 7;
+  }
+
+  TspCost new_solution_cost = 1;
+  TspValidationResult new_solution_validation_result = 2;
+  Type type = 3;
+  TspCost current_best_cost = 4;
+  TspValidationResult current_best_validation_result = 5;
+  bool is_finished = 6;
+  bool is_error = 7;
+}
+
+message SubscribeForStatusUpdatesResponse {
+  TspStatusUpdate status_update = 1;
+}
+
+service TspService {
+  rpc StartTsp(StartTspRequest) returns (StartTspResponse) {
+    option (google.api.http) = {
+      post: "/v1/optimize/tsp/start"
+    };
+  }
+
+  rpc PauseTsp(PauseTspRequest) returns (PauseTspResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/pause"
+    };
+  }
+
+  rpc ResumeTsp(ResumeTspRequest) returns (ResumeTspResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/resume"
+    };
+  }
+
+  rpc StopTsp(StopTspRequest) returns (StopTspResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/stop"
+    };
+  }
+
+  rpc GetLatestSolution(GetLatestSolutionRequest) returns (GetLatestSolutionResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/solution"
+    };
+  }
+
+  rpc SubscribeForStatusUpdates(SubscribeForStatusUpdatesRequest) returns (stream SubscribeForStatusUpdatesResponse);
+
+}

@@ -1,26 +1,23 @@
 #pragma once
 
-#include <assfire/api/v1/service/router/router.grpc.pb.h>
-#include <assfire/router/MetricsCollector.hpp>
+#include <assfire/api/v1/router/service.grpc.pb.h>
+#include <assfire/router/engine/RouterEngine.hpp>
 #include <memory>
 #include <atomic>
+#include <functional>
 
 namespace assfire::router
 {
-    class RouteProvider;
-
-    class RouterService final : public assfire::api::v1::service::router::RouterService::Service
+    class RouterService final : public assfire::api::v1::router::RouterService::Service
     {
     public:
-        using GetSingleRouteRequest = assfire::api::v1::service::router::GetSingleRouteRequest;
-        using GetSingleRouteResponse = assfire::api::v1::service::router::GetSingleRouteResponse;
-        using GetRoutesBatchRequest = assfire::api::v1::service::router::GetRoutesBatchRequest;
-        using GetRoutesBatchResponse = assfire::api::v1::service::router::GetRoutesBatchResponse;
-        using ResponseStatus = assfire::api::v1::service::router::ResponseStatus;
+        using GetSingleRouteRequest = assfire::api::v1::router::GetSingleRouteRequest;
+        using GetSingleRouteResponse = assfire::api::v1::router::GetSingleRouteResponse;
+        using GetRoutesBatchRequest = assfire::api::v1::router::GetRoutesBatchRequest;
+        using GetRoutesBatchResponse = assfire::api::v1::router::GetRoutesBatchResponse;
+        using ResponseStatus = assfire::api::v1::router::ResponseStatus;
 
         struct Options {
-            MetricsCollector metrics_collector;
-
             bool use_redis = false;
             std::string redis_host;
             std::size_t redis_port;
@@ -38,8 +35,8 @@ namespace assfire::router
         grpc::Status GetStreamingRoutesBatch(grpc::ServerContext *, grpc::ServerReaderWriter<GetRoutesBatchResponse, GetRoutesBatchRequest> *) override;
 
     private:
-        std::unique_ptr<RouteProvider> route_provider;
-        std::atomic_long request_id_counter;
-        MetricsCollector metrics_collector;
+        void processBatchRequest(const GetRoutesBatchRequest& request, const std::function<void(const GetRoutesBatchResponse&)> &consumeResponse);
+
+        std::unique_ptr<RouterEngine> router_engine;
     };
 }

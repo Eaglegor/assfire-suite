@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "assfire.org/api/v1/tsp";
+
+package assfire.api.v1.tsp;
+
+import "assfire/api/v1/tsp/concepts.proto";
+
+message WorkerTask {
+  string task_id = 1;
+  TspTask task = 2;
+}
+
+message WorkerControlSignal {
+  enum Type {
+    WORKER_CONTROL_SIGNAL_TYPE_UNKNOWN = 0;
+    WORKER_CONTROL_SIGNAL_TYPE_PAUSE = 1;
+    WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT = 2;
+  }
+
+  string task_id = 1;
+  Type signal_type = 2;
+}
+
+message WorkerTspStatusUpdate {
+  enum Type {
+    WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN = 0;
+    WORKER_TSP_STATUS_UPDATE_TYPE_STARTED = 1;
+    WORKER_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION = 2;
+    WORKER_TSP_STATUS_UPDATE_TYPE_ERROR = 3;
+    WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED= 4;
+    WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED = 5;
+    WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED = 6;
+    WORKER_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS = 7;
+  }
+
+  string task_id = 1;
+  Type type = 2;
+  TspCost cost = 3;
+  TspValidationResult validation_result = 4;
+}

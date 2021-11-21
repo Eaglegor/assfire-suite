@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package assfire.api.v1.tsp;
+option go_package = "assfire.org/api/v1/tsp";
+
+import "assfire/api/v1/concepts/concepts.proto";
+import "assfire/api/v1/router/concepts.proto";
+
+enum TspAlgorithmType {
+  TSP_ALGORITHM_TYPE_UNSPECIFIED = 0;
+  TSP_ALGORITHM_TYPE_AUTO = 1;
+  TSP_ALGORITHM_TYPE_TWO_OPT = 2;
+  TSP_ALGORITHM_TYPE_TIME_WASTING = 3;
+}
+
+enum TspCostFunctionType {
+  TSP_COST_FUNCTION_TYPE_UNSPECIFIED = 0;
+  TSP_COST_FUNCTION_TYPE_DEFAULT = 1;
+  TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE = 2;
+}
+
+message TotalDistanceTspCostFunctionSettings {
+  double cost_per_km = 1;
+}
+
+message TspCostFunctionSettings {
+  TspCostFunctionType type = 1;
+  TotalDistanceTspCostFunctionSettings total_distance_cost_function_settings = 2;
+}
+
+enum TspValidatorType {
+  TSP_VALIDATOR_TYPE_UNSPECIFIED = 0;
+  TSP_VALIDATOR_TYPE_DEFAULT = 1;
+  TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION = 2;
+}
+
+message TspValidatorSettings {
+  TspValidatorType type = 1;
+}
+
+message TspEstimatorSettings {
+  TspCostFunctionSettings cost_function_settings = 1;
+  TspValidatorSettings validator_settings = 2;
+}
+
+message TspRoutingSettings {
+  assfire.api.v1.router.RouteProviderSettings route_provider_settings = 1;
+  assfire.api.v1.router.RoutingProfile routing_profile = 2;
+}
+
+message TspAlgorithmSettings {
+  TspAlgorithmType algorithm_type = 1;
+}
+
+message TspSolverSettings {
+  TspRoutingSettings routing_settings = 1;
+  TspEstimatorSettings estimator_settings = 2;
+  TspAlgorithmSettings algorithm_settings = 3;
+}
+
+message TspPoint {
+  int32 id = 1;
+  assfire.api.v1.concepts.Location location = 2;
+}
+
+message TspTask {
+  repeated TspPoint points = 1;
+  TspSolverSettings solver_settings = 2;
+}
+
+message TspCost {
+  double value = 1;
+}
+
+message TspValidationResult {
+  bool is_valid = 1;
+}
+
+message TspSolution {
+  repeated int32 optimized_sequence = 1;
+  TspCost cost = 2;
+  TspValidationResult validation_result = 3;
+  bool is_final = 4;
+}

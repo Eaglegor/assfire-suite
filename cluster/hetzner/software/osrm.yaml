@@ -15,8 +15,11 @@
   hosts: localhost
   connection: local
   tasks:
-    - name: Add osrm_role=worker label to osrm worker nodes
+    - name: Add osrm_region label to osrm worker nodes
       shell: kubectl label nodes {{item}} osrm_region={{hostvars[item].osrm_region}} --overwrite
+      with_items: "{{ groups['osrm_nodes'] }}"
+    - name: Add osrm_role=worker label to osrm worker nodes
+      shell: kubectl label nodes {{item}} osrm_role=worker --overwrite
       with_items: "{{ groups['osrm_nodes'] }}"
 
 - name: Ensure OSRM is deployed

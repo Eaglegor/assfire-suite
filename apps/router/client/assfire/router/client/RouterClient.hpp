@@ -2,28 +2,46 @@
 
 #include <memory>
 #include <string>
-#include "DistanceMatrix.hpp"
+#include <assfire/router/api/DistanceMatrix.hpp>
+#include <assfire/router/api/DistanceMatrixCachingPolicy.hpp>
+#include <assfire/router/api/RouterEngineType.hpp>
+#include <assfire/router/api/RoutingProfile.hpp>
+#include <assfire/router/api/RouteProviderSettings.hpp>
+#include "ClientDistanceMatrixFactory.hpp"
+#include "assfire/router/api/RouterApi.hpp"
 
-namespace assfire::router
-{
-    class GrpcClient;
+namespace assfire::router {
+    class ProtobufClient;
 
-    class RouterClient final
-    {
+    class RouterClient : public RouterApi {
     public:
-        enum class RequestStrategy
-        {
-            DIRECT_REQUEST
-        };
         using Port = std::size_t;
 
         RouterClient(const std::string &server_host, Port server_port, bool use_ssl);
 
+        RouterClient(std::unique_ptr<ProtobufClient> client);
+
         ~RouterClient();
 
-        DistanceMatrix createDistanceMatrix(RequestStrategy) const;
+        DistanceMatrix createDistanceMatrix(RouterEngineType engine_type,
+                                            DistanceMatrixCachingPolicy caching_policy,
+                                            const RoutingProfile &routing_profile,
+                                            const RouteProviderSettings &settings,
+                                            DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY) const override;
+
+        RouteInfo getRouteInfo(const Location &origin,
+                               const Location &destination,
+                               RouterEngineType engine_type,
+                               const RoutingProfile &routing_profile,
+                               const RouteProviderSettings &settings) const override;
+
+        RouteDetails getRouteDetails(const Location &origin,
+                                     const Location &destination,
+                                     RouterEngineType engine_type,
+                                     const RoutingProfile &routing_profile,
+                                     const RouteProviderSettings &settings) const override;
 
     private:
-        std::unique_ptr<GrpcClient> transport_client;
+        ClientDistanceMatrixFactory distance_matrix_factory;
     };
 }

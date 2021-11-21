@@ -1,49 +1,45 @@
 #include "RouterService.hpp"
 #include <spdlog/spdlog.h>
-#include <assfire/router/providers/crowflight/CrowflightRouteProvider.hpp>
-#include <assfire/router/providers/osrm/HttpOsrmRouteProvider.hpp>
-#include <assfire/router/providers/euclidean/EuclideanRouteProvider.hpp>
-#include <assfire/router/providers/random/RandomRouteProvider.hpp>
-#include <assfire/router/cache/RedisRouteProviderProxy.hpp>
-#include <assfire/router/CompositeRouteProvider.hpp>
+#include <assfire/api/v1/router/translators/Translators.hpp>
+#include <assfire/api/v1/concepts/translators/Translators.hpp>
+#include "assfire/router/engine/DefaultRedisSerializer.hpp"
 #include <random>
 
+using namespace assfire;
 using namespace assfire::router;
 
-RouterService::RouterService(const Options &options) :
-        request_id_counter(0)
-{
-    std::unique_ptr<CompositeRouteProvider> router = std::make_unique<CompositeRouteProvider>();
-    router->addProvider(RouteProvider::RoutingOptions::CROWFLIGHT, std::make_unique<CrowflightRouteProvider>(options.metrics_collector));
-    router->addProvider(RouteProvider::RoutingOptions::EUCLIDEAN, std::make_unique<EuclideanRouteProvider>(options.metrics_collector));
-    router->addProvider(RouteProvider::RoutingOptions::RANDOM, std::make_unique<RandomRouteProvider>(options.metrics_collector));
-    router->addProvider(RouteProvider::RoutingOptions::OSRM, std::make_unique<HttpOsrmRouteProvider>(options.osrm_endpoint, options.metrics_collector));
-
-    if (options.use_redis) {
-        SPDLOG_INFO("Using redis caching layer");
-        route_provider = std::make_unique<RedisRouteProviderProxy>(std::move(router), options.redis_host, options.redis_port, options.metrics_collector);
-    } else {
-        SPDLOG_INFO("No caching layer is enabled");
-        route_provider = std::move(router);
-    }
-
-    metrics_collector = options.metrics_collector;
+namespace {
+    constexpr const char* UNIDENTIFIED_REQUEST_ID = "?";
 }
 
-grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const GetSingleRouteRequest *request, GetSingleRouteResponse *response)
-{
+RouterService::RouterService(const Options &options) {
+    RoutingContext routing_context;
+    routing_context.getOsrmContext().setEndpoint(options.osrm_endpoint);
+    routing_context.getRedisContext().setCacheEnabled(options.use_redis);
+    routing_context.getRedisContext().setHost(options.redis_host);
+    routing_context.getRedisContext().setPort(options.redis_port);
+    routing_context.getRedisContext().setSerializerSupplier([](RouterEngineType engine_type, const RoutingProfile &profile, const RouteProviderSettings &settings) {
+        return std::make_unique<DefaultRedisSerializer>(engine_type, profile, settings);
+    });
+
+    router_engine = std::make_unique<RouterEngine>(std::move(routing_context));
+}
+
+grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const GetSingleRouteRequest *request, GetSingleRouteResponse *response) {
     try {
-        metrics_collector.addRequestedRoutes(1, MetricsCollector::RequestMode::SINGLE);
-        metrics_collector.routesRequestStopwatch(1, MetricsCollector::RequestMode::SINGLE);
-        long request_id = request_id_counter++;
+        const auto &request_id = UNIDENTIFIED_REQUEST_ID;
         SPDLOG_INFO("Single route request received, id = {}", request_id);
-        try {
-            response->CopyFrom(route_provider->getRoute(*request, request_id));
-        }
-        catch (const std::invalid_argument &e) {
-            SPDLOG_ERROR("Exception while processing single route request: {}", e.what());
-            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
-        }
+        DistanceMatrix distance_matrix = router_engine->createDistanceMatrix(
+                RouterEngineTypeTranslator::fromProto(request->settings().router_engine_type()),
+                DistanceMatrixCachingPolicy::NO_CACHING,
+                RoutingProfileTranslator::fromProto(request->routing_profile()),
+                RouteProviderSettingsTranslator::fromProto(request->settings())
+        );
+
+        RouteDetails route_details = distance_matrix.getRouteDetails(LocationTranslator::fromProto(request->origin()), LocationTranslator::fromProto(request->destination()));
+
+        response->mutable_status()->set_code(api::v1::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
+        response->mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(request->origin(), request->destination(), route_details));
 
         SPDLOG_INFO("Route request {} processing finished", request_id);
         return grpc::Status::OK;
@@ -53,22 +49,12 @@ grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const G
     }
 }
 
-grpc::Status RouterService::GetRoutesBatch(grpc::ServerContext *context, const GetRoutesBatchRequest *request, grpc::ServerWriter<GetRoutesBatchResponse> *stream)
-{
+grpc::Status RouterService::GetRoutesBatch(grpc::ServerContext *context, const GetRoutesBatchRequest *request, grpc::ServerWriter<GetRoutesBatchResponse> *stream) {
     try {
-        metrics_collector.addRequestedRoutes(request->origins_size() * request->destinations_size(),
-                                             MetricsCollector::RequestMode::BATCH);
-        metrics_collector.routesRequestStopwatch(request->origins_size() * request->destinations_size(),
-                                                 MetricsCollector::RequestMode::BATCH);
-        long request_id = request_id_counter++;
+        const auto &request_id = UNIDENTIFIED_REQUEST_ID;
         SPDLOG_INFO("Routes batch request received, id = {}", request_id);
-        try {
-            route_provider->getRoutesBatch(*request, [stream](const GetRoutesBatchResponse result) { stream->Write(result); }, request_id);
-        }
-        catch (const std::invalid_argument &e) {
-            SPDLOG_ERROR("Error while processing batch route request: {}", e.what());
-            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
-        }
+
+        processBatchRequest(*request, [&](const auto &response) { stream->Write(response); });
 
         SPDLOG_INFO("Route request {} processing finished", request_id);
         return grpc::Status::OK;
@@ -78,32 +64,69 @@ grpc::Status RouterService::GetRoutesBatch(grpc::ServerContext *context, const G
     }
 }
 
-grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context, grpc::ServerReaderWriter<GetRoutesBatchResponse, GetRoutesBatchRequest> *stream)
-{
+grpc::Status RouterService::GetStreamingRoutesBatch(grpc::ServerContext *context, grpc::ServerReaderWriter<GetRoutesBatchResponse, GetRoutesBatchRequest> *stream) {
     try {
-        long request_id = request_id_counter++;
-        SPDLOG_INFO("Streaming routes batch request received, id = {}", request_id);
-        try {
-            GetRoutesBatchRequest request;
-            while (stream->Read(&request)) {
-                metrics_collector.addRequestedRoutes(request.origins_size() * request.destinations_size(),
-                                                     MetricsCollector::RequestMode::STREAMING_BATCH);
-                metrics_collector.routesRequestStopwatch(request.origins_size() * request.destinations_size(),
-                                                         MetricsCollector::RequestMode::STREAMING_BATCH);
-                route_provider->getRoutesBatch(request, [stream](const GetRoutesBatchResponse &result) { stream->Write(result); }, request_id);
-            }
-        }
-        catch (const std::invalid_argument &e) {
-            SPDLOG_ERROR("Error while processing streaming batch route request: {}", e.what());
-            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
-        }
+        SPDLOG_INFO("Streaming routes batch request initiated");
+        GetRoutesBatchRequest request;
+        while (stream->Read(&request)) {
+            const auto &request_id = UNIDENTIFIED_REQUEST_ID;
 
-        SPDLOG_INFO("Route request {} processing finished", request_id);
+            SPDLOG_INFO("Streaming routes batch request received, id = {}", request_id);
+
+            processBatchRequest(request, [&](const auto &response) { stream->Write(response); });
+
+            SPDLOG_INFO("Streaming routes batch request {} processed", request_id);
+        }
+        SPDLOG_INFO("Streaming routes batch request processing finished");
         return grpc::Status::OK;
     } catch (const std::exception &e) {
         SPDLOG_ERROR("Error while processing streaming batch route request: {}", e.what());
         return grpc::Status(grpc::StatusCode::UNKNOWN, e.what());
     }
 }
+
+void RouterService::processBatchRequest(const RouterService::GetRoutesBatchRequest &request, const std::function<void(const GetRoutesBatchResponse &)> &consumeResponse) {
+    DistanceMatrix distance_matrix = router_engine->createDistanceMatrix(
+            RouterEngineTypeTranslator::fromProto(request.settings().router_engine_type()),
+            DistanceMatrixCachingPolicy::AUTO,
+            RoutingProfileTranslator::fromProto(request.routing_profile()),
+            RouteProviderSettingsTranslator::fromProto(request.settings())
+    );
+
+    std::vector<IndexedLocation> indexed_origins;
+    std::vector<IndexedLocation> indexed_destinations;
+
+    indexed_origins.reserve(request.origins().size());
+    indexed_destinations.reserve(request.destinations().size());
+
+    for (const auto &from_loc : request.origins()) {
+        indexed_origins.push_back(distance_matrix.addLocation(LocationTranslator::fromProto(from_loc), DistanceMatrixEngine::LocationType::ORIGIN));
+    }
+
+    for (const auto &to_loc : request.destinations()) {
+        indexed_destinations.push_back(distance_matrix.addLocation(LocationTranslator::fromProto(to_loc), DistanceMatrixEngine::LocationType::DESTINATION));
+    }
+
+    for (const auto &from_loc : indexed_origins) {
+        for (const auto &to_loc : indexed_destinations) {
+            RouteDetails route_details = distance_matrix.getRouteDetails(from_loc, to_loc);
+
+            if (from_loc == to_loc) {
+                continue;
+            }
+
+            GetRoutesBatchResponse response;
+
+            response.mutable_status()->set_code(api::v1::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
+            api::v1::router::RouteInfo *route_info = response.add_route_infos();
+            route_info->CopyFrom(RouteInfoTranslator::toProto(from_loc.getRawLocation(), to_loc.getRawLocation(), route_details));
+
+            consumeResponse(response);
+        }
+    }
+
+
+}
+
 
 RouterService::~RouterService() = default;

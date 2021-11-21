@@ -82,13 +82,6 @@ int main(int argc, char **argv)
     routing_server_options.redis_host = redis_host;
     routing_server_options.redis_port = redis_port;
 
-    if (metrics_enabled) {
-        routing_server_options.metrics_collector = MetricsCollector(std::make_shared<prometheus::Exposer>(
-                metrics_exposer_bind_address,
-                metrics_exposer_uri,
-                metrics_exposer_threads_count));
-    }
-
     routing_server_options.osrm_endpoint = osrm_endpoint;
 
     RouterService service(routing_server_options);

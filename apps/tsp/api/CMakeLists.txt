@@ -1,30 +1,31 @@
-find_package(protobuf CONFIG REQUIRED)
-find_package(gRPC CONFIG REQUIRED)
-get_target_property(gRPC_CPP_PLUGIN_EXECUTABLE gRPC::grpc_cpp_plugin LOCATION)
-
-set(IMPORT_DIRS
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/api-model
-        ${GOOGLE_PROTOBUF_IMPORT_DIR})
-set(PROTOS
-        assfire/api/v1/service/tsp/tsp.proto
+set(SOURCES
+        assfire/tsp/api/TspSolutionSession.cpp
+        assfire/tsp/api/TspSolutionListener.cpp
+        assfire/tsp/api/io/Streams.cpp
         )
+set(HEADERS
+        assfire/tsp/api/TspSolution.hpp
+        assfire/tsp/api/TspTask.hpp
+        assfire/tsp/api/TspPoint.hpp
+        assfire/tsp/api/TspValidationResult.hpp
+        assfire/tsp/api/TspCost.hpp
+        assfire/tsp/api/TspAlgorithmType.hpp
+        assfire/tsp/api/TspSolverSettings.hpp
+        assfire/tsp/api/TspCostFunctionType.hpp
+        assfire/tsp/api/TspCostFunctionSettings.hpp
+        assfire/tsp/api/TspValidatorType.hpp
+        assfire/tsp/api/TspAlgorithmSettings.hpp
+        assfire/tsp/api/TspValidatorSettings.hpp
+        assfire/tsp/api/TspEstimatorSettings.hpp
+        assfire/tsp/api/TspSolverApi.hpp
+        assfire/tsp/api/TspRoutingSettings.hpp
+        assfire/tsp/api/TspSolutionSession.hpp
+        assfire/tsp/api/TspSolutionController.hpp
+        assfire/tsp/api/TspSolutionListener.hpp
+        assfire/tsp/api/io/Streams.hpp)
 
-add_library(assfire-tsp-api)
+find_package(spdlog CONFIG REQUIRED)
 
-protobuf_generate(TARGET assfire-tsp-api
-        LANGUAGE cpp
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp)
-
-protobuf_generate(TARGET assfire-tsp-api
-        LANGUAGE grpc
-        PROTOS ${PROTOS}
-        IMPORT_DIRS ${IMPORT_DIRS}
-        PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/api/cpp
-        PLUGIN protoc-gen-grpc=${gRPC_CPP_PLUGIN_EXECUTABLE}
-        GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc)
-
-target_include_directories(assfire-tsp-api PUBLIC ${CMAKE_BINARY_DIR}/api/cpp)
-target_link_libraries(assfire-tsp-api PUBLIC gRPC::grpc++ protobuf::libprotobuf assfire-api-model)
+add_library(assfire-tsp-api ${SOURCES} ${HEADERS})
+target_link_libraries(assfire-tsp-api PUBLIC spdlog::spdlog assfire-router-api assfire-scheduler-api)
+target_include_directories(assfire-tsp-api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

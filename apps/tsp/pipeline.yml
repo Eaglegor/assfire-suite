@@ -1,10 +1,10 @@
 stages:
   - build
   - test
-  - rpm
-  - docker
-  - publish
-  - deploy
+#  - rpm
+#  - docker
+#  - publish
+#  - deploy
 
 variables:
   CMAKE_OPTIONS: |
@@ -13,8 +13,9 @@ variables:
     -DCMAKE_BUILD_TYPE=Release
     -DASSFIRE_GENERATE_GRPC_GATEWAYS=True
     -DASSFIRE_APPS_BUILD_ALL=OFF
-    -DASSFIRE_APPS_BUILD_ROUTER=ON
     -DASSFIRE_APPS_BUILD_TSP=ON
+    -DASSFIRE_APPS_BUILD_SCHEDULER=ON
+    -DASSFIRE_APPS_BUILD_ROUTER=ON
 
 .configure:
   before_script:
@@ -46,104 +47,104 @@ test:
   needs:
     - build
 
-.install-service:
-  before_script:
-    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-tsp.rpm
-    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-tsp-grpc-gateway.rpm
+#.install-service:
+#  before_script:
+#    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-scheduler.rpm
+#    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-scheduler-grpc-gateway.rpm
 
-helm-lint:
-  image: $BUILD_IMAGE_NAME
-  stage: test
-  script:
-    - cd out/apps/tsp/helm/assfire-tsp
-    - helm lint .
+#helm-lint:
+#  image: $BUILD_IMAGE_NAME
+#  stage: test
+#  script:
+#    - cd out/apps/scheduler/helm/assfire-scheduler
+#    - helm lint .
 
-rpm:
-  image: $BUILD_IMAGE_NAME
-  stage: rpm
-  artifacts:
-    paths:
-      - out/*.rpm
-  dependencies:
-    - build
-  needs:
-    - build
-  script:
-    - cd out
-    - cmake -DASSFIRE_PACKAGE_BUILD_RPM=ON $CMAKE_OPTIONS ../
-    - make package
+#rpm:
+#  image: $BUILD_IMAGE_NAME
+#  stage: rpm
+#  artifacts:
+#    paths:
+#      - out/*.rpm
+#  dependencies:
+#    - build
+#  needs:
+#    - build
+#  script:
+#    - cd out
+#    - cmake -DASSFIRE_PACKAGE_BUILD_RPM=ON $CMAKE_OPTIONS ../
+#    - make package
 
-docker-server:
-  image: docker:stable
-  services:
-    - docker:dind
-  variables:
-    IMAGE_TAG_NAME: latest
-  stage: docker
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build out -f out/apps/tsp/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-tsp:$TEMP_IMAGE_TAG_NAME
-    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-tsp:$TEMP_IMAGE_TAG_NAME
-  dependencies:
-    - build
-    - rpm
-  needs:
-    - build
-    - test
-    - rpm
+#docker-server:
+#  image: docker:stable
+#  services:
+#    - docker:dind
+#  variables:
+#    IMAGE_TAG_NAME: latest
+#  stage: docker
+#  script:
+#    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#    - docker build out -f out/apps/scheduler/Dockerfile -t $CI_REGISTRY/assfire/assfire-suite/assfire-scheduler:$TEMP_IMAGE_TAG_NAME
+#    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-scheduler:$TEMP_IMAGE_TAG_NAME
+#  dependencies:
+#    - build
+#    - rpm
+#  needs:
+#    - build
+#    - test
+#    - rpm
 
-docker-server-push:
-  image: docker:stable
-  services:
-    - docker:dind
-  stage: publish
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-tsp:$TEMP_IMAGE_TAG_NAME
-    - docker tag $CI_REGISTRY/assfire/assfire-suite/assfire-tsp:$TEMP_IMAGE_TAG_NAME $CI_REGISTRY/assfire/assfire-suite/assfire-tsp:${APPLICATION_VERSION}
-    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-tsp:${APPLICATION_VERSION}
-  only:
-    refs:
-      - tags
-  needs:
-    - docker-server
+#docker-server-push:
+#  image: docker:stable
+#  services:
+#    - docker:dind
+#  stage: publish
+#  script:
+#    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#    - docker pull $CI_REGISTRY/assfire/assfire-suite/assfire-scheduler:$TEMP_IMAGE_TAG_NAME
+#    - docker tag $CI_REGISTRY/assfire/assfire-suite/assfire-scheduler:$TEMP_IMAGE_TAG_NAME $CI_REGISTRY/assfire/assfire-suite/assfire-scheduler:${APPLICATION_VERSION}
+#    - docker push $CI_REGISTRY/assfire/assfire-suite/assfire-scheduler:${APPLICATION_VERSION}
+#  only:
+#    refs:
+#      - tags
+#  needs:
+#    - docker-server
 
-helm:
-  image: $BUILD_IMAGE_NAME
-  variables:
-    HELM_EXPERIMENTAL_OCI: 1
-  stage: publish
-  only:
-    - tags
-  script:
-    - cd out/apps/tsp/helm/assfire-tsp/
-    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm chart save . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-tsp:${APPLICATION_VERSION}
-    - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-tsp:${APPLICATION_VERSION}
-  dependencies:
-    - build
-  needs:
-    - build
-    - docker-server
+#helm:
+#  image: $BUILD_IMAGE_NAME
+#  variables:
+#    HELM_EXPERIMENTAL_OCI: 1
+#  stage: publish
+#  only:
+#    - tags
+#  script:
+#    - cd out/apps/scheduler/helm/assfire-scheduler/
+#    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#    - helm chart save . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-scheduler:${APPLICATION_VERSION}
+#    - helm chart push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-scheduler:${APPLICATION_VERSION}
+#  dependencies:
+#    - build
+#  needs:
+#    - build
+#    - docker-server
 
-deploy:
-  only:
-    - tags
-  when: manual
-  variables:
-    HELM_EXPERIMENTAL_OCI: 1
-  tags:
-    - assfire-deployment-node
-  stage:
-    deploy
-  script:
-    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm chart pull $CI_REGISTRY/assfire/assfire-suite/helm/assfire-tsp:${APPLICATION_VERSION}
-    - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-tsp:${APPLICATION_VERSION}
-    - helm upgrade -i assfire-tsp -n assfire ./assfire-tsp
-  dependencies:
-    - docker-server-push
-    - helm
-  needs:
-    - docker-server-push
-    - helm
+#deploy:
+#  only:
+#    - tags
+#  when: manual
+#  variables:
+#    HELM_EXPERIMENTAL_OCI: 1
+#  tags:
+#    - assfire-deployment-node
+#  stage:
+#    deploy
+#  script:
+#    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#    - helm chart pull $CI_REGISTRY/assfire/assfire-suite/helm/assfire-scheduler:${APPLICATION_VERSION}
+#    - helm chart export $CI_REGISTRY/assfire/assfire-suite/helm/assfire-scheduler:${APPLICATION_VERSION}
+#    - helm upgrade -i assfire-scheduler -n assfire ./assfire-scheduler
+#  dependencies:
+#    - docker-server-push
+#    - helm
+#  needs:
+#    - docker-server-push
+#    - helm

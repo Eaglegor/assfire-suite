@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{.Release.Namespace}}
+  name: {{.Release.Name}}
+  labels:
+    assfire_app: {{.Release.Name}}-server
+spec:
+  replicas: {{.Values.replicas}}
+  selector:
+    matchLabels:
+      assfire_app: {{.Release.Name}}-server
+  template:
+    metadata:
+      labels:
+        assfire_app: {{.Release.Name}}-server
+    spec:
+      nodeSelector:
+        assfire_role: calculation-node
+      containers:
+        - name: assfire-scheduler-server
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 50051
+            - containerPort: 8081
+          command: [ "assfire-scheduler-server" ]
+          args:
+            - "--metrics-enabled={{.Values.metrics_enabled}}"
+            - "--log-level={{.Values.log_level}}"
+            - "--router-host={{.Values.router_host}}"
+            - "--router-port={{.Values.router_port}}"
+            - "--router-use-ssl={{.Values.router_use_ssl}}"
+        - name: assfire-scheduler-grpc-gateway
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 8082
+          command: [ "assfire-scheduler-grpc-gateway" ]
+      imagePullSecrets:
+        - name: assfire-registry-key

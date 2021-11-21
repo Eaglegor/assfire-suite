@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package assfire.api.v1.scheduler;
+option go_package = "assfire.org/api/v1/scheduler";
+
+import "assfire/api/v1/concepts/concepts.proto";
+import "assfire/api/v1/router/concepts.proto";
+
+enum WaybillSchedulingAlgorithmType {
+  WAYBILL_SCHEDULING_ALGORITHM_UNSPECIFIED = 0;
+  WAYBILL_SCHEDULING_ALGORITHM_TYPE_LINEAR = 1;
+  WAYBILL_SCHEDULING_ALGORITHM_TYPE_BILINEAR = 2;
+  WAYBILL_SCHEDULING_ALGORITHM_TYPE_AUTO = 3;
+}
+
+message WaybillSchedulerSettings {
+  assfire.api.v1.router.RouteProviderSettings route_provider_settings = 1;
+}
+
+message TimeWindow {
+  assfire.api.v1.concepts.TimePoint start_time = 1;
+  assfire.api.v1.concepts.TimePoint end_time = 2;
+}
+
+message WaybillAllocation {
+  assfire.api.v1.concepts.TimePoint start_time = 1;
+  assfire.api.v1.concepts.TimePoint end_time = 2;
+  assfire.api.v1.concepts.TimeInterval planned_duration = 3;
+  repeated TimeWindow time_windows = 4;
+  assfire.api.v1.router.RouteInfo next_route = 5;
+  assfire.api.v1.concepts.Location location = 6;
+}
+
+message Waybill {
+  TimeWindow work_shift = 1;
+  repeated WaybillAllocation allocations = 2;
+}
