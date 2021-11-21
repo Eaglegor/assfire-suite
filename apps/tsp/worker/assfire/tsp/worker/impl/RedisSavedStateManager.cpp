@@ -1,15 +1,9 @@
 #include "RedisSavedStateManager.hpp"
 #include <cpp_redis/core/client.hpp>
 #include <spdlog/spdlog.h>
+#include "TspWorkerKeys.hpp"
 
 namespace assfire::tsp {
-
-    namespace {
-        std::string stateKey(const std::string &task_id) {
-            return task_id + ".saved_state";
-        }
-    }
-
     RedisSavedStateManager::RedisSavedStateManager(std::unique_ptr<cpp_redis::client> redis_client)
             : client(std::move(redis_client)) {}
 
@@ -59,4 +53,6 @@ namespace assfire::tsp {
             SPDLOG_ERROR("Failed to clear saved state for task {}: {}", task_id, reply.error());
         }
     }
+
+
 }

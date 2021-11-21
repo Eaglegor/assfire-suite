@@ -5,7 +5,6 @@
 #include <cxxopts.hpp>
 #include <spdlog/spdlog.h>
 #include <assfire/log/spdlog.h>
-#include <assfire/tsp/worker/impl/RabbitMqTaskProcessor.hpp>
 #include <assfire/tsp/worker/impl/StdoutSolutionPublisher.hpp>
 #include <assfire/tsp/worker/impl/RedisSolutionPublisher.hpp>
 #include <assfire/tsp/worker/impl/NopSavedStateManager.hpp>
@@ -15,6 +14,7 @@
 #include <assfire/tsp/worker/impl/RedisTaskProvider.hpp>
 #include <assfire/tsp/worker/impl/RedisSavedStateManager.hpp>
 #include <assfire/tsp/worker/Worker.hpp>
+#include "assfire/tsp/worker/impl/RedisConnectionCallback.hpp"
 
 #include <cpp_redis/core/client.hpp>
 #include <numeric>
@@ -98,49 +98,26 @@ int main(int argc, char **argv) {
         std::unique_ptr<assfire::router::RouterApi> router =
                 std::make_unique<assfire::router::RouterClient>(router_host, router_port, use_ssl_for_router);
 
+        SPDLOG_INFO("Creating redis client for solution publisher");
+        std::unique_ptr<cpp_redis::client> redis_client =
+                std::make_unique<cpp_redis::client>();
+
+        SPDLOG_INFO("Redis client connecting to {}:{}...", redis_host, redis_port);
+        redis_client->connect(redis_host, redis_port, RedisConnectionCallback("RedisSolutionPublisher"));
+
         SPDLOG_INFO("Creating solution publisher");
         std::unique_ptr<assfire::tsp::SolutionPublisher> solution_publisher =
-                std::make_unique<assfire::tsp::RedisSolutionPublisher>(redis_host, redis_port);
+                std::make_unique<assfire::tsp::RedisSolutionPublisher>(std::move(redis_client));
 
         SPDLOG_INFO("Creating TSP solver");
         std::unique_ptr<assfire::tsp::TspSolverEngine> tsp_solver =
                 std::make_unique<assfire::tsp::TspSolverEngine>(std::move(router));
 
         SPDLOG_INFO("Creating redis client for saved state manager");
-        std::unique_ptr<cpp_redis::client> redis_client =
-                std::make_unique<cpp_redis::client>();
+        redis_client = std::make_unique<cpp_redis::client>();
 
         SPDLOG_INFO("Redis client connecting to {}:{}...", redis_host, redis_port);
-        redis_client->connect(redis_host, redis_port, [](const std::string &host, std::size_t port, cpp_redis::client::connect_state status) {
-            std::string string_status;
-            switch (status) {
-                case cpp_redis::client::connect_state::dropped:
-                    string_status = "DROPPED";
-                    break;
-                case cpp_redis::client::connect_state::start:
-                    string_status = "START";
-                    break;
-                case cpp_redis::client::connect_state::sleeping:
-                    string_status = "SLEEPING";
-                    break;
-                case cpp_redis::client::connect_state::ok:
-                    string_status = "OK";
-                    break;
-                case cpp_redis::client::connect_state::failed:
-                    string_status = "FAILED";
-                    break;
-                case cpp_redis::client::connect_state::lookup_failed:
-                    string_status = "LOOKUP_FAILED";
-                    break;
-                case cpp_redis::client::connect_state::stopped:
-                    string_status = "STOPPED";
-                    break;
-                default:
-                    string_status = "UNKNOWN";
-                    break;
-            }
-            SPDLOG_INFO("Redis connection state (saved state manager) for {}:{} has changed to {}", host, port, string_status);
-        });
+        redis_client->connect(redis_host, redis_port, RedisConnectionCallback("RedisSavedStateManager"));
 
         SPDLOG_INFO("Creating TSP saved state manager");
         std::unique_ptr<assfire::tsp::SavedStateManager> saved_state_manager =
@@ -150,36 +127,7 @@ int main(int argc, char **argv) {
         redis_client = std::make_unique<cpp_redis::client>();
 
         SPDLOG_INFO("Redis client connecting to {}:{}...", redis_host, redis_port);
-        redis_client->connect(redis_host, redis_port, [](const std::string &host, std::size_t port, cpp_redis::client::connect_state status) {
-            std::string string_status;
-            switch (status) {
-                case cpp_redis::client::connect_state::dropped:
-                    string_status = "DROPPED";
-                    break;
-                case cpp_redis::client::connect_state::start:
-                    string_status = "START";
-                    break;
-                case cpp_redis::client::connect_state::sleeping:
-                    string_status = "SLEEPING";
-                    break;
-                case cpp_redis::client::connect_state::ok:
-                    string_status = "OK";
-                    break;
-                case cpp_redis::client::connect_state::failed:
-                    string_status = "FAILED";
-                    break;
-                case cpp_redis::client::connect_state::lookup_failed:
-                    string_status = "LOOKUP_FAILED";
-                    break;
-                case cpp_redis::client::connect_state::stopped:
-                    string_status = "STOPPED";
-                    break;
-                default:
-                    string_status = "UNKNOWN";
-                    break;
-            }
-            SPDLOG_INFO("Redis connection state (task provider) for {}:{} has changed to {}", host, port, string_status);
-        });
+        redis_client->connect(redis_host, redis_port, RedisConnectionCallback("RedisTaskProvider"));
 
         SPDLOG_INFO("Creating TSP task provider");
         std::unique_ptr<assfire::tsp::TaskProvider> task_provider =

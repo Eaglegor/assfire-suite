@@ -14,7 +14,8 @@ namespace assfire::tsp {
 
     private:
         struct State {
-            State(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id);
+            State(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id, bool auto_delete = false);
+
             ~State();
 
             std::string name;
@@ -24,12 +25,21 @@ namespace assfire::tsp {
             int channel_id;
         };
 
+        struct ListenerState : public State {
+            ListenerState(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id,
+                          const std::string &consumer_tag, bool auto_delete = false);
+
+            ~ListenerState();
+
+            std::string consumer_tag;
+        };
+
     public:
         class Publisher {
         public:
-            Publisher(const std::string& name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id);
+            Publisher(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id, bool auto_delete = false);
 
-            void publish(void* bytes, int len);
+            void publish(void *bytes, int len);
 
         private:
             std::shared_ptr<State> state;
@@ -37,11 +47,14 @@ namespace assfire::tsp {
 
         class Listener {
         public:
-            Listener(const std::string& name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id);
-            void next(const MessageCallback& message_callback);
+            Listener(const std::string &name, const amqp_connection_state_t &connection, const std::string &queue_name, const std::string &exchange_name, int channel_id, bool auto_delete = false);
+
+            virtual ~Listener();
+
+            void next(const MessageCallback &message_callback);
 
         private:
-            std::shared_ptr<State> state;
+            std::shared_ptr<ListenerState> state;
         };
 
         explicit RabbitMqConnector(const std::string &name);
@@ -49,10 +62,12 @@ namespace assfire::tsp {
         virtual ~RabbitMqConnector();
 
         void connect(const std::string &host, int port, const std::string &login, const std::string &password);
-        void listen(const std::string &queue_name, const std::string &exchange_name, int channel_id, const MessageCallback& message_callback);
-        Listener listen(const std::string &queue_name, const std::string &exchange_name, int channel_id);
 
-        Publisher publish(const std::string &queue_name, const std::string &exchange_name, int channel_id);
+        void listen(const std::string &queue_name, const std::string &exchange_name, int channel_id, const MessageCallback &message_callback, bool auto_delete = false);
+
+        Listener listen(const std::string &queue_name, const std::string &exchange_name, int channel_id, bool auto_delete = false);
+
+        Publisher publish(const std::string &queue_name, const std::string &exchange_name, int channel_id, bool auto_delete = false);
 
         void interrupt();
 

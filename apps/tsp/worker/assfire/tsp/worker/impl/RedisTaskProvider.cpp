@@ -1,53 +1,24 @@
 #include "RedisTaskProvider.hpp"
-#include "TspImplConstants.hpp"
+#include "TspWorkerConstants.hpp"
 #include <cpp_redis/cpp_redis>
 #include <spdlog/spdlog.h>
 #include <chrono>
 #include "assfire/api/v1/tsp/worker.pb.h"
 #include "assfire/api/v1/tsp/translators/TspTaskTranslator.hpp"
+#include "TspWorkerKeys.hpp"
+
+using namespace assfire::api::v1::tsp;
 
 namespace assfire::tsp {
-    namespace {
-        std::string attemptsKey(const std::string &task_id) {
-            return task_id + ".attempts";
-        }
-
-        std::string lockKey(const std::string &task_id) {
-            return task_id + ".lock";
-        }
-
-        std::string stateKey(const std::string &task_id) {
-            return task_id + ".state";
-        }
-
-        std::string keepAliveKey(const std::string &task_id) {
-            return task_id + ".keepAlive";
-        }
-
-        std::string taskKey(const std::string &task_id) {
-            return std::string(TSP_REDIS_WORKER_KEY_PREFIX) + task_id + std::string(TSP_REDIS_WORKER_TASK_KEY_SUFFIX);
-        }
-    }
 
     RedisTaskProvider::RedisTaskProvider(std::unique_ptr<cpp_redis::client> client)
             : client(std::move(client)) {}
 
     std::optional<TspTask> RedisTaskProvider::retrieveTask(const std::string &task_id) {
         auto ftask = client->get(taskKey(task_id));
-        auto fattempts = client->get(attemptsKey(task_id));
         client->sync_commit();
 
         auto task = ftask.get();
-        auto attempts = fattempts.get();
-
-        if (attempts.is_error()) {
-            throw std::runtime_error(attempts.error());
-        }
-        if (!attempts.is_null() && attempts.is_integer()) {
-            if (attempts.as_integer() > TSP_MAX_ATTEMPTS) {
-                return std::nullopt;
-            }
-        }
 
         if (task.is_error()) {
             throw std::runtime_error(task.error());
@@ -63,7 +34,7 @@ namespace assfire::tsp {
     }
 
     bool RedisTaskProvider::tryLock(const std::string &task_id) {
-        auto freply = client->getset(lockKey(task_id), "1");
+        auto freply = client->getset(lockKey(task_id), TSP_WORKER_LOCK_VALUE);
         client->sync_commit();
 
         auto reply = freply.get();
@@ -85,65 +56,50 @@ namespace assfire::tsp {
     }
 
     void RedisTaskProvider::sendStarted(const std::string &task_id) {
-        auto freply = client->incr(attemptsKey(task_id));
-        auto freply1 = client->set(stateKey(task_id), "STARTED");
-        auto fka = client->setex(keepAliveKey(task_id), 30, "1");
-        client->sync_commit();
-
-        auto reply = freply.get();
-        auto reply1 = freply1.get();
-        auto ka = fka.get();
-
-        if (reply.is_error()) {
-            throw std::runtime_error(reply.error());
-        }
-        if (reply1.is_error()) {
-            throw std::runtime_error(reply1.error());
-        }
+        sendStatusSignal(task_id, WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_STARTED);
     }
 
     void RedisTaskProvider::sendError(const std::string &task_id) {
-        auto freply = client->set(stateKey(task_id), "ERROR");
-        auto fka = client->setex(keepAliveKey(task_id), 30, "1");
-        client->sync_commit();
-
-        auto reply = freply.get();
-        auto ka = fka.get();
-
-        if (reply.is_error()) {
-            throw std::runtime_error(reply.error());
-        }
+        sendStatusSignal(task_id, WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_ERROR);
     }
 
     void RedisTaskProvider::sendInProgress(const std::string &task_id) {
-        auto freply = client->set(stateKey(task_id), "IN_PROGRESS");
-        auto fka = client->setex(keepAliveKey(task_id), 30, "1");
-        client->sync_commit();
-
-        auto reply = freply.get();
-        auto ka = fka.get();
-
-        if (reply.is_error()) {
-            throw std::runtime_error(reply.error());
-        }
+        sendStatusSignal(task_id, WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS);
     }
 
-    void RedisTaskProvider::sendStopped(const std::string &task_id) {
-        auto freply = client->set(stateKey(task_id), "STOPPED");
-        auto fka = client->setex(keepAliveKey(task_id), 30, "1");
-        client->sync_commit();
+    void RedisTaskProvider::sendPaused(const std::string &task_id) {
+        sendStatusSignal(task_id, WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED);
+    }
 
-        auto reply = freply.get();
-        auto ka = fka.get();
-
-        if (reply.is_error()) {
-            throw std::runtime_error(reply.error());
-        }
+    void RedisTaskProvider::sendInterrupted(const std::string &task_id) {
+        sendStatusSignal(task_id, WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED);
     }
 
     void RedisTaskProvider::sendFinished(const std::string &task_id) {
-        auto freply = client->set(stateKey(task_id), "FINISHED");
-        auto fka = client->setex(keepAliveKey(task_id), 30, "1");
+        sendStatusSignal(task_id, WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED);
+    }
+
+    bool RedisTaskProvider::isFinished(std::string &task_id) {
+        auto fstate = client->get(statusKey(task_id));
+        client->sync_commit();
+
+        auto state = fstate.get();
+
+        return state.is_string() && state.as_string() == WorkerTspStatusUpdate_Type_Name(WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED);
+    }
+
+    bool RedisTaskProvider::isPaused(std::string &task_id) {
+        auto fstate = client->get(statusKey(task_id));
+        client->sync_commit();
+
+        auto state = fstate.get();
+
+        return state.is_string() && state.as_string() == WorkerTspStatusUpdate_Type_Name(WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED);
+    }
+
+    void RedisTaskProvider::sendStatusSignal(const std::string &task_id, api::v1::tsp::WorkerTspStatusUpdate_Type signal) {
+        auto freply = client->set(statusKey(task_id), WorkerTspStatusUpdate_Type_Name(signal));
+        auto fka = client->setex(keepAliveKey(task_id), TSP_WORKER_KEEPALIVE_EXPIRY_SEC, TSP_WORKER_KEEPALIVE_VALUE);
         client->sync_commit();
 
         auto reply = freply.get();
@@ -154,12 +110,13 @@ namespace assfire::tsp {
         }
     }
 
-    bool RedisTaskProvider::isFinished(std::string &task_id) {
-        auto fstate = client->get(stateKey(task_id));
+    int RedisTaskProvider::incAttempts(const std::string &task_id) {
+        auto freply = client->incr(attemptsKey(task_id));
         client->sync_commit();
-
-        auto state = fstate.get();
-        
-        return state.is_string() && state.as_string() == "FINISHED";
+        auto reply = freply.get();
+        if (reply.is_error()) {
+            throw std::runtime_error(reply.error());
+        };
+        return reply.as_integer();
     }
 }

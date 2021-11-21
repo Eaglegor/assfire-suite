@@ -2,7 +2,8 @@
 #include <assfire/api/v1/tsp/worker.pb.h>
 #include "assfire/api/v1/tsp/translators/TspCostTranslator.hpp"
 #include "assfire/api/v1/tsp/translators/TspValidationResultTranslator.hpp"
-#include "TspImplConstants.hpp"
+#include "TspWorkerConstants.hpp"
+#include "TspWorkerKeys.hpp"
 
 namespace assfire::tsp {
 
@@ -74,9 +75,10 @@ namespace assfire::tsp {
         }
 
         RabbitMqConnector::Publisher publisher = rabbit_mq_connector->publish(
-                std::string("assfire.tsp.") + task_id + std::string(".worker.status"),
-                "amq.topic",
-                TSP_AMQP_STATUS_UPDATE_CHANNEL_ID
+                statusQueueName(task_id),
+                TSP_WORKER_AMQP_STATUS_EXCHANGE,
+                TSP_WORKER_AMQP_STATUS_CHANNEL,
+                true
         );
 
         {

@@ -13,8 +13,4 @@ namespace assfire::tsp {
         }
         std::cout << std::endl;
     }
-
-    void StdoutSolutionPublisher::onError(const std::string &task_id) {
-        std::cout << "Got error for task " << task_id << std::endl;
-    }
 }

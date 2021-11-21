@@ -3,6 +3,7 @@
 #include "assfire/tsp/engine/TspAlgorithmStateContainer.hpp"
 #include "assfire/tsp/api/TspSolutionListener.hpp"
 #include "assfire/tsp/engine/TspSolverEngine.hpp"
+#include "impl/TspWorkerConstants.hpp"
 #include <condition_variable>
 #include <atomic>
 #include <chrono>
@@ -44,13 +45,23 @@ namespace assfire::tsp {
                 continue;
             }
 
-            if(task_provider->isFinished(task_id)) {
-                SPDLOG_INFO("Task {} is already finished", task_id);
-                task_provider->unlock(task_id);
-                continue;
-            }
 
             try {
+                if (task_provider->isFinished(task_id)) {
+                    SPDLOG_INFO("Task {} is already finished", task_id);
+                    task_provider->unlock(task_id);
+                    continue;
+                }
+
+                if (!task_provider->isPaused(task_id)) {
+                    int attempts = task_provider->incAttempts(task_id);
+                    if (attempts >= TSP_WORKER_MAX_ATTEMPTS) {
+                        SPDLOG_INFO("Max attempts reached for task {}: {} >= {}", task_id, attempts, TSP_WORKER_MAX_ATTEMPTS);
+                        task_provider->unlock(task_id);
+                        continue;
+                    }
+                }
+
                 SPDLOG_DEBUG("Trying to retrieve task {} from storage", task_id);
                 std::optional<TspTask> task = task_provider->retrieveTask(task_id);
                 if (!task) throw std::runtime_error("Failed to retrieve task from storage");
@@ -103,7 +114,7 @@ namespace assfire::tsp {
                             SPDLOG_INFO("Got PAUSE signal for task {}", task_id);
                             session.pause();
                             status_publisher->publishPaused(task_id);
-                            task_provider->sendStopped(task_id);
+                            task_provider->sendPaused(task_id);
                             done = true;
                             cv.notify_all();
                             break;
@@ -111,7 +122,7 @@ namespace assfire::tsp {
                             SPDLOG_INFO("Got INTERRUPT signal for task {}", task_id);
                             session.interrupt();
                             status_publisher->publishInterrupted(task_id);
-                            task_provider->sendStopped(task_id);
+                            task_provider->sendPaused(task_id);
                             saved_state_manager->clearState(task_id);
                             done = true;
                             cv.notify_all();

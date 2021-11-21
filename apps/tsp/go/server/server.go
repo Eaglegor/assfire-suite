@@ -30,6 +30,41 @@ var (
 	rabbitPassword = flag.String("rabbit-password", "guest", "Rabbit MQ password")
 )
 
+const (
+	PauseSignal     = iota
+	InterruptSignal = iota
+
+	RedisPrefix    = "assfire.tsp."
+	TaskSuffix     = ".task"
+	StatusSuffix   = ".status"
+	SolutionSuffix = ".solution"
+
+	TaskExchange      = "amq.direct"
+	InterruptExchange = "amq.topic"
+	StatusExchange    = "amq.topic"
+
+	InterruptQueue    = "assfire.tsp.worker.interrupt"
+	TaskQueue         = "assfire.tsp.worker.task"
+	AmqpPrefix        = "assfire.tsp."
+	StatusQueueSuffix = ".status"
+)
+
+func taskKey(taskId string) string {
+	return fmt.Sprintf("%s%s%s", RedisPrefix, taskId, TaskSuffix)
+}
+
+func statusKey(taskId string) string {
+	return fmt.Sprintf("%s%s%s", RedisPrefix, taskId, StatusSuffix)
+}
+
+func solutionKey(taskId string) string {
+	return fmt.Sprintf("%s%s%s", RedisPrefix, taskId, SolutionSuffix)
+}
+
+func statusQueueName(taskId string) string {
+	return fmt.Sprintf("%s%s%s", AmqpPrefix, taskId, StatusQueueSuffix)
+}
+
 type TspServer struct {
 	tsp.UnimplementedTspServiceServer
 
@@ -42,18 +77,6 @@ type TspServer struct {
 	rabbitControlSignalQueue amqp.Queue
 }
 
-func taskKey(taskName string) string {
-	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":task")
-}
-
-func formatSolutionKey(taskName string) string {
-	return fmt.Sprintf("%s%s%s", "tsp:", taskName, ":solution")
-}
-
-func stateKey(taskName string) string {
-	return taskName + ".state"
-}
-
 func publishTask(ctx context.Context, taskId string, task *tsp.TspTask, redisClient *redis.Client) error {
 	serializedTask, err := proto.Marshal(task)
 	if err == nil {
@@ -64,17 +87,25 @@ func publishTask(ctx context.Context, taskId string, task *tsp.TspTask, redisCli
 	}
 }
 
-func isResumeable(ctx context.Context, taskId string, redisClient *redis.Client) (bool, error) {
-	response := redisClient.Get(ctx, stateKey(taskId))
+func getTaskStatus(ctx context.Context, taskId string, redisClient *redis.Client) (tsp.WorkerTspStatusUpdate_Type, error) {
+	response := redisClient.Get(ctx, statusKey(taskId))
 	if response.Err() != nil {
-		log.Printf("Failed to determine current state for task %s: %v", taskId, response.Err())
-		return false, errors.New("failed to determine current task state")
+		log.Printf("Failed to determine current status for task %s: %v", taskId, response.Err())
+		return tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN, errors.New("failed to determine current task status")
 	}
+	return tsp.WorkerTspStatusUpdate_Type(tsp.WorkerTspStatusUpdate_Type_value[response.String()]), nil
+}
 
-	if response.Val() == "IN_PROGRESS" {
+func isResumeable(ctx context.Context, taskId string, redisClient *redis.Client) (bool, error) {
+	taskStatus, err := getTaskStatus(ctx, taskId, redisClient)
+	if err != nil {
+		log.Printf("Failed to determine task resumeability %s: %v", taskId, err)
+		return false, errors.New("failed to determine task resumeability")
+	}
+	if taskStatus == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS {
 		return false, errors.New("task is already in progress")
 	}
-	if response.Val() == "FINISHED" {
+	if taskStatus == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED {
 		return false, errors.New("task is already finished")
 	}
 
@@ -90,21 +121,19 @@ func hasTask(ctx context.Context, taskId string, redisClient *redis.Client) bool
 }
 
 func loadSolution(ctx context.Context, taskId string, redisClient *redis.Client) (*tsp.TspSolution, error) {
-	response := redisClient.Get(ctx, formatSolutionKey(taskId))
+	response := redisClient.Get(ctx, solutionKey(taskId))
 	if response.Err() != nil {
 		return nil, response.Err()
 	}
 
 	var tspSolution tsp.TspSolution
 
-	bytes, err := response.Bytes()
+	err := proto.Unmarshal([]byte(response.Val()), &tspSolution)
 	if err != nil {
 		return nil, err
 	}
-	err = proto.Unmarshal(bytes, &tspSolution)
-	if err != nil {
-		return nil, err
-	}
+
+	log.Printf("Solution for %s: %v", taskId, tspSolution.OptimizedSequence)
 
 	return &tspSolution, nil
 }
@@ -113,26 +142,12 @@ func removeTask(ctx context.Context, taskId string, redisClient *redis.Client) e
 	return redisClient.Del(ctx, taskKey(taskId)).Err()
 }
 
-const (
-	PAUSE     = iota
-	INTERRUPT = iota
-)
-
-const TaskExchange = "amq.direct"
-const SignalExchange = "amq.topic"
-const SignalQueue = "org.assfire.tsp.worker.signal"
-const TaskQueue = "org.assfire.tsp.worker.task"
-
-func statusQueue(taskId string) string {
-	return "assfire.tsp." + taskId + ".worker.status"
-}
-
 func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 
 	var signalType tsp.WorkerControlSignal_Type
-	if signal == INTERRUPT {
+	if signal == InterruptSignal {
 		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT
-	} else if signal == PAUSE {
+	} else if signal == PauseSignal {
 		signalType = tsp.WorkerControlSignal_WORKER_CONTROL_SIGNAL_TYPE_PAUSE
 	}
 
@@ -147,8 +162,8 @@ func sendSignal(taskId string, signal int, rabbitChannel *amqp.Channel) error {
 	}
 
 	err = rabbitChannel.Publish(
-		SignalExchange,
-		SignalQueue,
+		InterruptExchange,
+		InterruptQueue,
 		false,
 		false,
 		amqp.Publishing{
@@ -182,11 +197,11 @@ func sendStartSignal(taskId string, rabbitChannel *amqp.Channel) error {
 }
 
 func sendPauseSignal(taskId string, rabbitChannel *amqp.Channel) error {
-	return sendSignal(taskId, PAUSE, rabbitChannel)
+	return sendSignal(taskId, PauseSignal, rabbitChannel)
 }
 
 func sendInterruptSignal(taskId string, rabbitChannel *amqp.Channel) error {
-	return sendSignal(taskId, INTERRUPT, rabbitChannel)
+	return sendSignal(taskId, InterruptSignal, rabbitChannel)
 }
 
 func (server *TspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequest) (*tsp.StartTspResponse, error) {
@@ -299,10 +314,7 @@ func (server *TspServer) GetLatestSolution(ctx context.Context, request *tsp.Get
 
 	solution, err := loadSolution(ctx, request.TaskId, server.redisClient)
 	if err == redis.Nil {
-		return &tsp.GetLatestSolutionResponse{}, nil
-	} else if err != nil {
-		log.Printf("Failed to lookup for solution for task %s: %s", request.TaskId, err.Error())
-		return nil, status.Errorf(status.Code(err), "Failed to retrieve solution for task %s", request.TaskId)
+		return nil, status.Errorf(codes.NotFound, "Failed to retrieve solution for task %s", request.TaskId)
 	}
 
 	return &tsp.GetLatestSolutionResponse{
@@ -342,41 +354,28 @@ func convertStatusUpdateType(workerType tsp.WorkerTspStatusUpdate_Type) tsp.TspS
 
 func isTerminalState(update tsp.WorkerTspStatusUpdate_Type) bool {
 	return update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_ERROR ||
-		update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED
+		update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED ||
+		update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED ||
+		update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN
 }
 
 func retrieveLatestStatus(ctx context.Context, taskId string, redisClient *redis.Client, c chan tsp.WorkerTspStatusUpdate_Type) {
-	msg := redisClient.Get(ctx, stateKey(taskId))
-	if msg.Err() == nil {
-		st := msg.Val()
-		log.Printf("Retrieved state %v for task %s", st, taskId)
-		switch st {
-		case "STARTED":
-			c <- tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_STARTED
-			break
-		case "IN_PROGRESS":
-			c <- tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS
-			break
-		case "FINISHED":
-			c <- tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED
-			break
-		case "ERROR":
-			c <- tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_ERROR
-			break
-		default:
-			break
-		}
+	taskStatus, err := getTaskStatus(ctx, taskId, redisClient)
+	if err != nil {
+		log.Printf("Can't retrieve latest status for task %s: %v", taskId, err)
+		return
 	}
+	c <- taskStatus
 }
 
 func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
 	log.Printf("Subscribing for status updates for TSP task %s", request.TaskId)
 
-	queueName := statusQueue(request.TaskId)
+	queueName := statusQueueName(request.TaskId)
 	_, err := server.statusRabbitChannel.QueueDeclare(
 		queueName,
 		false,
-		false,
+		true,
 		false,
 		false,
 		nil,
@@ -473,8 +472,8 @@ func declareRabbitQueue(rabbitChannel *amqp.Channel, name string) {
 	}
 }
 
-func declareSignalQueue(rabbitChannel *amqp.Channel) {
-	declareRabbitQueue(rabbitChannel, SignalQueue)
+func declareInterruptQueue(rabbitChannel *amqp.Channel) {
+	declareRabbitQueue(rabbitChannel, InterruptQueue)
 }
 
 func declareTaskQueue(rabbitChannel *amqp.Channel) {
@@ -510,7 +509,7 @@ func newServer() *TspServer {
 		log.Fatalf("Couldn't initialize status rabbitMQ channel: %s", err.Error())
 	}
 
-	declareSignalQueue(singalRabbitChannel)
+	declareInterruptQueue(singalRabbitChannel)
 	declareTaskQueue(taskRabbitChannel)
 
 	s := &TspServer{

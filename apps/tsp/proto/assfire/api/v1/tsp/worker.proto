@@ -22,11 +22,6 @@ message WorkerControlSignal {
   Type signal_type = 2;
 }
 
-message TspSolutionResult {
-  TspSolution solution = 1;
-  bool is_success = 2;
-}
-
 message WorkerTspStatusUpdate {
   enum Type {
     WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN = 0;

@@ -118,6 +118,29 @@ void resumeTsp(const std::string &id) {
     }
 }
 
+void getSolution(const std::string &id) {
+
+    assfire::api::v1::tsp::GetLatestSolutionRequest request;
+    request.set_task_id(id);
+
+    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
+
+    grpc::ClientContext context;
+    assfire::api::v1::tsp::GetLatestSolutionResponse response;
+    ::grpc::Status status = stub->GetLatestSolution(&context, request, &response);
+    if (!status.ok()) {
+        std::cout << "Failed to retrieve solution task: " << status.error_message() << std::endl;
+    } else {
+        std::cout << "Solution:  " << id << std::endl;
+        auto sol = response.solution();
+        for(int i = 0; i < sol.optimized_sequence_size(); ++i) {
+            std::cout << (i == 0 ? "" : " - ") << sol.optimized_sequence(i);
+        }
+        std::cout << std::endl;
+    }
+}
+
 constexpr const char *ACTION = "action";
 constexpr const char *TASK_ID = "task-id";
 
@@ -156,6 +179,8 @@ int main(int argc, char *argv[]) {
         resumeTsp(task);
     } else if (action == "status" || action == "listen") {
         listenToUpdates(task);
+    } else if (action == "solution") {
+        getSolution(task);
     }
 
     return 0;

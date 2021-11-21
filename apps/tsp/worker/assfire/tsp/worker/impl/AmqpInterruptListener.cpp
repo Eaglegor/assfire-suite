@@ -1,7 +1,8 @@
 #include "AmqpInterruptListener.hpp"
 #include <assfire/api/v1/tsp/worker.pb.h>
 #include <spdlog/spdlog.h>
-#include "TspImplConstants.hpp"
+#include "TspWorkerConstants.hpp"
+#include "TspWorkerKeys.hpp"
 
 namespace assfire::tsp {
 
@@ -11,9 +12,9 @@ namespace assfire::tsp {
     void AmqpInterruptListener::startListening() {
         control_state = std::async(std::launch::async, [&]() {
             rabbit_mq_connector->listen(
-                    "org.assfire.tsp.worker.signal",
-                    "amq.topic",
-                    TSP_AMQP_INTERRUPT_SIGNALS_CHANNEL_ID,
+                    TSP_WORKER_AMQP_INTERRUPT_QUEUE_NAME,
+                    TSP_WORKER_AMQP_INTERRUPT_EXCHANGE,
+                    TSP_WORKER_AMQP_INTERRUPT_CHANNEL,
                     [&](const amqp_envelope_t_ &envelope) {
                         assfire::api::v1::tsp::WorkerControlSignal worker_signal;
                         worker_signal.ParseFromArray(envelope.message.body.bytes, envelope.message.body.len);
@@ -22,7 +23,7 @@ namespace assfire::tsp {
                         {
                             std::lock_guard<std::mutex> guard(processors_lock);
                             auto processor_iter = processors.find(worker_signal.task_id());
-                            if(processor_iter == processors.end()) return;
+                            if (processor_iter == processors.end()) return;
                             process = processor_iter->second;
                         }
 
@@ -37,7 +38,7 @@ namespace assfire::tsp {
                                 SPDLOG_WARN("Unknown control signal received for task {}: {}", worker_signal.task_id(), static_cast<int>(worker_signal.signal_type()));
                         }
                     }
-                    );
+            );
         });
     }
 
@@ -52,7 +53,7 @@ namespace assfire::tsp {
     }
 
     AmqpInterruptListener::~AmqpInterruptListener() {
-        if(control_state.valid()) {
+        if (control_state.valid()) {
             control_state.wait();
         }
     }
