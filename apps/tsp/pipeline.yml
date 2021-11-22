@@ -1,10 +1,10 @@
 stages:
   - build
   - test
-#  - rpm
-#  - docker
-#  - publish
-#  - deploy
+  - rpm
+  - docker
+  - publish
+  - deploy
 
 variables:
   CMAKE_OPTIONS: |
