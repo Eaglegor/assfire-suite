@@ -49,8 +49,9 @@ test:
 
 #.install-service:
 #  before_script:
-#    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-scheduler.rpm
-#    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-scheduler-grpc-gateway.rpm
+#    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-tsp-server.rpm
+#    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-tsp-worker.rpm
+#    - rpm -i --nodeps out/assfire-${APPLICATION_VERSION}-Linux-tsp-grpc-gateway.rpm
 
 #helm-lint:
 #  image: $BUILD_IMAGE_NAME
