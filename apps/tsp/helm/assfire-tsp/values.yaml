@@ -1,0 +1,11 @@
+worker_replicas: 4
+server_replicas: 2
+router_host: assfire-router.assfire.svc.cluster.local
+router_port: 50051
+router_use_ssl: false
+log_level: info
+metrics_enabled: true
+redis_host: assfire-tsp-redis-master.redis.svc.cluster.local
+redis_port: 6379
+rabbit_host: assfire-tsp-amqp-master.amqp.svc.cluster.local
+rabbit_port: 5672

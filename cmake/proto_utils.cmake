@@ -188,9 +188,9 @@ function(define_proto_go_target)
     set_target_properties(${TARGET_NAME} PROPERTIES TRANSITIVE_DEPS "${TRANSITIVE_DEPS}")
 endfunction()
 
-function(define_go_target)
+function(define_go_executable_target)
     set(_options "")
-    set(_singleargs TARGET_NAME GO_PACKAGE_NAME GO_MOD_PATH)
+    set(_singleargs TARGET_NAME GO_PACKAGE_NAME GO_MOD_PATH RPM_COMPONENT_NAME)
     set(_multiargs DEPENDS REQUIRES)
     cmake_parse_arguments(define_go_target "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
 
@@ -199,6 +199,7 @@ function(define_go_target)
     set(REQUIRES ${define_go_target_REQUIRES})
     set(GO_PACKAGE_NAME ${define_go_target_GO_PACKAGE_NAME})
     set(GO_MOD_PATH ${define_go_target_GO_MOD_PATH})
+    set(RPM_COMPONENT_NAME ${define_go_target_RPM_COMPONENT_NAME})
 
     foreach(dep ${DEPENDS})
         get_target_property(${dep}_TRANSITIVE_DEPS ${dep} DEPENDS_ON)
@@ -261,6 +262,11 @@ function(define_go_target)
     set_target_properties(${TARGET_NAME} PROPERTIES GO_PACKAGE_NAME "${GO_PACKAGE_NAME}")
     set_target_properties(${TARGET_NAME} PROPERTIES DEPENDS_ON "${DEPENDS}")
     set_target_properties(${TARGET_NAME} PROPERTIES TRANSITIVE_DEPS "${TRANSITIVE_DEPS}")
+
+    install(PROGRAMS ${GO_MOD_PATH}/${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX} TYPE BIN COMPONENT ${RPM_COMPONENT_NAME})
+    if(ASSFIRE_PACKAGE_BUILD_RPM)
+        cpack_add_component(${RPM_COMPONENT_NAME})
+    endif()
 endfunction()
 
 function(define_grpc_target)
@@ -491,7 +497,7 @@ function(define_go_grpc_proxy_target)
 
     string(REGEX REPLACE "(.*)/.+" "\\1" GO_PACKAGE_NAME ${GO_SUBPACKAGE_NAME})
 
-    define_go_target(
+    define_go_executable_target(
             TARGET_NAME ${TARGET_NAME}
             DEPENDS ${DEPENDS}
             REQUIRES
@@ -500,13 +506,8 @@ function(define_go_grpc_proxy_target)
             "google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea"
             GO_PACKAGE_NAME ${GO_PACKAGE_NAME}
             GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR}
+            RPM_COMPONENT_NAME ${RPM_COMPONENT_NAME}
     )
 
     add_dependencies(${TARGET_NAME} ${DEPENDS} ${TARGET_NAME}-generate-gw-impl)
-
-    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX} COMPONENT ${RPM_COMPONENT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-    if(ASSFIRE_PACKAGE_BUILD_RPM)
-        cpack_add_component(${RPM_COMPONENT_NAME})
-    endif()
-
 endfunction()

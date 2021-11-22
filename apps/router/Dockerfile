@@ -1,4 +1,4 @@
-FROM amd64/alpine:3.12.0
+FROM amd64/alpine:3.14.3
 
 RUN apk add --no-cache bash libstdc++ rpm
 

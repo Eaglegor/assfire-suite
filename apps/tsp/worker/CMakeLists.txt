@@ -55,4 +55,7 @@ if (ASSFIRE_PACKAGE_BUILD_RPM)
     cpack_add_component(tsp-worker)
 endif ()
 
+configure_file(Dockerfile ${CMAKE_CURRENT_BINARY_DIR}/Dockerfile)
+
 #add_subdirectory(tests)
+

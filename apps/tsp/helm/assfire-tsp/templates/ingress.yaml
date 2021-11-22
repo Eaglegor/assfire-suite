@@ -14,7 +14,7 @@ spec:
     - host: assfire.org
       http:
         paths:
-          - path: /scheduler/api/(.*)
+          - path: /tsp/api/(.*)
             backend:
               serviceName: {{ .Release.Name }}-service
               servicePort: http-proxy
@@ -37,7 +37,7 @@ spec:
     - host: assfire.org
       http:
         paths:
-          - path: /scheduler/grpc
+          - path: /tsp/grpc
             backend:
               serviceName: {{ .Release.Name }}-service
               servicePort: grpc
