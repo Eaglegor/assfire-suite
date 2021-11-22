@@ -169,8 +169,8 @@ helm:
   script:
     - cd out/apps/router/helm/assfire-router/
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm package . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:${APPLICATION_VERSION}
-    - helm push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-router:${APPLICATION_VERSION}
+    - helm package . assfire-router:${APPLICATION_VERSION}
+    - helm push assfire-router-${APPLICATION_VERSION}.tgz $CI_REGISTRY/assfire/assfire-suite/helm
   dependencies:
     - build
   needs:

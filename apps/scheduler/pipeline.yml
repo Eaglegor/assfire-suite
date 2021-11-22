@@ -118,8 +118,8 @@ helm:
   script:
     - cd out/apps/scheduler/helm/assfire-scheduler/
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm package . $CI_REGISTRY/assfire/assfire-suite/helm/assfire-scheduler:${APPLICATION_VERSION}
-    - helm push $CI_REGISTRY/assfire/assfire-suite/helm/assfire-scheduler:${APPLICATION_VERSION}
+    - helm package . assfire-scheduler:${APPLICATION_VERSION}
+    - helm push assfire-scheduler-${APPLICATION_VERSION}.tgz $CI_REGISTRY/assfire/assfire-suite/helm
   dependencies:
     - build
   needs:
