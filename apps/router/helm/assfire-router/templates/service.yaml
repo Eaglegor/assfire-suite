@@ -2,12 +2,12 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Name }}-service
+  name: {{ .Release.Name }}-server
   labels:
     metrics: prometheus
 spec:
   selector:
-    assfire_app: {{ .Release.Name }}-server
+    app: {{ .Release.Name }}-server
   ports:
     - name: grpc
       protocol: TCP
@@ -19,6 +19,18 @@ spec:
     - name: http-proxy
       port: 8082
       targetPort: 8082
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-maptest
+  labels:
+    metrics: prometheus
+spec:
+  selector:
+    app: {{ .Release.Name }}-maptest
+  ports:
     - name: maptest
       port: 8083
       targetPort: 8083

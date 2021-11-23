@@ -1,5 +1,11 @@
 apiVersion: v2
 name: assfire-router
-version: @ASSFIRE_APPLICATION_RELEASE_VERSION@
-appVersion: @ASSFIRE_APPLICATION_RELEASE_VERSION@
+version: v0.0.10
+appVersion: v0.0.10
 type: application
+
+dependencies:
+  - name: redis
+    repository: https://charts.bitnami.com/bitnami
+    version: 10.7.16
+    condition: redis.enabled

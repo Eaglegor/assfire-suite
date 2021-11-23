@@ -2,36 +2,64 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Name }}
+  name: {{ .Release.Name }}-server
   labels:
-    assfire_app: {{ .Release.Name }}-server
+    app: assfire-router-server
 spec:
-  replicas: {{.Values.replicas}}
+  replicas: {{.Values.replicas.server}}
   selector:
     matchLabels:
-      assfire_app: {{ .Release.Name }}-server
+      app: assfire-router-server
   template:
     metadata:
       labels:
-        assfire_app: {{ .Release.Name }}-server
+        app: assfire-router-server
     spec:
       nodeSelector:
-        assfire_role: calculation-node
+        {{ toYaml .Values.nodeSelector.server}}
       containers:
         - name: router-server
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-server:v0.0.9
           ports:
             - containerPort: 50051
             - containerPort: 8081
-          command: ["assfire-router-server"]
-          args: ["--redis-cache-enabled={{.Values.redis_cache_enabled}}", "--redis-host={{.Values.redis_host}}", "--redis-port={{.Values.redis_port}}", "--metrics-enabled={{.Values.metrics_enabled}}", "--log-level={{.Values.log_level}}"]
+          command: [ "assfire-router-server" ]
+          args:
+            - "--redis-cache-enabled={{.Values.cache.enabled}}"
+            - "--redis-host={{.Release.Name}}-redis-master.{{.Release.Namespace}}.svc.cluster.local"
+            - "--redis-port=6379"
+            - "--metrics-enabled={{.Values.metrics.enabled}}"
+            - "--log-level={{.Values.log.level}}"
         - name: router-grpc-gateway
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-server:v0.0.9
           ports:
             - containerPort: 8082
           command: [ "assfire-router-grpc-gateway" ]
+      imagePullSecrets:
+        - name: assfire-registry-key
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-maptest
+  labels:
+    app: assfire-router-maptest
+spec:
+  replicas: {{.Values.replicas.maptest}}
+  selector:
+    matchLabels:
+      app: assfire-router-maptest
+  template:
+    metadata:
+      labels:
+        app: assfire-router-maptest
+    spec:
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector.maptest}}
+      containers:
         - name: router-maptest
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-maptest:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-maptest:v0.0.9
           ports:
             - containerPort: 8083
       imagePullSecrets:

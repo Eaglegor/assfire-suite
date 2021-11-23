@@ -1,6 +1,22 @@
-replicas: 2
-redis_cache_enabled: false
-redis_host: assfire-geocache-redis-master.redis.svc.cluster.local
-redis_port: 6379
-log_level: info
-metrics_enabled: true
+replicas:
+  server: 2
+  maptest: 1
+log:
+  level: info
+metrics:
+  enabled: true
+cache:
+  enabled: true
+osrm:
+  local: false
+nodeSelector:
+  server: {"assfire_router": "enabled"}
+  maptest: {"assfire_router": "enabled"}
+redis:
+  usePassword: false
+  master:
+    nodeSelector: {"assfire_router": "enabled"}
+  slave:
+    nodeSelector: {"assfire_router": "enabled"}
+ingress:
+  host: assfire.org
