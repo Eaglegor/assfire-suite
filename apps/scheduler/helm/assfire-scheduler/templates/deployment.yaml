@@ -19,7 +19,7 @@ spec:
         assfire_role: calculation-node
       containers:
         - name: assfire-scheduler-server
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:
             - containerPort: 50051
             - containerPort: 8081
@@ -31,7 +31,7 @@ spec:
             - "--router-port={{.Values.router_port}}"
             - "--router-use-ssl={{.Values.router_use_ssl}}"
         - name: assfire-scheduler-grpc-gateway
-          image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:
             - containerPort: 8082
           command: [ "assfire-scheduler-grpc-gateway" ]
