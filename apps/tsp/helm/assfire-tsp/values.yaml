@@ -1,11 +1,63 @@
-worker_replicas: 4
-server_replicas: 2
-router_host: assfire-router.assfire.svc.cluster.local
-router_port: 50051
-router_use_ssl: false
-log_level: info
-metrics_enabled: true
-redis_host: assfire-tsp-redis-master.redis.svc.cluster.local
-redis_port: 6379
-rabbit_host: assfire-tsp-amqp-master.amqp.svc.cluster.local
-rabbit_port: 5672
+server:
+  enabled: true
+  replicas: 2
+  nodeSelector:
+    assfire_tsp: enabled
+  labels:
+    app: assfire-tsp-server
+  imagePullSecrets: []
+  metrics:
+    enabled: true
+  log:
+    level: info
+  ingress:
+    enabled: true
+    host: assfire.org
+  grpc_gateway:
+    enabled: true
+  service:
+    labels:
+      metrics: prometheus
+worker:
+  enabled: true
+  replicas: 4
+  nodeSelector:
+    assfire_tsp_worker: enabled
+  labels:
+    app: assfire-tsp-worker
+  imagePullSecrets: []
+  router:
+    host: assfire-router-service.default.svc.cluster.local
+    port: 50051
+    ssl: false
+  metrics:
+    enabled: true
+  log:
+    level: info
+transport:
+  redis:
+    port: &redis_port 6379
+  rabbitmq:
+    port: &rabbitmq_port 5672
+
+redis:
+  usePassword: false
+  replica:
+    replicaCount: 1
+  architecture: standalone
+  master:
+    nodeSelector:
+      assfire_tsp: enabled
+    containerPort: *redis_port
+    persistence:
+      enabled: false
+rabbitmq:
+  clustering.enabled: false
+  replicaCount: 1
+  persistence:
+    enabled: false
+  service:
+    port: *rabbitmq_port
+  auth:
+    username: guest
+    password: guest

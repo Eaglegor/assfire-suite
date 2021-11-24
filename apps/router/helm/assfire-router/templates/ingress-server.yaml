@@ -16,7 +16,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-server
+                name: {{ .Release.Name }}-service
                 port:
                   name: grpc
 {{ if .Values.server.grpc_gateway.enabled }}
@@ -40,7 +40,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-server
+                name: {{ .Release.Name }}-service
                 port:
                   name: http-proxy
 {{ end }}

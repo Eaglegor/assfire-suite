@@ -1,22 +1,23 @@
+{{if .Values.server.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: {{.Release.Namespace}}
-  name: {{.Release.Name}}
+  name: {{.Release.Name}}-server
   labels:
-    assfire_app: {{.Release.Name}}-server
+    {{toYaml .Values.server.labels}}
 spec:
-  replicas: {{.Values.replicas}}
+  replicas: {{.Values.server.replicas}}
   selector:
     matchLabels:
-      assfire_app: {{.Release.Name}}-server
+      {{ toYaml .Values.server.labels }}
   template:
     metadata:
       labels:
-        assfire_app: {{.Release.Name}}-server
+        {{ toYaml .Values.server.labels }}
     spec:
       nodeSelector:
-        assfire_role: calculation-node
+        {{ toYaml .Values.server.nodeSelector }}
       containers:
         - name: assfire-scheduler-server
           image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
@@ -25,15 +26,17 @@ spec:
             - containerPort: 8081
           command: [ "assfire-scheduler-server" ]
           args:
-            - "--metrics-enabled={{.Values.metrics_enabled}}"
-            - "--log-level={{.Values.log_level}}"
-            - "--router-host={{.Values.router_host}}"
-            - "--router-port={{.Values.router_port}}"
-            - "--router-use-ssl={{.Values.router_use_ssl}}"
+            - "--metrics-enabled={{.Values.server.metrics.enabled}}"
+            - "--log-level={{.Values.server.log.level}}"
+            - "--router-host={{.Values.server.router.host}}"
+            - "--router-port={{.Values.server.router.port}}"
+            - "--router-use-ssl={{.Values.server.router.ssl}}"
+        {{ if .Values.server.grpc_gateway.enabled }}
         - name: assfire-scheduler-grpc-gateway
           image: registry.gitlab.com/assfire/assfire-suite/assfire-scheduler-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
           ports:
             - containerPort: 8082
           command: [ "assfire-scheduler-grpc-gateway" ]
-      imagePullSecrets:
-        - name: assfire-registry-key
+        {{ end }}
+      imagePullSecrets: {{.Values.server.imagePullSecrets}}
+{{end}}

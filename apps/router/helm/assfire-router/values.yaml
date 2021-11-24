@@ -1,10 +1,9 @@
-region: global
 server:
   enabled: true
   replicas: 2
   nodeSelector:
     assfire_router: enabled
-  label:
+  labels:
     app: assfire-router-server
   imagePullSecrets: []
   osrm:
@@ -13,7 +12,7 @@ server:
     port: 80
   cache:
     enabled: true
-    port: &redisPort 6379
+    port: &redis_port 6379
   metrics:
     enabled: true
   log:
@@ -31,7 +30,7 @@ maptest:
   replicas: 1
   nodeSelector:
     assfire_router: enabled
-  label:
+  labels:
     app: assfire-router-maptest
   imagePullSecrets: []
   ingress:
@@ -44,11 +43,8 @@ redis:
   usePassword: false
   replica:
     replicaCount: 1
+  architecture: standalone
   master:
     nodeSelector:
       assfire_router: enabled
-    containerPort: *redisPort
-  slave:
-    nodeSelector:
-      assfire_router: enabled
-    containerPort: *redisPort
+    containerPort: *redis_port

@@ -1,0 +1,36 @@
+{{if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{.Release.Namespace}}
+  name: {{.Release.Name}}-worker
+  labels:
+    {{toYaml .Values.worker.labels}}
+spec:
+  replicas: {{.Values.worker.replicas}}
+  selector:
+    matchLabels:
+      {{toYaml .Values.worker.labels}}
+  template:
+    metadata:
+      labels:
+        {{toYaml .Values.worker.labels}}
+    spec:
+      nodeSelector:
+        {{toYaml .Values.worker.nodeSelector}}
+      containers:
+        - name: assfire-tsp-worker
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-tsp-worker:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          command: [ "assfire-tsp-worker" ]
+          args:
+            - "--metrics-enabled={{.Values.worker.metrics.enabled}}"
+            - "--log-level={{.Values.worker.log.level}}"
+            - "--router-host={{.Values.worker.router.host}}"
+            - "--router-port={{.Values.worker.router.port}}"
+            - "--router-use-ssl={{.Values.worker.router.ssl}}"
+            - "--redis-host={{.Release.Name}}-redis-master.{{.Release.Namespace}}.svc.cluster.local"
+            - "--redis-port={{.Values.transport.redis.port}}"
+            - "--amqp-host={{.Release.Name}}-rabbitmq.{{.Release.Namespace}}.svc.cluster.local"
+            - "--amqp-port={{.Values.transport.rabbitmq.port}}"
+      imagePullSecrets: {{.Values.worker.imagePullSecrets}}
+{{end}}

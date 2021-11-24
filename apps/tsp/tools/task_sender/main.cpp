@@ -31,7 +31,7 @@ std::string startTsp() {
     request.mutable_task()->CopyFrom(assfire::api::v1::tsp::TspTaskTranslator::toProto(task));
     request.mutable_task()->mutable_solver_settings()->mutable_algorithm_settings()->set_algorithm_type(assfire::api::v1::tsp::TSP_ALGORITHM_TYPE_TIME_WASTING);
 
-    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel("assfire.org:80/tsp/grpc", grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
 
     grpc::ClientContext context;
@@ -46,7 +46,7 @@ std::string startTsp() {
 }
 
 void listenToUpdates(const std::string &task) {
-    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel("assfire.org:80/tsp/grpc", grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
 
     assfire::api::v1::tsp::SubscribeForStatusUpdatesRequest status_request;
@@ -68,7 +68,7 @@ void stopTsp(const std::string &id) {
     assfire::api::v1::tsp::StopTspRequest request;
     request.set_task_id(id);
 
-    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel("assfire.org:80/tsp/grpc", grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
 
     grpc::ClientContext context;
@@ -87,7 +87,7 @@ void pauseTsp(const std::string &id) {
     assfire::api::v1::tsp::PauseTspRequest request;
     request.set_task_id(id);
 
-    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel("assfire.org:80/tsp/grpc", grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
 
     grpc::ClientContext context;
@@ -105,7 +105,7 @@ void resumeTsp(const std::string &id) {
     assfire::api::v1::tsp::ResumeTspRequest request;
     request.set_task_id(id);
 
-    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel("assfire.org:80/tsp/grpc", grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
 
     grpc::ClientContext context;
@@ -123,7 +123,7 @@ void getSolution(const std::string &id) {
     assfire::api::v1::tsp::GetLatestSolutionRequest request;
     request.set_task_id(id);
 
-    auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel("assfire.org:80/tsp/grpc", grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
 
     grpc::ClientContext context;
