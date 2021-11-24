@@ -3,7 +3,7 @@ server:
   enabled: true
   replicas: 2
   nodeSelector:
-    assfire_router: enabled\
+    assfire_router: enabled
   label:
     app: assfire-router-server
   imagePullSecrets: []
