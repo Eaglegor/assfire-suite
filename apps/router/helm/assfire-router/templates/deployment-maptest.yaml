@@ -1,0 +1,28 @@
+{{ if .Values.maptest.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-maptest
+  labels:
+    {{ toYaml .Values.maptest.label}}
+spec:
+  replicas: {{.Values.maptest.replicas}}
+  selector:
+    matchLabels:
+      {{ toYaml .Values.maptest.label}}
+  template:
+    metadata:
+      labels:
+        {{ toYaml .Values.maptest.label}}
+    spec:
+      nodeSelector:
+        {{ toYaml .Values.maptest.nodeSelector}}
+      containers:
+        - name: router-maptest
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-maptest:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 8083
+      imagePullSecrets: {{.Values.maptest.imagePullSecrets}}
+{{ end }}

@@ -1,22 +1,54 @@
-replicas:
-  server: 2
-  maptest: 1
-log:
-  level: info
-metrics:
+region: global
+server:
   enabled: true
-cache:
+  replicas: 2
+  nodeSelector:
+    assfire_router: enabled\
+  label:
+    app: assfire-router-server
+  imagePullSecrets: []
+  osrm:
+    local: false
+    host: "http://router.project-osrm.org"
+    port: 80
+  cache:
+    enabled: true
+    port: &redisPort 6379
+  metrics:
+    enabled: true
+  log:
+    level: info
+  ingress:
+    enabled: true
+    host: assfire.org
+  grpc_gateway:
+    enabled: true
+  service:
+    labels:
+      metrics: prometheus
+maptest:
   enabled: true
-osrm:
-  local: false
-nodeSelector:
-  server: {"assfire_router": "enabled"}
-  maptest: {"assfire_router": "enabled"}
+  replicas: 1
+  nodeSelector:
+    assfire_router: enabled
+  label:
+    app: assfire-router-maptest
+  imagePullSecrets: []
+  ingress:
+    enabled: true
+    host: assfire.org
+  service:
+    labels:
+      metrics: prometheus
 redis:
   usePassword: false
+  replica:
+    replicaCount: 1
   master:
-    nodeSelector: {"assfire_router": "enabled"}
+    nodeSelector:
+      assfire_router: enabled
+    containerPort: *redisPort
   slave:
-    nodeSelector: {"assfire_router": "enabled"}
-ingress:
-  host: assfire.org
+    nodeSelector:
+      assfire_router: enabled
+    containerPort: *redisPort

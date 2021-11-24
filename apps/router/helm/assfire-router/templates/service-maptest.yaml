@@ -1,0 +1,16 @@
+{{ if .Values.maptest.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-maptest
+  labels:
+    {{toYaml .Values.maptest.service.labels }}
+spec:
+  selector:
+    {{toYaml .Values.server.label}}
+  ports:
+    - name: maptest
+      port: 8083
+      targetPort: 8083
+{{ end }}
