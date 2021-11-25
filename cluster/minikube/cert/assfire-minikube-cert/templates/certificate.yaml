@@ -11,7 +11,7 @@ spec:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: {{.Release.Name}}-issuer
+    name: {{.Release.Name}}-root-issuer
     kind: ClusterIssuer
     group: cert-manager.io
   subject:

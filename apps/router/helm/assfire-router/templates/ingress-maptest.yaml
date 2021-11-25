@@ -3,11 +3,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
+    {{if .Values.maptest.ingress.tls.enabled}}
+    cert-manager.io/issuer: {{.Values.maptest.ingress.tls.issuer | quote}}
+    {{end}}
   name: {{ .Release.Name }}-static-ingress
   namespace: {{ .Release.Namespace }}
 spec:
+  ingressClassName: nginx
   rules:
     - host: {{ .Values.maptest.ingress.host }}
       http:
@@ -19,4 +22,10 @@ spec:
                 name: {{ .Release.Name }}-maptest
                 port:
                   name: maptest
+  {{if .Values.maptest.ingress.tls.enabled}}
+  tls:
+    - hosts:
+        - {{.Values.maptest.ingress.host}}
+      secretName: {{.Values.maptest.ingress.tls.secretName}}
+  {{end}}
 {{end}}

@@ -20,6 +20,10 @@ server:
   ingress:
     enabled: true
     host: assfire.org
+    tls:
+      enabled: true
+      secretName: assfire-tls-ca
+      issuer: assfire-cert-ca-issuer
   grpc_gateway:
     enabled: true
   service:
@@ -36,6 +40,10 @@ maptest:
   ingress:
     enabled: true
     host: assfire.org
+    tls:
+      enabled: true
+      secretName: assfire-tls-ca
+      issuer: assfire-cert-ca-issuer
   service:
     labels:
       metrics: prometheus

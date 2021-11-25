@@ -3,11 +3,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    {{if .Values.server.ingress.tls.enabled}}
+    cert-manager.io/issuer: {{.Values.server.ingress.tls.issuer | quote}}
+    {{end}}
   name: {{ .Release.Name }}-grpc-ingress
   namespace: {{ .Release.Namespace }}
 spec:
+  ingressClassName: nginx
   rules:
     - host: {{ .Values.server.ingress.host }}
       http:
@@ -19,19 +22,26 @@ spec:
                 name: {{ .Release.Name }}-service
                 port:
                   name: grpc
+  {{if .Values.server.ingress.tls.enabled}}
+  tls:
+    - hosts:
+        - {{.Values.server.ingress.host}}
+      secretName: {{.Values.server.ingress.tls.secretName}}
+  {{end}}
 {{if .Values.server.grpc_gateway.enabled}}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET"
+    {{if .Values.server.ingress.tls.enabled}}
+    cert-manager.io/issuer: {{.Values.server.ingress.tls.issuer | quote}}
+    {{end}}
   name: {{ .Release.Name }}-api-ingress
   namespace: {{ .Release.Namespace }}
 spec:
+  ingressClassName: nginx
   rules:
     - host: {{ .Values.server.ingress.host }}
       http:
@@ -43,5 +53,11 @@ spec:
                 name: {{ .Release.Name }}-service
                 port:
                   name: http-proxy
+  {{if .Values.server.ingress.tls.enabled}}
+  tls:
+    - hosts:
+        - {{.Values.server.ingress.host}}
+      secretName: {{.Values.server.ingress.tls.secretName}}
+  {{end}}
 {{end}}
 {{end}}
