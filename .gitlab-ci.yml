@@ -90,6 +90,7 @@ docker:
     - build
     - package
   needs:
+    - build
     - package
   script:
     - cd out
@@ -125,6 +126,9 @@ deploy-all:
   only:
     - tags
   when: manual
+  needs:
+    - helm-push
+    - docker
   tags:
     - assfire-deployment-node
   script:
@@ -136,6 +140,9 @@ deploy-router:
   only:
     - tags
   when: manual
+  needs:
+    - helm-push
+    - docker
   tags:
     - assfire-deployment-node
   script:
@@ -147,6 +154,9 @@ deploy-scheduler:
   only:
     - tags
   when: manual
+  needs:
+    - helm-push
+    - docker
   tags:
     - assfire-deployment-node
   script:
@@ -158,6 +168,9 @@ deploy-tsp:
   only:
     - tags
   when: manual
+  needs:
+    - helm-push
+    - docker
   tags:
     - assfire-deployment-node
   script:
