@@ -14,7 +14,7 @@ if(ASSFIRE_ROUTER_MAPTEST_ENABLED)
     endforeach ()
 
     find_required_program(npm NPM_EXECUTABLE)
-    add_custom_target(assfire-router-maptest
+    add_custom_target(assfire-router-maptest ALL
             COMMAND ${NPM_EXECUTABLE} install
             COMMAND ${NPM_EXECUTABLE} run build
             WORKING_DIRECTORY ${TARGET_DIRECTORY}
