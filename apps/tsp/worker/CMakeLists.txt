@@ -51,7 +51,7 @@ endif ()
 target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis cxxopts::cxxopts crossguid ${RABBIT_MQ_TARGETS})
 
 install(TARGETS assfire-tsp-worker COMPONENT tsp-worker)
-if (ASSFIRE_PACKAGE_BUILD_RPM)
+if (ASSFIRE_RPM_ENABLED)
     cpack_add_component(tsp-worker)
 endif ()
 

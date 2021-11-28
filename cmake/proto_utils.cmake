@@ -34,7 +34,7 @@ function(define_proto_target)
 
     message(VERBOSE "[Protobuf][C++]   Summarized proto import dirs: ${FINAL_IMPORT_DIRS}")
 
-    set(OUT_SUFFIX proto/cpp)
+    make_directory(${CMAKE_BINARY_DIR}/proto/cpp)
 
     protobuf_generate(TARGET ${TARGET_NAME}
             LANGUAGE cpp
@@ -175,6 +175,9 @@ function(define_proto_go_target)
             VERBATIM
     )
 
+    include(find_utils)
+    find_required_program(go GO_EXECUTABLE)
+
     add_custom_target(${TARGET_NAME} ALL
             COMMAND ${GO_EXECUTABLE} get
             COMMAND ${GO_EXECUTABLE} build
@@ -250,6 +253,8 @@ function(define_go_executable_target)
 
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/dev.gitignore ${CMAKE_CURRENT_SOURCE_DIR}/.gitignore)
 
+    include(find_utils)
+    find_required_program(go GO_EXECUTABLE)
 
     add_custom_target(${TARGET_NAME} ALL
             COMMAND ${GO_EXECUTABLE} get
@@ -264,7 +269,7 @@ function(define_go_executable_target)
     set_target_properties(${TARGET_NAME} PROPERTIES TRANSITIVE_DEPS "${TRANSITIVE_DEPS}")
 
     install(PROGRAMS ${GO_MOD_PATH}/${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX} TYPE BIN COMPONENT ${RPM_COMPONENT_NAME})
-    if(ASSFIRE_PACKAGE_BUILD_RPM)
+    if(ASSFIRE_RPM_ENABLED)
         cpack_add_component(${RPM_COMPONENT_NAME})
     endif()
 endfunction()

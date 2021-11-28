@@ -2,7 +2,7 @@ module @GO_PACKAGE_NAME@
 
 go 1.16
 
-require(
+require (
 @REQUIRE_DIRECTIVES@)
-replace(
+replace (
 @REPLACE_DIRECTIVES@)

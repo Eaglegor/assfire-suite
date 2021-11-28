@@ -1,22 +1,88 @@
-function(prepare_helm_chart)
+function(define_helm_target)
 
     set(_options "")
-    set(_singleargs CHART_ROOT)
-    set(_multi_args "")
-    cmake_parse_arguments(prepare_helm_chart "${_options}" "${_singleargs}" "${_multi_args}" "${ARGN}")
+    set(_singleargs TARGET_NAME CHART_ROOT INSTALL_RELEASE_NAME)
+    set(_multi_args CHART_FILES)
+    cmake_parse_arguments(define_helm_target "${_options}" "${_singleargs}" "${_multi_args}" "${ARGN}")
 
-    set(_CHART_ROOT ${prepare_helm_chart_CHART_ROOT})
-    set(_TARGET_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/helm_charts/${_CHART_ROOT})
+    set(TARGET_NAME ${define_helm_target_TARGET_NAME})
+    set(CHART_FILES ${define_helm_target_CHART_FILES})
+    set(CHART_ROOT ${define_helm_target_CHART_ROOT})
+    set(INSTALL_RELEASE_NAME ${define_helm_target_INSTALL_RELEASE_NAME})
 
-    message(STATUS "[HELM] Preparing helm chart: ${CMAKE_CURRENT_SOURCE_DIR}/${_CHART_ROOT}")
-    message(STATUS "[HELM] Target directory: ${_TARGET_DIRECTORY}")
+    message(STATUS "[Helm] Generating helm target: ${TARGET_NAME}")
+    message(VERBOSE "[Helm]   Chart root: ${CHART_ROOT}")
 
+    set(PROCESSED_CHART_FILES "")
+    foreach(file ${CHART_FILES})
+        message(VERBOSE "[Helm]   Processing file: ${file} -> ${CMAKE_CURRENT_BINARY_DIR}/${file}")
+        configure_file(${file} ${file} @ONLY)
+        list(APPEND PROCESSED_CHART_FILED ${CMAKE_CURRENT_BINARY_DIR}/${file})
 
-    file(GLOB_RECURSE _CHART_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/${_CHART_ROOT}" "${CMAKE_CURRENT_SOURCE_DIR}/${_CHART_ROOT}/*")
+        get_filename_component(CHART_FILE_NAME ${file} NAME)
+        if(CHART_FILE_NAME STREQUAL "Chart.yaml")
+            file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/${file} chart_name_strings REGEX "^name: [a-zA-Z-]+")
+            foreach(chart_name_string ${chart_name_strings})
+                message(VERBOSE "[Helm]   Chart name string: ${chart_name_string}")
+                string(REGEX REPLACE "^name: ([a-zA-Z-]+)" "\\1" CHART_NAME ${chart_name_string})
+            endforeach()
 
-    foreach(file ${_CHART_FILES})
-        message(STATUS "[HELM] Processing file: ${CMAKE_CURRENT_SOURCE_DIR}/${_CHART_ROOT}/${file} -> ${_TARGET_DIRECTORY}/${file}")
-        configure_file(${_CHART_ROOT}/${file} ${_TARGET_DIRECTORY}/${file} @ONLY)
+            file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/${file} chart_version_strings REGEX "^version: ([a-zA-Z-\\.]+)")
+            foreach(chart_version_string ${chart_version_strings})
+                message(VERBOSE "[Helm]   Chart version string: ${chart_version_string}")
+                string(REGEX REPLACE "^version: ([a-zA-Z-\\.]+)" "\\1" CHART_VERSION ${chart_version_string})
+            endforeach()
+        endif()
     endforeach()
+    message(VERBOSE "[Helm]   Chart name: ${CHART_NAME}")
+    message(VERBOSE "[Helm]   Chart version: ${CHART_VERSION}")
+
+    include(find_utils)
+    find_required_program(helm HELM_EXECUTABLE)
+    find_required_program(curl CURL_EXECUTABLE)
+
+    add_custom_target(${TARGET_NAME}
+            DEPENDS ${PROCESSED_CHART_FILES}
+            COMMAND ${HELM_EXECUTABLE} lint
+            COMMAND ${HELM_EXECUTABLE} dependencies update
+            COMMAND ${HELM_EXECUTABLE} package .
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
+            COMMENT "Packaging helm chart ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT} -> ${CHART_NAME}-${CHART_VERSION}.tgz"
+            )
+
+    add_custom_target(${TARGET_NAME}-upload
+            DEPENDS ${TARGET_NAME}
+            COMMAND ${CURL_EXECUTABLE} --request POST --user gitlab-ci-token:$ENV{CI_JOB_TOKEN} --form "chart=@${CHART_NAME}-${CHART_VERSION}.tgz" "$ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/api/stable/charts"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
+            COMMENT "Uploading helm chart ${CHART_NAME}-${CHART_VERSION}.tgz to package repository $ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/api/stable/charts"
+            )
+
+    add_custom_target(${TARGET_NAME}-install
+            DEPENDS ${TARGET_NAME}
+            COMMAND ${HELM_EXECUTABLE} upgrade -i -n ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE} ${INSTALL_RELEASE_NAME} ${CHART_NAME}-${CHART_VERSION}.tgz
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
+            COMMENT "Installing helm chart ${CHART_NAME}-${CHART_VERSION}.tgz, release name: ${INSTALL_RELEASE_NAME} release namespace: ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE}"
+            )
+
+    add_custom_target(${TARGET_NAME}-uninstall
+            COMMAND ${HELM_EXECUTABLE} uninstall -n ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE} ${INSTALL_RELEASE_NAME}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
+            COMMENT "Uninstalling helm release ${INSTALL_RELEASE_NAME}, release namespace: ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE}"
+            )
+
+    add_custom_target(${TARGET_NAME}-deploy
+            DEPENDS ${TARGET_NAME}
+            COMMAND ${HELM_EXECUTABLE} repo add --username $ENV{CI_REGISTRY_USER} --password $ENV{CI_REGISTRY_PASSWORD} assfire-suite $ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/api/stable
+            COMMAND ${HELM_EXECUTABLE} upgrade -i -n ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE} ${INSTALL_RELEASE_NAME} assfire-suite/${CHART_NAME} --version "${ASSFIRE_APPLICATION_RELEASE_VERSION}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
+            COMMENT "Uninstalling helm release ${INSTALL_RELEASE_NAME}, release namespace: ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE}"
+            )
+
+    add_dependencies(helm-package ${TARGET_NAME})
+    add_dependencies(helm-push ${TARGET_NAME}-upload)
+    add_dependencies(helm-install ${TARGET_NAME}-install)
+    add_dependencies(helm-uninstall ${TARGET_NAME}-uninstall)
+    add_dependencies(helm-deploy ${TARGET_NAME}-deploy)
 
 endfunction()
+

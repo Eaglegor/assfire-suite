@@ -10,7 +10,7 @@ RUN git clone --depth 1 --branch v3.21.4 https://github.com/Kitware/CMake.git  /
        cd / && \
        rm -rf /opt/cmake
 
-# Installing ninja (used to vcpkg buildsystem)
+# Installing ninja (used by vcpkg buildsystem)
 RUN git clone --depth 1 --branch v1.10.2 https://github.com/ninja-build/ninja.git /opt/ninja && \
        cmake -B/opt/ninja/build-cmake -DCMAKE_INSTALL_PREFIX=/usr/ /opt/ninja && \
        cmake --build /opt/ninja/build-cmake && \

@@ -1,15 +1,28 @@
 stages:
   - build ci image
-  - publish master ci image
-  - build applications
+  - build
+  - test
+  - package
+  - docker
+  - helm
+  - deploy
 
 variables:
-  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
-  BRANCH_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-ref-$CI_COMMIT_REF_NAME
-  TEMP_IMAGE_TAG_NAME: ci-$CI_COMMIT_SHORT_SHA
-  BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_SHORT_SHA
+  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-${CI_DEFAULT_BRANCH}
+  BRANCH_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_REF_NAME
+  REVISION_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-tmp-$CI_COMMIT_SHORT_SHA
   DOCKER_BUILDKIT: 1
   APPLICATION_VERSION: $CI_COMMIT_REF_NAME
+
+  CMAKE_OPTIONS: |
+    -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
+    -DASSFIRE_DEBUG_MODE=OFF
+    -DCMAKE_BUILD_TYPE=Release
+    -DASSFIRE_GRPC_GATEWAYS_ENABLED=ON
+    -DASSFIRE_RPM_ENABLED=ON
+    -DASSFIRE_DOCKER_ENABLED=ON
+    -DASSFIRE_HELM_ENABLED=ON
+    -DASSFIRE_ROUTER_MAPTEST_ENABLED=ON
 
 build-ci-image:
   image: docker:stable
@@ -19,27 +32,134 @@ build-ci-image:
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cd ci
-    - docker build . -t $BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
-    - docker push $BUILD_IMAGE_NAME
-    - docker image tag $BUILD_IMAGE_NAME $BRANCH_BUILD_IMAGE_NAME
+    - docker build . -t $REVISION_BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker image tag $REVISION_BUILD_IMAGE_NAME $BRANCH_BUILD_IMAGE_NAME
+    - docker push $REVISION_BUILD_IMAGE_NAME
     - docker push $BRANCH_BUILD_IMAGE_NAME
   needs: []
 
-publish-master-ci-image:
+build:
+  stage: build
+  image: $REVISION_BUILD_IMAGE_NAME
+  artifacts:
+    paths:
+      - out/*
+    expire_in: 1 hour
+  script:
+    - mkdir out
+    - cd out
+    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
+    - make -j
+
+test:
+  stage: test
+  image: $REVISION_BUILD_IMAGE_NAME
+  dependencies:
+    - build
+  needs:
+    - build
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - out/apps/router/tests/junit_test_report/*.xml
+  script:
+    - cd out
+    - make test
+
+package:
+  stage: package
+  image: $REVISION_BUILD_IMAGE_NAME
+  dependencies:
+    - build
+  needs:
+    - build
+  artifacts:
+    paths:
+      - out/*.rpm
+  script:
+    - cd out
+    - make package -j
+
+docker:
+  stage: docker
   image: docker:stable
   services:
     - docker:dind
-  stage: publish master ci image
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $BUILD_IMAGE_NAME
-    - docker tag $BUILD_IMAGE_NAME $MASTER_BUILD_IMAGE_NAME
-    - docker push $MASTER_BUILD_IMAGE_NAME
-  only:
-    refs:
-      - master
+  dependencies:
+    - build
+    - package
   needs:
-    - build-ci-image
+    - package
+  script:
+    - cd out
+    - make docker-push -j
 
-include:
-  - apps.yml
+helm:
+  stage: helm
+  image: $REVISION_BUILD_IMAGE_NAME
+  dependencies:
+    - build
+  needs:
+    - build
+  script:
+    - cd out
+    - make helm-package
+
+helm-push:
+  stage: helm
+  only:
+    - tags
+  image: $REVISION_BUILD_IMAGE_NAME
+  dependencies:
+    - build
+  needs:
+    - build
+  script:
+    - cd out
+    - make helm-push
+
+####  Deployment scripts ####
+deploy-all:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  tags:
+    - assfire-deployment-node
+  script:
+    - cd out
+    - make helm-deploy
+
+deploy-router:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  tags:
+    - assfire-deployment-node
+  script:
+    - cd out
+    - make assfire-router-helm-deploy
+
+deploy-scheduler:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  tags:
+    - assfire-deployment-node
+  script:
+    - cd out
+    - make assfire-scheduler-helm-deploy
+
+deploy-tsp:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  tags:
+    - assfire-deployment-node
+  script:
+    - cd out
+    - make assfire-tsp-helm-deploy
