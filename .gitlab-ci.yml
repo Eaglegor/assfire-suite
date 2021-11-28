@@ -13,6 +13,7 @@ variables:
   REVISION_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-tmp-$CI_COMMIT_SHORT_SHA
   DOCKER_BUILDKIT: 1
   APPLICATION_VERSION: $CI_COMMIT_REF_NAME
+  COMPILE_JOBS_COUNT: $(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
   CMAKE_OPTIONS: |
     -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
