@@ -42,8 +42,6 @@ build-ci-image:
 build:
   stage: build
   image: $REVISION_BUILD_IMAGE_NAME
-  services:
-    - docker:dind # To configure docker build
   dependencies:
     - build-ci-image
   needs:
