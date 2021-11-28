@@ -51,3 +51,4 @@ RUN npm install -g react-scripts
 
 RUN curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
+RUN apk add --no-cache docker
