@@ -9,6 +9,6 @@ define_go_executable_target(
         "github.com/go-redis/redis/v8 v8.11.4"
         "github.com/streadway/amqp v1.0.0"
         "github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0"
-        "google.golang.org/grpc v1.35.0"
+        "google.golang.org/grpc v1.42.0"
         RPM_COMPONENT_NAME tsp-server
 )
