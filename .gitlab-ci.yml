@@ -23,6 +23,7 @@ variables:
     -DASSFIRE_DOCKER_ENABLED=ON
     -DASSFIRE_HELM_ENABLED=ON
     -DASSFIRE_ROUTER_MAPTEST_ENABLED=ON
+    -Wno-dev
 
 build-ci-image:
   image: docker:stable
