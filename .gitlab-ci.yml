@@ -59,7 +59,7 @@ build:
 .post_build:
   before_script:
     - cd out
-    - find . | xargs touch -r
+    - make -t
 
 test:
   stage: test
