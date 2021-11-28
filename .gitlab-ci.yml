@@ -41,6 +41,10 @@ build-ci-image:
 build:
   stage: build
   image: $REVISION_BUILD_IMAGE_NAME
+  dependencies:
+    - build-ci-image
+  needs:
+    - build-ci-image
   artifacts:
     paths:
       - out/*
