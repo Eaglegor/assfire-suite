@@ -32,7 +32,7 @@ build-ci-image:
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cd ci
-    - docker build . -t $REVISION_BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker build . -t $REVISION_BUILD_IMAGE_NAME --cache-from $CI_REGISTRY/assfire/assfire-suite/buildimage:latest --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
     - docker image tag $REVISION_BUILD_IMAGE_NAME $BRANCH_BUILD_IMAGE_NAME
     - docker push $REVISION_BUILD_IMAGE_NAME
     - docker push $BRANCH_BUILD_IMAGE_NAME
