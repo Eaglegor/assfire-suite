@@ -125,8 +125,8 @@ function(define_proto_go_target)
         unset(full_proto_path CACHE)
     endforeach()
 
-    message(STATUS "[Protobuf][Go]   Expected sources: ${GO_SOURCE_OUTPUTS}")
-    message(STATUS "[Protobuf][Go]   Expected gRPC sources: ${GO_GRPC_SOURCE_OUTPUTS}")
+    message(VERBOSE "[Protobuf][Go]   Expected sources: ${GO_SOURCE_OUTPUTS}")
+    message(VERBOSE "[Protobuf][Go]   Expected gRPC sources: ${GO_GRPC_SOURCE_OUTPUTS}")
 
     file(MAKE_DIRECTORY ${GO_MOD_PATH})
 
