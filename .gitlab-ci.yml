@@ -24,6 +24,7 @@ variables:
     -DASSFIRE_HELM_ENABLED=ON
     -DASSFIRE_ROUTER_MAPTEST_ENABLED=ON
     -DASSFIRE_IN_SOURCE_GO_ENABLED=OFF
+    -DCMAKE_SUPPRESS_REGENERATION=ON
     -Wno-dev
 
 prepare:
@@ -100,9 +101,10 @@ docker:
     - branches
   image: $REVISION_BUILD_IMAGE_NAME
   extends: .post_build
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
   services:
-    - name: docker:dind
-      entrypoint: ["dockerd"]
+    - docker:dind
   dependencies:
     - build
     - package
@@ -118,9 +120,10 @@ docker-push:
     - tags
   image: $REVISION_BUILD_IMAGE_NAME
   extends: .post_build
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
   services:
-    - name: docker:dind
-      entrypoint: ["dockerd"]
+    - docker:dind
   dependencies:
     - build
     - package
