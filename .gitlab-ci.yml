@@ -102,6 +102,8 @@ docker:
 
 helm:
   stage: helm
+  only:
+    - branches
   image: $REVISION_BUILD_IMAGE_NAME
   dependencies:
     - build
