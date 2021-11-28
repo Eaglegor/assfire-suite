@@ -13,7 +13,6 @@ variables:
   REVISION_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-tmp-$CI_COMMIT_SHORT_SHA
   DOCKER_BUILDKIT: 1
   APPLICATION_VERSION: $CI_COMMIT_REF_NAME
-  COMPILE_JOBS_COUNT: (free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
   CMAKE_OPTIONS: |
     -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
@@ -55,8 +54,7 @@ build:
     - mkdir out
     - cd out
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
-    - echo $($COMPILE_JOBS_COUNT)
-    - make -j$($COMPILE_JOBS_COUNT)
+    - make -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 test:
   stage: test
@@ -88,7 +86,7 @@ package:
       - out/*.rpm
   script:
     - cd out
-    - make package -j$($COMPILE_JOBS_COUNT)
+    - make package -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 docker:
   stage: docker
