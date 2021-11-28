@@ -98,6 +98,7 @@ docker:
     - package
   script:
     - cd out
+    - cmake .
     - make docker-push -j
 
 helm:
