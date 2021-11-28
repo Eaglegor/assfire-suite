@@ -227,6 +227,8 @@ function(define_go_executable_target)
         set(GO_MOD_PATH ${CMAKE_CURRENT_SOURCE_DIR})
     endif()
 
+    message(${GO_MOD_PATH})
+
     set(REQUIRE_DIRECTIVES "")
     set(REPLACE_DIRECTIVES "")
     foreach(req ${REQUIRES})

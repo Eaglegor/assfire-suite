@@ -34,6 +34,8 @@ message(STATUS "Application release version: ${ASSFIRE_APPLICATION_RELEASE_VERSI
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG True)
 
 option(ASSFIRE_DEBUG_MODE "Enable debug mode" ON)
+option(ASSFIRE_IN_SOURCE_GO_ENABLED "Build non-generated go modules in source tree" ON)
+
 option(ASSFIRE_HELM_ENABLED "Build helm charts" ON)
 option(ASSFIRE_DOCKER_ENABLED "Build docker images" ON)
 option(ASSFIRE_GRPC_GATEWAYS_ENABLED "Build reverse HTTP proxy services for gRPC" ON)
