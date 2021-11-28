@@ -18,7 +18,6 @@ variables:
     -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
     -DASSFIRE_DEBUG_MODE=OFF
     -DCMAKE_BUILD_TYPE=Release
-    -DCMAKE_SUPPRESS_REGENERATION=ON
     -DASSFIRE_GRPC_GATEWAYS_ENABLED=ON
     -DASSFIRE_RPM_ENABLED=ON
     -DASSFIRE_DOCKER_ENABLED=ON
@@ -55,11 +54,17 @@ build:
     - mkdir out
     - cd out
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
-    - cmake --build . -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+    - make -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+
+.post_build:
+  before_script:
+    - cd out
+    - find . | xargs touch -r
 
 test:
   stage: test
   image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
   dependencies:
     - build
   needs:
@@ -72,12 +77,12 @@ test:
         - out/apps/scheduler/tests/junit_test_report/*.xml
         - out/apps/tsp/tests/junit_test_report/*.xml
   script:
-    - cd out
-    - cmake --build . --target test -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+    - make test -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 package:
   stage: package
   image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
   dependencies:
     - build
   needs:
@@ -86,14 +91,14 @@ package:
     paths:
       - out/*.rpm
   script:
-    - cd out
-    - cmake --build . --target package -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+    - make package -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 docker:
   stage: docker
   only:
     - branches
   image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
   services:
     - name: docker:dind
       entrypoint: ["dockerd"]
@@ -104,14 +109,14 @@ docker:
     - build
     - package
   script:
-    - cd out
-    - cmake --build . --target docker-build
+    - cmake docker-build
 
 docker-push:
   stage: docker
   only:
     - tags
   image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
   services:
     - name: docker:dind
       entrypoint: ["dockerd"]
@@ -122,34 +127,33 @@ docker-push:
     - build
     - package
   script:
-    - cd out
-    - cmake --build . --target docker-push
+    - make docker-push
 
 helm:
   stage: helm
   only:
     - branches
   image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
   dependencies:
     - build
   needs:
     - build
   script:
-    - cd out
-    - cmake --build . --target helm-package
+    - make helm-package
 
 helm-push:
   stage: helm
   only:
     - tags
   image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
   dependencies:
     - build
   needs:
     - build
   script:
-    - cd out
-    - cmake --build . --target helm-push
+    - make helm-push
 
 ####  Deployment scripts ####
 deploy-all:
@@ -157,54 +161,53 @@ deploy-all:
   only:
     - tags
   when: manual
+  extends: .post_build
   needs:
     - helm-push
     - docker-push
   tags:
     - assfire-deployment-node
   script:
-    - cd out
-    - cmake --build . --target helm-deploy
+    - make helm-deploy
 
 deploy-router:
   stage: deploy
   only:
     - tags
   when: manual
+  extends: .post_build
   needs:
     - helm-push
     - docker-push
   tags:
     - assfire-deployment-node
   script:
-    - cd out
-    - cmake --build . --target assfire-router-helm-deploy
+    - make assfire-router-helm-deploy
 
 deploy-scheduler:
   stage: deploy
   only:
     - tags
   when: manual
+  extends: .post_build
   needs:
     - helm-push
     - docker-push
   tags:
     - assfire-deployment-node
   script:
-    - cd out
     - make assfire-scheduler-helm-deploy
-    - cmake --build . --target assfire-scheduler-helm-deploy
 
 deploy-tsp:
   stage: deploy
   only:
     - tags
   when: manual
+  extends: .post_build
   needs:
     - helm-push
     - docker-push
   tags:
     - assfire-deployment-node
   script:
-    - cd out
-    - cmake --build . --target assfire-tsp-helm-deploy
+    - make assfire-tsp-helm-deploy
