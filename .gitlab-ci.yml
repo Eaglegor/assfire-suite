@@ -59,7 +59,6 @@ build:
 .post_build:
   before_script:
     - cd out
-    - make -t
 
 test:
   stage: test
