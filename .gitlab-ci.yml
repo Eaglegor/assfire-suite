@@ -54,7 +54,7 @@ build:
     - mkdir out
     - cd out
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
-    - make -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+    - cmake --build . -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 test:
   stage: test
@@ -72,7 +72,7 @@ test:
         - out/apps/tsp/tests/junit_test_report/*.xml
   script:
     - cd out
-    - make test
+    - cmake --build . --target test -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 package:
   stage: package
@@ -86,7 +86,7 @@ package:
       - out/*.rpm
   script:
     - cd out
-    - make package -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+    - cmake --build . --target package -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 docker:
   stage: docker
@@ -103,7 +103,7 @@ docker:
     - package
   script:
     - cd out
-    - make docker-build
+    - cmake --build . --target docker-build
 
 docker-push:
   stage: docker
@@ -120,7 +120,7 @@ docker-push:
     - package
   script:
     - cd out
-    - make docker-push
+    - cmake --build . --target docker-push
 
 helm:
   stage: helm
@@ -133,7 +133,7 @@ helm:
     - build
   script:
     - cd out
-    - make helm-package
+    - cmake --build . --target helm-package
 
 helm-push:
   stage: helm
@@ -146,7 +146,7 @@ helm-push:
     - build
   script:
     - cd out
-    - make helm-push
+    - cmake --build . --target helm-push
 
 ####  Deployment scripts ####
 deploy-all:
@@ -156,12 +156,12 @@ deploy-all:
   when: manual
   needs:
     - helm-push
-    - docker
+    - docker-push
   tags:
     - assfire-deployment-node
   script:
     - cd out
-    - make helm-deploy
+    - cmake --build . --target helm-deploy
 
 deploy-router:
   stage: deploy
@@ -170,12 +170,12 @@ deploy-router:
   when: manual
   needs:
     - helm-push
-    - docker
+    - docker-push
   tags:
     - assfire-deployment-node
   script:
     - cd out
-    - make assfire-router-helm-deploy
+    - cmake --build . --target assfire-router-helm-deploy
 
 deploy-scheduler:
   stage: deploy
@@ -184,12 +184,13 @@ deploy-scheduler:
   when: manual
   needs:
     - helm-push
-    - docker
+    - docker-push
   tags:
     - assfire-deployment-node
   script:
     - cd out
     - make assfire-scheduler-helm-deploy
+    - cmake --build . --target assfire-scheduler-helm-deploy
 
 deploy-tsp:
   stage: deploy
@@ -198,9 +199,9 @@ deploy-tsp:
   when: manual
   needs:
     - helm-push
-    - docker
+    - docker-push
   tags:
     - assfire-deployment-node
   script:
     - cd out
-    - make assfire-tsp-helm-deploy
+    - cmake --build . --target assfire-tsp-helm-deploy
