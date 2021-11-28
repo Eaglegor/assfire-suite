@@ -45,9 +45,9 @@ build:
   stage: build
   image: $REVISION_BUILD_IMAGE_NAME
   dependencies:
-    - build-ci-image
+    - prepare
   needs:
-    - build-ci-image
+    - prepare
   artifacts:
     paths:
       - out/*
