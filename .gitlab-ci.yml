@@ -54,8 +54,7 @@ build:
     - mkdir out
     - cd out
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
-    - export JOBS_COUNT=$(expr `free -g | grep Mem | awk '{print $2}'` / 4)
-    - make -j$(($JOBS_COUNT>0?$JOBS_COUNT:1))
+    - make -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 test:
   stage: test
@@ -85,8 +84,7 @@ package:
       - out/*.rpm
   script:
     - cd out
-    - export JOBS_COUNT=$(expr `free -g | grep Mem | awk '{print $2}'` / 4)
-    - make package -j$(($JOBS_COUNT>0?$JOBS_COUNT:1))
+    - make package -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
 
 docker:
   stage: docker
