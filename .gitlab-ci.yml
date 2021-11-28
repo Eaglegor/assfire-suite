@@ -41,6 +41,8 @@ build-ci-image:
 build:
   stage: build
   image: $REVISION_BUILD_IMAGE_NAME
+  services:
+    - docker:dind # To configure docker build
   dependencies:
     - build-ci-image
   needs:
@@ -87,7 +89,7 @@ package:
 
 docker:
   stage: docker
-  image: docker:stable
+  image: $REVISION_BUILD_IMAGE_NAME
   services:
     - docker:dind
   dependencies:
@@ -98,7 +100,6 @@ docker:
     - package
   script:
     - cd out
-    - cmake .
     - make docker-push -j
 
 helm:
