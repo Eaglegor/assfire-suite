@@ -109,7 +109,7 @@ docker:
     - build
     - package
   script:
-    - cmake docker-build
+    - make docker-build
 
 docker-push:
   stage: docker
