@@ -27,7 +27,7 @@ function(define_docker_target)
                 DEPENDS ${DOCKERFILE}
                 COMMAND ${DOCKER_EXECUTABLE} build . -f ${CMAKE_CURRENT_BINARY_DIR}/${DOCKERFILE} -t $ENV{CI_REGISTRY}/assfire/assfire-suite/${IMAGE_NAME}:${IMAGE_TAG}
                 WORKING_DIRECTORY ${WORKING_DIRECTORY}
-                COMMENT "Building docker image $ENV{CI_REGISTRY}/assfire/assfire-suite/${IMAGE_NAME}:${IMAGE_TAG} from ${DOCKERFILE}"
+                COMMENT "Building docker image $ENV{CI_REGISTRY}/assfire/assfire-suite/${IMAGE_NAME}:${IMAGE_TAG} from ${WORKING_DIRECTORY}/${DOCKERFILE}"
                 )
 
         add_custom_target(${TARGET_NAME}-upload
