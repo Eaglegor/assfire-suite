@@ -94,7 +94,8 @@ docker:
     - branches
   image: $REVISION_BUILD_IMAGE_NAME
   services:
-    - docker:dind
+    - name: docker:dind
+      entrypoint: ["dockerd"]
   dependencies:
     - build
     - package
@@ -111,7 +112,8 @@ docker-push:
     - tags
   image: $REVISION_BUILD_IMAGE_NAME
   services:
-    - docker:dind
+    - name: docker:dind
+      entrypoint: ["dockerd"]
   dependencies:
     - build
     - package
