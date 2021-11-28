@@ -55,7 +55,8 @@ build:
     - mkdir out
     - cd out
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
-    - make -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+    - echo $COMPILE_JOBS_COUNT
+    - make -j$COMPILE_JOBS_COUNT
 
 test:
   stage: test
