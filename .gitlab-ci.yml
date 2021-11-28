@@ -1,5 +1,5 @@
 stages:
-  - build ci image
+  - prepare
   - build
   - test
   - package
@@ -26,11 +26,11 @@ variables:
     -DASSFIRE_IN_SOURCE_GO_ENABLED=OFF
     -Wno-dev
 
-build-ci-image:
+prepare:
   image: docker:stable
   services:
     - docker:dind
-  stage: build ci image
+  stage: prepare
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cd ci
