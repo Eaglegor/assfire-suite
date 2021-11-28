@@ -8,7 +8,7 @@ stages:
   - deploy
 
 variables:
-  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-${CI_DEFAULT_BRANCH}
+  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_DEFAULT_BRANCH
   BRANCH_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_REF_NAME
   REVISION_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-tmp-$CI_COMMIT_SHORT_SHA
   DOCKER_BUILDKIT: 1
@@ -54,7 +54,8 @@ build:
     - mkdir out
     - cd out
     - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
-    - make -j
+    - export JOBS_COUNT=$(expr `free -g | grep Mem | awk '{print $2}'` / 4)
+    - make -j$(($JOBS_COUNT>0?$JOBS_COUNT:1))
 
 test:
   stage: test
@@ -84,7 +85,8 @@ package:
       - out/*.rpm
   script:
     - cd out
-    - make package -j
+    - export JOBS_COUNT=$(expr `free -g | grep Mem | awk '{print $2}'` / 4)
+    - make package -j$(($JOBS_COUNT>0?$JOBS_COUNT:1))
 
 docker:
   stage: docker
