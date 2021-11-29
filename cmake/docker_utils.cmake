@@ -32,7 +32,7 @@ function(define_docker_target)
 
         add_custom_target(${TARGET_NAME}-upload
                 DEPENDS ${TARGET_NAME}
-                COMMAND ${DOCKER_EXECUTABLE} login -u CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $ENV{CI_REGISTRY}
+                COMMAND ${DOCKER_EXECUTABLE} login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $ENV{CI_REGISTRY}
                 COMMAND ${DOCKER_EXECUTABLE} push $ENV{CI_REGISTRY}/assfire/assfire-suite/${IMAGE_NAME}:${IMAGE_TAG}
                 COMMENT "Uploading docker image $ENV{CI_REGISTRY}/assfire/assfire-suite/${IMAGE_NAME}:${IMAGE_TAG}"
                 )
