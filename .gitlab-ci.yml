@@ -144,7 +144,7 @@ helm:
   needs:
     - build
   script:
-    - make helm-package
+    - make helm-push
 
 helm-push:
   stage: helm
