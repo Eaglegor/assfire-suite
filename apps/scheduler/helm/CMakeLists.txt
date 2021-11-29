@@ -1,5 +1,15 @@
-file(GLOB_RECURSE CHART_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.yaml)
+if(ASSFIRE_HELM_ENABLED)
+    include(helm_utils)
 
-foreach(file ${CHART_FILES})
-    configure_file(${file} ${file} @ONLY)
-endforeach()
+    define_helm_target(
+            TARGET_NAME assfire-scheduler-helm
+            CHART_FILES
+            assfire-scheduler/Chart.yaml
+            assfire-scheduler/values.yaml
+            assfire-scheduler/templates/deployment.yaml
+            assfire-scheduler/templates/ingress.yaml
+            assfire-scheduler/templates/service.yaml
+            CHART_ROOT assfire-scheduler
+            INSTALL_RELEASE_NAME assfire-scheduler
+    )
+endif()

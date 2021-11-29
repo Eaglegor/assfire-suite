@@ -1,0 +1,42 @@
+{{if .Values.server.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-server
+  labels:
+    {{ toYaml .Values.server.labels }}
+spec:
+  replicas: {{.Values.server.replicas}}
+  selector:
+    matchLabels:
+      {{ toYaml .Values.server.labels }}
+  template:
+    metadata:
+      labels:
+        {{ toYaml .Values.server.labels }}
+    spec:
+      nodeSelector:
+        {{ toYaml .Values.server.nodeSelector}}
+      containers:
+        - name: router-server
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 50051
+            - containerPort: 8081
+          command: [ "assfire-router-server" ]
+          args:
+            - "--redis-cache-enabled={{.Values.server.cache.enabled}}"
+            - "--redis-host={{.Release.Name}}-redis-master.{{.Release.Namespace}}.svc.cluster.local"
+            - "--redis-port={{.Values.server.cache.port}}"
+            - "--metrics-enabled={{.Values.server.metrics.enabled}}"
+            - "--log-level={{.Values.server.log.level}}"
+        {{ if .Values.server.grpc_gateway.enabled }}
+        - name: router-grpc-gateway
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-router-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 8082
+          command: [ "assfire-router-grpc-gateway" ]
+        {{ end }}
+      imagePullSecrets: {{.Values.server.imagePullSecrets}}
+  {{ end }}

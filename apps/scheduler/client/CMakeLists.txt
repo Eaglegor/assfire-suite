@@ -25,6 +25,6 @@ endforeach()
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/public_headers/assfire DESTINATION ${CMAKE_INSTALL_PREFIX}/include COMPONENT scheduler-client)
 
 
-if(ASSFIRE_PACKAGE_BUILD_RPM)
+if(ASSFIRE_RPM_ENABLED)
     cpack_add_component(scheduler-client)
 endif()

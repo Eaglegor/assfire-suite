@@ -34,7 +34,7 @@ function(define_proto_target)
 
     message(VERBOSE "[Protobuf][C++]   Summarized proto import dirs: ${FINAL_IMPORT_DIRS}")
 
-    set(OUT_SUFFIX proto/cpp)
+    make_directory(${CMAKE_BINARY_DIR}/proto/cpp)
 
     protobuf_generate(TARGET ${TARGET_NAME}
             LANGUAGE cpp
@@ -108,19 +108,21 @@ function(define_proto_go_target)
     foreach(proto ${PROTOS})
         find_file(full_proto_path ${proto} PATHS ${FINAL_IMPORT_DIRS} REQUIRED)
         list(APPEND FULL_PROTOS "${full_proto_path}")
+        get_filename_component(proto_filename ${full_proto_path} NAME)
+        string(REPLACE ".proto" ".pb.go" proto_go ${proto_filename})
+        list(APPEND GO_SOURCE_OUTPUTS "${GO_MOD_PATH}/${proto_go}")
         unset(full_proto_path CACHE)
-        string(REPLACE ".proto" ".pb.go" proto_go ${proto})
-        list(APPEND GO_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_go}")
     endforeach()
 
     foreach(proto ${GRPC_PROTOS})
         find_file(full_proto_path ${proto} PATHS ${FINAL_IMPORT_DIRS} REQUIRED)
         list(APPEND FULL_GRPC_PROTOS "${full_proto_path}")
+        get_filename_component(proto_filename ${full_proto_path} NAME)
+        string(REPLACE ".proto" "_grpc.pb.go" proto_grpc_filename ${proto_filename})
+        list(APPEND GO_GRPC_SOURCE_OUTPUTS "${GO_MOD_PATH}/${proto_grpc_filename}")
+        string(REPLACE ".proto" ".pb.go" proto_grpc_go_filename ${proto_filename})
+        list(APPEND GO_SOURCE_OUTPUTS "${GO_MOD_PATH}/${proto_grpc_go_filename}")
         unset(full_proto_path CACHE)
-        string(REPLACE ".proto" "_grpc.pb.go" proto_grpc ${proto})
-        list(APPEND GO_GRPC_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_grpc}")
-        string(REPLACE ".proto" ".pb.go" proto_grpc_go ${proto})
-        list(APPEND GO_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_grpc_go}")
     endforeach()
 
     message(VERBOSE "[Protobuf][Go]   Expected sources: ${GO_SOURCE_OUTPUTS}")
@@ -137,14 +139,14 @@ function(define_proto_go_target)
         get_target_property(DEP_MODULE_NAME ${req} GO_PACKAGE_NAME)
         get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
 
-        string(APPEND REQUIRE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION}\n")
-        string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
+        string(APPEND REQUIRE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION}\n")
+        string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
     endforeach()
     foreach(req ${TRANSITIVE_DEPS})
         get_target_property(DEP_MODULE_NAME ${req} GO_PACKAGE_NAME)
         get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
 
-        string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
+        string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
     endforeach()
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.mod ${GO_MOD_PATH} @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.sum ${GO_MOD_PATH} @ONLY)
@@ -175,6 +177,9 @@ function(define_proto_go_target)
             VERBATIM
     )
 
+    include(find_utils)
+    find_required_program(go GO_EXECUTABLE)
+
     add_custom_target(${TARGET_NAME} ALL
             COMMAND ${GO_EXECUTABLE} get
             COMMAND ${GO_EXECUTABLE} build
@@ -188,9 +193,9 @@ function(define_proto_go_target)
     set_target_properties(${TARGET_NAME} PROPERTIES TRANSITIVE_DEPS "${TRANSITIVE_DEPS}")
 endfunction()
 
-function(define_go_target)
+function(define_go_executable_target)
     set(_options "")
-    set(_singleargs TARGET_NAME GO_PACKAGE_NAME GO_MOD_PATH)
+    set(_singleargs TARGET_NAME GO_PACKAGE_NAME GO_MOD_PATH RPM_COMPONENT_NAME)
     set(_multiargs DEPENDS REQUIRES)
     cmake_parse_arguments(define_go_target "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
 
@@ -199,6 +204,7 @@ function(define_go_target)
     set(REQUIRES ${define_go_target_REQUIRES})
     set(GO_PACKAGE_NAME ${define_go_target_GO_PACKAGE_NAME})
     set(GO_MOD_PATH ${define_go_target_GO_MOD_PATH})
+    set(RPM_COMPONENT_NAME ${define_go_target_RPM_COMPONENT_NAME})
 
     foreach(dep ${DEPENDS})
         get_target_property(${dep}_TRANSITIVE_DEPS ${dep} DEPENDS_ON)
@@ -231,15 +237,15 @@ function(define_go_target)
         get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
 
         if(NOT DEP_MODULE_NAME STREQUAL "DEP_MODULE_NAME-NOTFOUND" AND NOT DEP_MODULE_PATH STREQUAL "DEP_MODULE_PATH-NOTFOUND")
-            string(APPEND REQUIRE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION}\n")
-            string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
+            string(APPEND REQUIRE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION}\n")
+            string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
         endif()
     endforeach()
     foreach(req ${TRANSITIVE_DEPS})
         get_target_property(DEP_MODULE_NAME ${req} GO_PACKAGE_NAME)
         get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
         if(NOT DEP_MODULE_NAME STREQUAL "DEP_MODULE_NAME-NOTFOUND" AND NOT DEP_MODULE_PATH STREQUAL "DEP_MODULE_PATH-NOTFOUND")
-            string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} v${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
+            string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
         endif()
     endforeach()
     message(VERBOSE "[Server][Go] Resolved go.mod require directives: ${REQUIRE_DIRECTIVES}")
@@ -249,6 +255,8 @@ function(define_go_target)
 
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/dev.gitignore ${CMAKE_CURRENT_SOURCE_DIR}/.gitignore)
 
+    include(find_utils)
+    find_required_program(go GO_EXECUTABLE)
 
     add_custom_target(${TARGET_NAME} ALL
             COMMAND ${GO_EXECUTABLE} get
@@ -261,6 +269,11 @@ function(define_go_target)
     set_target_properties(${TARGET_NAME} PROPERTIES GO_PACKAGE_NAME "${GO_PACKAGE_NAME}")
     set_target_properties(${TARGET_NAME} PROPERTIES DEPENDS_ON "${DEPENDS}")
     set_target_properties(${TARGET_NAME} PROPERTIES TRANSITIVE_DEPS "${TRANSITIVE_DEPS}")
+
+    install(PROGRAMS ${GO_MOD_PATH}/${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX} TYPE BIN COMPONENT ${RPM_COMPONENT_NAME})
+    if(ASSFIRE_RPM_ENABLED)
+        cpack_add_component(${RPM_COMPONENT_NAME})
+    endif()
 endfunction()
 
 function(define_grpc_target)
@@ -491,22 +504,17 @@ function(define_go_grpc_proxy_target)
 
     string(REGEX REPLACE "(.*)/.+" "\\1" GO_PACKAGE_NAME ${GO_SUBPACKAGE_NAME})
 
-    define_go_target(
+    define_go_executable_target(
             TARGET_NAME ${TARGET_NAME}
             DEPENDS ${DEPENDS}
             REQUIRES
             "github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0"
-            "google.golang.org/grpc v1.35.0"
+            "google.golang.org/grpc v1.42.0"
             "google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea"
             GO_PACKAGE_NAME ${GO_PACKAGE_NAME}
             GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR}
+            RPM_COMPONENT_NAME ${RPM_COMPONENT_NAME}
     )
 
     add_dependencies(${TARGET_NAME} ${DEPENDS} ${TARGET_NAME}-generate-gw-impl)
-
-    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX} COMPONENT ${RPM_COMPONENT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-    if(ASSFIRE_PACKAGE_BUILD_RPM)
-        cpack_add_component(${RPM_COMPONENT_NAME})
-    endif()
-
 endfunction()

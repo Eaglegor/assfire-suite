@@ -1,6 +1,58 @@
-replicas: 2
-redis_cache_enabled: true
-redis_host: assfire-geocache-redis-master.redis.svc.cluster.local
-redis_port: 6379
-log_level: info
-metrics_enabled: true
+server:
+  enabled: true
+  replicas: 2
+  nodeSelector:
+    assfire_router: enabled
+  labels:
+    app: assfire-router-server
+  imagePullSecrets: []
+  osrm:
+    local: false
+    host: "http://router.project-osrm.org"
+    port: 80
+  cache:
+    enabled: true
+    port: &redis_port 6379
+  metrics:
+    enabled: true
+  log:
+    level: info
+  ingress:
+    enabled: true
+    host: assfire.org
+    tls:
+      enabled: true
+      secretName: assfire-tls-ca
+      issuer: assfire-cert-ca-issuer
+  grpc_gateway:
+    enabled: true
+  service:
+    labels:
+      metrics: prometheus
+maptest:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    assfire_router: enabled
+  labels:
+    app: assfire-router-maptest
+  imagePullSecrets: []
+  ingress:
+    enabled: true
+    host: assfire.org
+    tls:
+      enabled: true
+      secretName: assfire-tls-ca
+      issuer: assfire-cert-ca-issuer
+  service:
+    labels:
+      metrics: prometheus
+redis:
+  usePassword: false
+  replica:
+    replicaCount: 1
+  architecture: standalone
+  master:
+    nodeSelector:
+      assfire_router: enabled
+    containerPort: *redis_port

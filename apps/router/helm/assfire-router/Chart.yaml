@@ -3,3 +3,9 @@ name: assfire-router
 version: @ASSFIRE_APPLICATION_RELEASE_VERSION@
 appVersion: @ASSFIRE_APPLICATION_RELEASE_VERSION@
 type: application
+
+dependencies:
+  - name: redis
+    repository: https://charts.bitnami.com/bitnami
+    version: 10.7.16
+    condition: server.cache.enabled

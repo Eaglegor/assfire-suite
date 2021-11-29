@@ -24,6 +24,6 @@ foreach (item ${PUBLIC_HEADERS})
 endforeach ()
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/public_headers/assfire DESTINATION ${CMAKE_INSTALL_PREFIX}/include COMPONENT router-client)
 
-if (ASSFIRE_PACKAGE_BUILD_RPM)
+if (ASSFIRE_RPM_ENABLED)
     cpack_add_component(router-client)
 endif ()

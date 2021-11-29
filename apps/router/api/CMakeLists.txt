@@ -18,7 +18,7 @@ set(HEADERS
         assfire/router/api/RouteProviderSettings.hpp
         assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp
         assfire/router/api/DistanceMatrixErrorPolicy.hpp
-        )
+        ../helm/assfire-router/templates/service-maptest.yaml)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)

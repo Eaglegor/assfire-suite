@@ -1,0 +1,13 @@
+apiVersion: v2
+name: assfire-tsp
+version: @ASSFIRE_APPLICATION_RELEASE_VERSION@
+appVersion: @ASSFIRE_APPLICATION_RELEASE_VERSION@
+type: application
+
+dependencies:
+  - name: redis
+    repository: https://charts.bitnami.com/bitnami
+    version: 10.7.16
+  - name: rabbitmq
+    repository: https://charts.bitnami.com/bitnami
+    version: 8.24.6

@@ -1,0 +1,41 @@
+{{if .Values.server.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{.Release.Namespace}}
+  name: {{.Release.Name}}-server
+  labels:
+    {{toYaml .Values.server.labels}}
+spec:
+  replicas: {{.Values.server.replicas}}
+  selector:
+    matchLabels:
+      {{toYaml .Values.server.labels}}
+  template:
+    metadata:
+      labels:
+        {{toYaml .Values.server.labels}}
+    spec:
+      nodeSelector:
+        {{toYaml .Values.server.nodeSelector}}
+      containers:
+        - name: assfire-tsp-server
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-tsp-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 50051
+            - containerPort: 8081
+          command: [ "assfire-tsp-server" ]
+          args:
+            - "--redis-endpoint={{.Release.Name}}-redis-master.{{.Release.Namespace}}.svc.cluster.local"
+            - "--redis-port={{.Values.transport.redis.port}}"
+            - "--rabbit-endpoint={{.Release.Name}}-rabbitmq.{{.Release.Namespace}}.svc.cluster.local"
+            - "--rabbit-port={{.Values.transport.rabbitmq.port}}"
+        {{if .Values.server.grpc_gateway.enabled}}
+        - name: assfire-tsp-grpc-gateway
+          image: registry.gitlab.com/assfire/assfire-suite/assfire-tsp-server:@ASSFIRE_APPLICATION_RELEASE_VERSION@
+          ports:
+            - containerPort: 8082
+          command: [ "assfire-tsp-grpc-gateway" ]
+        {{end}}
+      imagePullSecrets: {{.Values.server.imagePullSecrets}}
+{{end}}

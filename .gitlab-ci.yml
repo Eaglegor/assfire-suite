@@ -1,45 +1,217 @@
 stages:
-  - build ci image
-  - publish master ci image
-  - build applications
+  - prepare
+  - build
+  - test
+  - package
+  - docker
+  - helm
+  - deploy
 
 variables:
-  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:latest
-  BRANCH_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-ref-$CI_COMMIT_REF_NAME
-  TEMP_IMAGE_TAG_NAME: ci-$CI_COMMIT_SHORT_SHA
-  BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_SHORT_SHA
+  MASTER_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_DEFAULT_BRANCH
+  BRANCH_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-$CI_COMMIT_REF_NAME
+  REVISION_BUILD_IMAGE_NAME: $CI_REGISTRY/assfire/assfire-suite/buildimage:ci-tmp-$CI_COMMIT_SHORT_SHA
   DOCKER_BUILDKIT: 1
   APPLICATION_VERSION: $CI_COMMIT_REF_NAME
 
-build-ci-image:
+  CMAKE_OPTIONS: |
+    -DASSFIRE_APPLICATION_RELEASE_VERSION=$APPLICATION_VERSION
+    -DASSFIRE_DEBUG_MODE=OFF
+    -DCMAKE_BUILD_TYPE=Release
+    -DASSFIRE_GRPC_GATEWAYS_ENABLED=ON
+    -DASSFIRE_RPM_ENABLED=ON
+    -DASSFIRE_DOCKER_ENABLED=ON
+    -DASSFIRE_HELM_ENABLED=ON
+    -DASSFIRE_ROUTER_MAPTEST_ENABLED=ON
+    -DASSFIRE_IN_SOURCE_GO_ENABLED=OFF
+    -DCMAKE_SUPPRESS_REGENERATION=ON
+    -Wno-dev
+
+prepare:
   image: docker:stable
   services:
     - docker:dind
-  stage: build ci image
+  stage: prepare
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cd ci
-    - docker build . -t $BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
-    - docker push $BUILD_IMAGE_NAME
-    - docker image tag $BUILD_IMAGE_NAME $BRANCH_BUILD_IMAGE_NAME
+    - docker build . -t $REVISION_BUILD_IMAGE_NAME --cache-from $MASTER_BUILD_IMAGE_NAME --cache-from $BRANCH_BUILD_IMAGE_NAME --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker image tag $REVISION_BUILD_IMAGE_NAME $BRANCH_BUILD_IMAGE_NAME
+    - docker push $REVISION_BUILD_IMAGE_NAME
     - docker push $BRANCH_BUILD_IMAGE_NAME
   needs: []
 
-publish-master-ci-image:
-  image: docker:stable
+build:
+  stage: build
+  image: $REVISION_BUILD_IMAGE_NAME
+  dependencies:
+    - prepare
+  needs:
+    - prepare
+  artifacts:
+    paths:
+      - out/*
+    expire_in: 1 hour
+  script:
+    - mkdir out
+    - cd out
+    - cmake -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" $CMAKE_OPTIONS ../
+    - make -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+
+.post_build:
+  before_script:
+    - cd out
+    - make -t
+
+test:
+  stage: test
+  image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
+  dependencies:
+    - build
+  needs:
+    - build
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - out/apps/router/tests/junit_test_report/*.xml
+        - out/apps/scheduler/tests/junit_test_report/*.xml
+        - out/apps/tsp/tests/junit_test_report/*.xml
+  script:
+    - make test -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+
+package:
+  stage: package
+  image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
+  dependencies:
+    - build
+  needs:
+    - build
+  artifacts:
+    paths:
+      - out/*.rpm
+  script:
+    - make package -j$(free -g | grep Mem | awk '{if(int($2 / 4) > 0) {print int($2 / 4)} else {print 1}}')
+
+docker:
+  stage: docker
+  only:
+    - branches
+  image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
   services:
     - docker:dind
-  stage: publish master ci image
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $BUILD_IMAGE_NAME
-    - docker tag $BUILD_IMAGE_NAME $MASTER_BUILD_IMAGE_NAME
-    - docker push $MASTER_BUILD_IMAGE_NAME
-  only:
-    refs:
-      - master
+  dependencies:
+    - build
+    - package
   needs:
-    - build-ci-image
+    - build
+    - package
+  script:
+    - make docker-build
 
-include:
-  - apps.yml
+docker-push:
+  stage: docker
+  only:
+    - tags
+  image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+  services:
+    - docker:dind
+  dependencies:
+    - build
+    - package
+  needs:
+    - build
+    - package
+  script:
+    - make docker-push
+
+helm:
+  stage: helm
+  only:
+    - branches
+  image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
+  dependencies:
+    - build
+  needs:
+    - build
+  script:
+    - make helm-package
+
+helm-push:
+  stage: helm
+  only:
+    - tags
+  image: $REVISION_BUILD_IMAGE_NAME
+  extends: .post_build
+  dependencies:
+    - build
+  needs:
+    - build
+  script:
+    - make helm-push
+
+####  Deployment scripts ####
+deploy-all:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  extends: .post_build
+  needs:
+    - helm-push
+    - docker-push
+  tags:
+    - assfire-deployment-node
+  script:
+    - make helm-deploy
+
+deploy-router:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  extends: .post_build
+  needs:
+    - helm-push
+    - docker-push
+  tags:
+    - assfire-deployment-node
+  script:
+    - make assfire-router-helm-deploy
+
+deploy-scheduler:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  extends: .post_build
+  needs:
+    - helm-push
+    - docker-push
+  tags:
+    - assfire-deployment-node
+  script:
+    - make assfire-scheduler-helm-deploy
+
+deploy-tsp:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  extends: .post_build
+  needs:
+    - helm-push
+    - docker-push
+  tags:
+    - assfire-deployment-node
+  script:
+    - make assfire-tsp-helm-deploy

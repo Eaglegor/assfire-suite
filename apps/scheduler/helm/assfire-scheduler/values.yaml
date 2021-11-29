@@ -1,6 +1,28 @@
-replicas: 2
-router_host: assfire-router.assfire.svc.cluster.local
-router_port: 50051
-router_use_ssl: true
-log_level: info
-metrics_enabled: true
+server:
+  enabled: true
+  replicas: 2
+  nodeSelector:
+    assfire_scheduler: enabled
+  labels:
+    app: assfire-scheduler-server
+  imagePullSecrets: []
+  router:
+    host: assfire-router-service.default.svc.cluster.local
+    port: 50051
+    ssl: false
+  metrics:
+    enabled: true
+  log:
+    level: info
+  ingress:
+    enabled: true
+    host: assfire.org
+    tls:
+      enabled: true
+      secretName: assfire-tls-ca
+      issuer: assfire-cert-ca-issuer
+  grpc_gateway:
+    enabled: true
+  service:
+    labels:
+      metrics: prometheus

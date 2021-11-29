@@ -1,0 +1,31 @@
+{{ if and (.Values.maptest.ingress.enabled) (.Values.maptest.enabled) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    {{if .Values.maptest.ingress.tls.enabled}}
+    cert-manager.io/issuer: {{.Values.maptest.ingress.tls.issuer | quote}}
+    {{end}}
+  name: {{ .Release.Name }}-static-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.maptest.ingress.host }}
+      http:
+        paths:
+          - path: /router/tools/maptest/(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-maptest
+                port:
+                  name: maptest
+  {{if .Values.maptest.ingress.tls.enabled}}
+  tls:
+    - hosts:
+        - {{.Values.maptest.ingress.host}}
+      secretName: {{.Values.maptest.ingress.tls.secretName}}
+  {{end}}
+{{end}}

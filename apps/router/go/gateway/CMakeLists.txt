@@ -1,5 +1,5 @@
 
-if (ASSFIRE_GENERATE_GRPC_GATEWAYS)
+if (ASSFIRE_GRPC_GATEWAYS_ENABLED)
 
     define_go_grpc_proxy_target(
             TARGET_NAME assfire-router-grpc-gateway
