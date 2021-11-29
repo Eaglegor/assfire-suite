@@ -112,8 +112,7 @@ docker:
     - build
     - package
   script:
-    - make -n docker-push
-    - make docker-push
+    - make docker-build
 
 docker-push:
   stage: docker
