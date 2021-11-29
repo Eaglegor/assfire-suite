@@ -69,13 +69,12 @@ function(define_helm_target)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
             COMMENT "Uninstalling helm release ${INSTALL_RELEASE_NAME}, release namespace: ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE}"
             )
-
+#--username $$CI_REGISTRY_USER --password $$CI_REGISTRY_PASSWORD
     add_custom_target(${TARGET_NAME}-deploy
-            DEPENDS ${TARGET_NAME}
-            COMMAND ${HELM_EXECUTABLE} repo add --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD assfire-suite $ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/api/stable
-            COMMAND ${HELM_EXECUTABLE} upgrade -i -n ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE} ${INSTALL_RELEASE_NAME} assfire-suite/${CHART_NAME} --version "${ASSFIRE_APPLICATION_RELEASE_VERSION}"
+            COMMAND ${HELM_EXECUTABLE} repo add --force-update  assfire-suite $ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/stable
+            COMMAND ${HELM_EXECUTABLE} upgrade -i -n ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE} ${INSTALL_RELEASE_NAME} assfire-suite/${CHART_NAME} --version "${CHART_VERSION}" --create-namespace
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
-            COMMENT "Uninstalling helm release ${INSTALL_RELEASE_NAME}, release namespace: ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE}"
+            COMMENT "Deploying helm release ${INSTALL_RELEASE_NAME} from assfire-suite/${CHART_NAME} ${CHART_VERSION}, release namespace: ${ASSFIRE_HELM_INSTALL_RELEASE_NAMESPACE}"
             )
 
     add_dependencies(helm-package ${TARGET_NAME})
