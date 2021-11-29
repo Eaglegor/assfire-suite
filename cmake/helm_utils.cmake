@@ -52,7 +52,7 @@ function(define_helm_target)
 
     add_custom_target(${TARGET_NAME}-upload
             DEPENDS ${TARGET_NAME}
-            COMMAND ${CURL_EXECUTABLE} --request POST --user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@${CHART_NAME}-${CHART_VERSION}.tgz" "$ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/api/stable/charts"
+            COMMAND ${CURL_EXECUTABLE} --request POST --user gitlab-ci-token:$$CI_JOB_TOKEN --form "chart=@${CHART_NAME}-${CHART_VERSION}.tgz" "$ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/api/stable/charts"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT}
             COMMENT "Uploading helm chart ${CHART_NAME}-${CHART_VERSION}.tgz to package repository $ENV{CI_API_V4_URL}/projects/$ENV{CI_PROJECT_ID}/packages/helm/api/stable/charts"
             )
