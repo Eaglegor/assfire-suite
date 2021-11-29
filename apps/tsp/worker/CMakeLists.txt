@@ -55,7 +55,17 @@ if (ASSFIRE_RPM_ENABLED)
     cpack_add_component(tsp-worker)
 endif ()
 
-configure_file(Dockerfile ${CMAKE_CURRENT_BINARY_DIR}/Dockerfile)
+if(ASSFIRE_DOCKER_ENABLED)
+    include(docker_utils)
+    define_docker_target(
+            TARGET_NAME assfire-tsp-worker-docker
+            DOCKERFILE Dockerfile
+            IMAGE_NAME assfire-tsp-worker
+            IMAGE_TAG ${ASSFIRE_APPLICATION_RELEASE_VERSION}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+endif()
+
 
 #add_subdirectory(tests)
 
