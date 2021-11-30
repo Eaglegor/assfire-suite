@@ -48,6 +48,36 @@ message FindLocationsResponse {
   repeated IndexedLocation locations = 1;
 }
 
+message LocationGenerationConstraints {
+
+}
+
+message GenerateLocationsRequest {
+  repeated LocationGenerationConstraints constraints = 1;
+}
+
+message GenerateLocationsResponse {
+  repeated assfire.api.v1.concepts.Location locations = 1;
+}
+
+enum AddressResolverType {
+  ADDRESS_RESOLVER_TYPE_UNKNOWN = 0;
+}
+
+message ResolvedAddress {
+  string address = 1;
+  assfire.api.v1.concepts.Location location = 2;
+  AddressResolverType resolver = 3;
+}
+
+message ResolveAddressesRequest {
+  repeated string addresses = 1;
+}
+
+message ResolveAddressesResponse {
+  repeated ResolvedAddress locations = 1;
+}
+
 service LocationsService {
   rpc GetLocations(GetLocationsRequest) returns (GetLocationsResponse) {
     option (google.api.http) = {
@@ -67,6 +97,16 @@ service LocationsService {
   rpc FindLocations(FindLocationsRequest) returns (FindLocationsResponse) {
     option (google.api.http) = {
       get: "/v1/locations/find"
+    };
+  }
+  rpc GenerateLocations(GenerateLocationsRequest) returns (GenerateLocationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/locations/generate"
+    };
+  }
+  rpc ResolveAddresses(ResolveAddressesRequest) returns (ResolveAddressesResponse) {
+    option (google.api.http) = {
+      get: "/v1/locations/resolve"
     };
   }
 }

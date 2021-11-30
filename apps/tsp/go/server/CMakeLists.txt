@@ -1,9 +1,11 @@
 include(proto_utils)
 
-if(NOT ASSFIRE_IN_SOURCE_GO_ENABLED)
+if (ASSFIRE_IN_SOURCE_GO_ENABLED)
+    set(ASSFIRE_TSP_SERVER_GO_MOD_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+else ()
     set(ASSFIRE_TSP_SERVER_GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR})
     configure_file(server.go server.go)
-endif()
+endif ()
 
 define_go_executable_target(
         TARGET_NAME assfire-tsp-server
