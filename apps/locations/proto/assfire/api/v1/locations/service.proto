@@ -1,0 +1,72 @@
+syntax="proto3";
+
+package assfire.api.v1.locations;
+option go_package = "assfire.org/api/v1/locations";
+
+import public "assfire/api/v1/concepts/concepts.proto";
+import "google/api/annotations.proto";
+
+message GetLocationsRequest {
+  repeated int32 location_ids = 1;
+}
+
+message IndexedLocation {
+  int32 id = 1;
+  assfire.api.v1.concepts.Location location = 2;
+}
+
+message GetLocationsResponse {
+  repeated IndexedLocation locations = 1;
+}
+
+message SaveLocationsRequest {
+  repeated assfire.api.v1.concepts.Location locations = 1;
+}
+
+message SaveLocationsResponse {
+  repeated int32 location_ids = 1;
+  repeated assfire.api.v1.concepts.Location failed_locations = 2;
+}
+
+message RemoveLocationsRequest {
+  repeated int32 location_ids = 1;
+}
+
+message RemoveLocationsResponse {
+  repeated int32 deleted_location_ids = 1;
+}
+
+message LocationSearchCriteria {
+
+}
+
+message FindLocationsRequest {
+  repeated LocationSearchCriteria criterias = 1;
+}
+
+message FindLocationsResponse {
+  repeated IndexedLocation locations = 1;
+}
+
+service LocationsService {
+  rpc GetLocations(GetLocationsRequest) returns (GetLocationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/locations"
+    };
+  }
+  rpc SaveLocations(SaveLocationsRequest) returns (SaveLocationsResponse) {
+    option (google.api.http) = {
+      post: "/v1/locations"
+    };
+  }
+  rpc RemoveLocations(RemoveLocationsRequest) returns (RemoveLocationsResponse) {
+    option (google.api.http) = {
+      delete: "/v1/locations"
+    };
+  }
+  rpc FindLocations(FindLocationsRequest) returns (FindLocationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/locations/find"
+    };
+  }
+}
