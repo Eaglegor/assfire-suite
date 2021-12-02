@@ -37,6 +37,9 @@ function(define_helm_target)
     message(VERBOSE "[Helm]   Chart name: ${CHART_NAME}")
     message(VERBOSE "[Helm]   Chart version: ${CHART_VERSION}")
 
+    set(ASSFIRE_HELM_SELF_PACKAGE "${CHART_NAME}-${CHART_VERSION}.tgz")
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/helm/.helmignore ${CMAKE_CURRENT_BINARY_DIR}/${CHART_ROOT} @ONLY)
+
     include(find_utils)
     find_required_program(helm HELM_EXECUTABLE)
     find_required_program(curl CURL_EXECUTABLE)
