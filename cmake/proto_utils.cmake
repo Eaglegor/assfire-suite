@@ -184,7 +184,7 @@ function(define_proto_go_target)
             COMMAND ${GO_EXECUTABLE} install
             COMMAND ${GO_EXECUTABLE} build
             WORKING_DIRECTORY ${GO_MOD_PATH}
-            DEPENDS ${GO_GRPC_SOURCE_OUTPUTS} ${GO_SOURCE_OUTPUTS} ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
+            DEPENDS ${DEPENDS} ${GO_GRPC_SOURCE_OUTPUTS} ${GO_SOURCE_OUTPUTS} ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
 
     set_target_properties(${TARGET_NAME} PROPERTIES PROTO_IMPORT_DIRS "${FINAL_IMPORT_DIRS}")
     set_target_properties(${TARGET_NAME} PROPERTIES GO_MODULE_PATH "${GO_MOD_PATH}")
@@ -263,7 +263,7 @@ function(define_go_executable_target)
             COMMAND ${GO_EXECUTABLE} install
             COMMAND ${GO_EXECUTABLE} build -o ${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX}
             WORKING_DIRECTORY ${GO_MOD_PATH}
-            DEPENDS ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
+            DEPENDS ${DEPENDS} ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
 
     set_target_properties(${TARGET_NAME} PROPERTIES PROTO_IMPORT_DIRS "${FINAL_IMPORT_DIRS}")
     set_target_properties(${TARGET_NAME} PROPERTIES GO_MODULE_PATH "${GO_MOD_PATH}")
