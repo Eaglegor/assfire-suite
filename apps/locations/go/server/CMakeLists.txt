@@ -16,6 +16,7 @@ define_go_executable_target(
         "github.com/streadway/amqp v1.0.0"
         "github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0"
         "google.golang.org/grpc v1.42.0"
+        "go.mongodb.org/mongo-driver v1.8.0"
         RPM_COMPONENT_NAME locations-server
         GO_MOD_PATH ${ASSFIRE_LOCATIONS_SERVER_GO_MOD_PATH}
 )

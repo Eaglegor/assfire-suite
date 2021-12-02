@@ -17,6 +17,7 @@ define_go_executable_target(
         "github.com/streadway/amqp v1.0.0"
         "github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0"
         "google.golang.org/grpc v1.42.0"
+        "github.com/golang/protobuf v1.5.2"
         RPM_COMPONENT_NAME tsp-server
         GO_MOD_PATH ${ASSFIRE_TSP_SERVER_GO_MOD_PATH}
 )

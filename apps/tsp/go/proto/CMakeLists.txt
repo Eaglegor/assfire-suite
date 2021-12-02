@@ -16,4 +16,7 @@ define_proto_go_target(
         assfire/api/v1/tsp/service.proto
         PROTO_ROOT ${PROTO_PREFIX}
         GO_PACKAGE_NAME assfire.org/api/v1/tsp
+        REQUIRES
+        "google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1"
+        "google.golang.org/grpc v1.42.0"
 )

@@ -181,7 +181,7 @@ function(define_proto_go_target)
     find_required_program(go GO_EXECUTABLE)
 
     add_custom_target(${TARGET_NAME} ALL
-            COMMAND ${GO_EXECUTABLE} get
+            COMMAND ${GO_EXECUTABLE} install
             COMMAND ${GO_EXECUTABLE} build
             WORKING_DIRECTORY ${GO_MOD_PATH}
             DEPENDS ${GO_GRPC_SOURCE_OUTPUTS} ${GO_SOURCE_OUTPUTS} ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
@@ -245,6 +245,7 @@ function(define_go_executable_target)
         get_target_property(DEP_MODULE_NAME ${req} GO_PACKAGE_NAME)
         get_target_property(DEP_MODULE_PATH ${req} GO_MODULE_PATH)
         if(NOT DEP_MODULE_NAME STREQUAL "DEP_MODULE_NAME-NOTFOUND" AND NOT DEP_MODULE_PATH STREQUAL "DEP_MODULE_PATH-NOTFOUND")
+            string(APPEND REQUIRE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION}\n")
             string(APPEND REPLACE_DIRECTIVES "${DEP_MODULE_NAME} ${ASSFIRE_APPLICATION_RELEASE_VERSION} => ${DEP_MODULE_PATH}\n")
         endif()
     endforeach()
@@ -259,7 +260,7 @@ function(define_go_executable_target)
     find_required_program(go GO_EXECUTABLE)
 
     add_custom_target(${TARGET_NAME} ALL
-            COMMAND ${GO_EXECUTABLE} get
+            COMMAND ${GO_EXECUTABLE} install
             COMMAND ${GO_EXECUTABLE} build -o ${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX}
             WORKING_DIRECTORY ${GO_MOD_PATH}
             DEPENDS ${GO_MOD_PATH}/go.sum ${GO_MOD_PATH}/go.mod)
@@ -509,8 +510,9 @@ function(define_go_grpc_proxy_target)
             DEPENDS ${DEPENDS}
             REQUIRES
             "github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0"
+            "github.com/grpc-ecosystem/grpc-gateway v1.16.0"
             "google.golang.org/grpc v1.42.0"
-            "google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea"
+            "google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1"
             GO_PACKAGE_NAME ${GO_PACKAGE_NAME}
             GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR}
             RPM_COMPONENT_NAME ${RPM_COMPONENT_NAME}
