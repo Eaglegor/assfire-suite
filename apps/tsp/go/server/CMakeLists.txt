@@ -1,4 +1,4 @@
-include(proto_utils)
+include(go_utils)
 
 if (ASSFIRE_IN_SOURCE_GO_ENABLED)
     set(ASSFIRE_TSP_SERVER_GO_MOD_PATH ${CMAKE_CURRENT_SOURCE_DIR})

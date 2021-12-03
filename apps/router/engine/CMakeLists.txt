@@ -30,8 +30,8 @@ set(HEADERS
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)
 find_package(cpprestsdk CONFIG REQUIRED)
-include(pkg_utils)
-vcpkg_find_cpp_redis()
+include(find_utils)
+find_cpp_redis_vcpkg()
 
 add_library(assfire-router-engine ${SOURCES})
 target_link_libraries(assfire-router-engine PUBLIC cpp_redis::cpp_redis spdlog::spdlog assfire-router-api cpprestsdk::cpprest)

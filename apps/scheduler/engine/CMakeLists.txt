@@ -12,8 +12,8 @@ set(SOURCES
         assfire/scheduler/engine/EngineWaybillSchedulerFactory.cpp)
 
 find_package(spdlog CONFIG REQUIRED)
-include(pkg_utils)
-vcpkg_find_cpp_redis()
+include(find_utils)
+find_cpp_redis_vcpkg()
 
 add_library(assfire-scheduler-engine ${SOURCES} ${HEADERS})
 target_link_libraries(assfire-scheduler-engine PUBLIC spdlog::spdlog assfire-scheduler-api assfire-router-api)

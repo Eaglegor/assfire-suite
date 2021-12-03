@@ -37,8 +37,8 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(civetweb CONFIG REQUIRED) # Required by prometheus
 find_package(prometheus-cpp CONFIG REQUIRED)
 find_package(crossguid CONFIG REQUIRED)
-include(pkg_utils)
-vcpkg_find_cpp_redis()
+include(find_utils)
+find_cpp_redis_vcpkg()
 
 add_executable(assfire-tsp-worker ${SOURCES} ${HEADERS})
 

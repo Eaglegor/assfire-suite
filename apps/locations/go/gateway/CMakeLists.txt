@@ -1,4 +1,5 @@
 if (ASSFIRE_GRPC_GATEWAYS_ENABLED)
+    include(reverse_proxy)
 
     define_go_grpc_proxy_target(
             TARGET_NAME assfire-locations-grpc-gateway

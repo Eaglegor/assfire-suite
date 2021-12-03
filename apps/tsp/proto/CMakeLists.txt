@@ -1,4 +1,5 @@
 include(proto_utils)
+include(grpc_utils)
 
 define_proto_target(
         TARGET_NAME assfire-tsp-proto

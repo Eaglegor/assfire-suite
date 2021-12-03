@@ -15,8 +15,8 @@ set(HEADERS
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(cpprestsdk CONFIG REQUIRED)
-include(pkg_utils)
-vcpkg_find_cpp_redis()
+include(find_utils)
+find_cpp_redis_vcpkg()
 
 add_library(assfire-scheduler-api ${SOURCES} ${HEADERS})
 target_link_libraries(assfire-scheduler-api PUBLIC spdlog::spdlog assfire-router-api)

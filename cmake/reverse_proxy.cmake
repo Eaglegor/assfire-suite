@@ -1,102 +1,143 @@
-function(GenerateGrpcReverseProxy)
+function(generate_grpc_gateway_endpoints_source)
     set(_options "")
-    set(_singleargs OUTPUT_DIR TARGET_NAME COMPONENT_NAME SERVICE_DEFINITION PROTO_DEFINITION GO_ENTRY_POINT GO_MOD GO_MODULE_ROOT INSTALL_PREFIX)
-    set(_multi_args "")
-    cmake_parse_arguments(GenerateGrpcReverseProxy "${_options}" "${_singleargs}" "${_multi_args}" "${ARGN}")
+    set(_singleargs OUT_DIR)
+    set(_multiargs SERVICES GO_PACKAGE_NAME)
+    cmake_parse_arguments(generate_grpc_gateway_endpoints_source "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
 
-    set(_OUTPUT_DIR ${GenerateGrpcReverseProxy_OUTPUT_DIR})
-    set(_TARGET_NAME ${GenerateGrpcReverseProxy_TARGET_NAME})
-    set(_COMPONENT_NAME ${GenerateGrpcReverseProxy_COMPONENT_NAME})
-    set(_PROTO_DEFINITION ${GenerateGrpcReverseProxy_PROTO_DEFINITION})
-    set(_SERVICE_DEFINITION ${GenerateGrpcReverseProxy_SERVICE_DEFINITION})
-    set(_GO_ENTRY_POINT ${GenerateGrpcReverseProxy_GO_ENTRY_POINT})
-    set(_GO_MOD ${GenerateGrpcReverseProxy_GO_MOD})
-    set(_GO_MODULE_ROOT ${GenerateGrpcReverseProxy_GO_MODULE_ROOT})
-    set(_INSTALL_PREFIX ${GenerateGrpcReverseProxy_INSTALL_PREFIX})
+    set(OUT_DIR ${generate_grpc_gateway_endpoints_source_OUT_DIR})
+    set(SERVICES ${generate_grpc_gateway_endpoints_source_SERVICES})
+    set(ENABLE_CORS ${ASSFIRE_ALLOW_CORS_IN_GRPC_GATEWAY})
+    set(GO_PACKAGE_NAME ${generate_grpc_gateway_endpoints_source_GO_PACKAGE_NAME})
 
-    message(STATUS "[gRPC gateway] Generating rules for gRPC reverse proxy generation")
-    message(STATUS "[gRPC gateway] Target name: ${_TARGET_NAME}")
-    message(STATUS "[gRPC gateway] Target name: ${_COMPONENT_NAME}")
-    message(STATUS "[gRPC gateway] Proto definition: ${_PROTO_DEFINITION}")
-    message(STATUS "[gRPC gateway] Service definition: ${_SERVICE_DEFINITION}")
-    message(STATUS "[gRPC gateway] Go entrypoint implementation: ${_GO_ENTRY_POINT}")
+    set(ASSFIRE_GO_PACKAGE_NAME ${GO_PACKAGE_NAME})
 
-    get_filename_component(_ABS_PROTO_DEFINITION ${_PROTO_DEFINITION} ABSOLUTE)
-    get_filename_component(_ABS_SERVICE_DEFINITION ${_SERVICE_DEFINITION} ABSOLUTE)
+    foreach(service ${SERVICES})
+        string(APPEND ASSFIRE_REGISTER_GRPC_SERVICE_ENDPOINTS "
+  err := gw.Register${service}HandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
+  if err != nil {
+   return err
+  }
+        ")
+    endforeach()
 
-    message(STATUS "[gRPC gateway] Proto definition (full): ${_ABS_PROTO_DEFINITION}")
-    message(STATUS "[gRPC gateway] Service definition (full): ${_ABS_SERVICE_DEFINITION}")
+    set(ASSFIRE_GRPC_GATEWAY_MODULE ${GO_PACKAGE_NAME})
 
-    get_filename_component(_PROTO_WE ${_PROTO_DEFINITION} NAME_WE)
-    set(_OUTPUT_FILENAME ${_PROTO_WE}.pb.gw.go)
-    get_filename_component(_PROTO_DEFINITION_DIR ${_PROTO_DEFINITION} DIRECTORY)
-    set(_FULL_OUTPUT_FILENAME ${CMAKE_CURRENT_BINARY_DIR}/${_PROTO_DEFINITION_DIR}/${_PROTO_WE}.pb.gw.go)
-    set(_FULL_GO_OUTPUT_FILENAME ${CMAKE_CURRENT_BINARY_DIR}/${_PROTO_DEFINITION_DIR}/${_PROTO_WE}.pb.go)
-    set(_FULL_SWAGGER_OUTPUT_FILENAME ${CMAKE_CURRENT_BINARY_DIR}/${_PROTO_DEFINITION_DIR}/${_PROTO_WE}.json)
-    set(_FULL_ENTRY_POINT_OUTPUT_FILENAME ${CMAKE_CURRENT_BINARY_DIR}/${_GO_ENTRY_POINT})
+    message(DEBUG "Generated endpoints: ${ASSFIRE_REGISTER_GRPC_SERVICE_ENDPOINTS}")
 
-    message(STATUS "[gRPC gateway] Output file: ${_FULL_OUTPUT_FILENAME}")
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/go/assfire-grpc-proxy.go ${OUT_DIR} @ONLY)
+endfunction()
+
+
+function(define_go_grpc_proxy_target)
+    set(_options "")
+    set(_singleargs TARGET_NAME RPM_COMPONENT_NAME GO_SUBPACKAGE_NAME GO_PACKAGE_PREFIX)
+    set(_multiargs DEPENDS PROTO_IMPORT_DIRS PROTOS)
+    cmake_parse_arguments(define_go_grpc_proxy_target "${_options}" "${_singleargs}" "${_multiargs}" "${ARGN}")
+
+    set(TARGET_NAME ${define_go_grpc_proxy_target_TARGET_NAME})
+    set(DEPENDS ${define_go_grpc_proxy_target_DEPENDS})
+    set(PROTO_IMPORT_DIRS ${define_go_grpc_proxy_target_PROTO_IMPORT_DIRS})
+    set(PROTOS ${define_go_grpc_proxy_target_PROTOS})
+    set(GO_SUBPACKAGE_NAME ${define_go_grpc_proxy_target_GO_SUBPACKAGE_NAME})
+    set(RPM_COMPONENT_NAME ${define_go_grpc_proxy_target_RPM_COMPONENT_NAME})
+    set(GO_PACKAGE_PREFIX ${define_go_grpc_proxy_target_GO_PACKAGE_PREFIX})
+
+    message(STATUS "[Gateway][Go] Generating grpc-gateway target: ${TARGET_NAME}")
+    message(VERBOSE "[Gateway][Go]   Depends on: ${DEPENDS}")
+    message(VERBOSE "[Gateway][Go]   Additional proto import dirs: ${PROTO_IMPORT_DIRS}")
+    message(VERBOSE "[Gateway][Go]   Protos: ${PROTOS}")
+
+    find_package(protobuf CONFIG REQUIRED)
+    get_target_property(GOOGLE_PROTOBUF_IMPORT_DIR protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
+
+    list(APPEND IMPORTED_IMPORT_DIRS ${GOOGLE_PROTOBUF_IMPORT_DIR})
+
+    foreach(dep ${DEPENDS})
+        get_target_property(${dep}_IMPORTED_DIRS ${dep} PROTO_IMPORT_DIRS)
+        list(APPEND IMPORTED_IMPORT_DIRS ${${dep}_IMPORTED_DIRS})
+    endforeach()
+
+    set(FINAL_IMPORT_DIRS ${PROTO_IMPORT_DIRS} ${IMPORTED_IMPORT_DIRS})
+    list(REMOVE_DUPLICATES FINAL_IMPORT_DIRS)
+
+    message(VERBOSE "[Gateway][Go]   Summarized import dirs: ${FINAL_IMPORT_DIRS}")
+
+    generate_protobuf_include_strings(PROTO_INCLUDE_STRINGS "${FINAL_IMPORT_DIRS}")
+
+    foreach(proto ${PROTOS})
+        find_file(full_proto_path ${proto} PATHS ${FINAL_IMPORT_DIRS} REQUIRED)
+        list(APPEND FULL_PROTOS "${full_proto_path}")
+        unset(full_proto_path CACHE)
+        string(REPLACE ".proto" ".pb.gw.go" proto_gw ${proto})
+        list(APPEND GO_GW_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_gw}")
+        string(REPLACE ".proto" ".json" proto_sw ${proto})
+        list(APPEND GO_SW_SOURCE_OUTPUTS "${CMAKE_CURRENT_BINARY_DIR}/${proto_sw}")
+    endforeach()
+
+    foreach(proto_file ${FULL_PROTOS})
+        file(STRINGS ${proto_file} proto_file_contents REGEX ".*service[ ]+[a-zA-Z0-9]+.*")
+        foreach(service_string ${proto_file_contents})
+            string(REGEX REPLACE ".*service[ ]+([a-zA-Z0-9]+).*" "\\1" service_name ${service_string})
+            list(APPEND SERVICE_NAMES ${service_name})
+        endforeach()
+    endforeach()
+
+    message(DEBUG "Parsed service names: ${SERVICE_NAMES}")
+
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/router)
+
+    generate_grpc_gateway_endpoints_source(
+            OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}
+            SERVICES "${SERVICE_NAMES}"
+            GO_PACKAGE_NAME "${GO_SUBPACKAGE_NAME}"
+    )
 
     add_custom_command(
-            OUTPUT ${_FULL_GO_OUTPUT_FILENAME}
+            OUTPUT ${GO_GW_SOURCE_OUTPUTS}
             COMMAND protobuf::protoc
             ARGS
-            -I .
-            --go_out ${_OUTPUT_DIR}
-            --go_opt paths=source_relative
-            --go_opt plugins=grpc
-            ${_PROTO_DEFINITION}
-            DEPENDS ${_ABS_PROTO_DEFINITION}
+            ${PROTO_INCLUDE_STRINGS}
+            --grpc-gateway_out ${CMAKE_CURRENT_BINARY_DIR}
+            --grpc-gateway_opt standalone=true
+            --grpc-gateway_opt module=${GO_PACKAGE_PREFIX}
+            ${PROTOS}
+            DEPENDS ${FULL_PROTOS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMENT "Generating reverse proxy go source ${_FULL_GO_OUTPUT_FILENAME}"
-            VERBATIM )
+            COMMENT "[Gateway][Go] Generating go gateway sources for ${TARGET_NAME}"
+            VERBATIM
+    )
 
     add_custom_command(
-            OUTPUT ${_FULL_OUTPUT_FILENAME}
+            OUTPUT ${GO_SW_SOURCE_OUTPUTS}
             COMMAND protobuf::protoc
             ARGS
-                -I .
-                --grpc-gateway_out ${_OUTPUT_DIR}
-                --grpc-gateway_opt logtostderr=true
-                --grpc-gateway_opt paths=source_relative
-                --grpc-gateway_opt grpc_api_configuration=${_SERVICE_DEFINITION}
-                ${_PROTO_DEFINITION}
-            DEPENDS ${_ABS_PROTO_DEFINITION} ${_ABS_SERVICE_DEFINITION}
+            ${PROTO_INCLUDE_STRINGS}
+            --openapiv2_out ${CMAKE_CURRENT_BINARY_DIR}
+            ${PROTOS}
+            DEPENDS ${FULL_PROTOS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMENT "Generating reverse proxy source ${_FULL_OUTPUT_FILENAME}"
-            VERBATIM )
+            COMMENT "[Gateway][Go] Generating openapi annotations for ${TARGET_NAME}"
+            VERBATIM
+    )
 
-    add_custom_command(
-            OUTPUT ${_FULL_SWAGGER_OUTPUT_FILENAME}
-            COMMAND protobuf::protoc
-            ARGS
-            -I .
-            --swagger_out ${_OUTPUT_DIR}
-            --swagger_opt logtostderr=true
-            --swagger_opt grpc_api_configuration=${_SERVICE_DEFINITION}
-            ${_PROTO_DEFINITION}
-            DEPENDS ${_FULL_OUTPUT_FILENAME}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMENT "Generating swagger API description ${_FULL_SWAGGER_OUTPUT_FILENAME}"
-            VERBATIM )
+    add_custom_target(${TARGET_NAME}-generate-gw-impl
+            DEPENDS ${GO_GW_SOURCE_OUTPUTS} ${GO_SW_SOURCE_OUTPUTS})
 
-    get_filename_component(_GO_ENTRY_POINT_NAME ${_GO_ENTRY_POINT} NAME)
-    get_filename_component(_GO_MOD_NAME ${_GO_MOD} NAME)
-    configure_file(${_GO_ENTRY_POINT} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_ENTRY_POINT_NAME} @ONLY)
-    configure_file(${_GO_MOD} ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_MOD_NAME} COPYONLY)
+    string(REGEX REPLACE "(.*)/.+" "\\1" GO_PACKAGE_NAME ${GO_SUBPACKAGE_NAME})
 
-    if(WIN32)
-        set(_GO_OUTPUT_NAME ${_TARGET_NAME}.exe)
-    else()
-        set(_GO_OUTPUT_NAME ${_TARGET_NAME})
-    endif()
+    include(go_utils)
+    define_go_executable_target(
+            TARGET_NAME ${TARGET_NAME}
+            DEPENDS ${DEPENDS}
+            REQUIRES
+            "github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0"
+            "github.com/grpc-ecosystem/grpc-gateway v1.16.0"
+            "google.golang.org/grpc v1.42.0"
+            "google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1"
+            GO_PACKAGE_NAME ${GO_PACKAGE_NAME}
+            GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR}
+            RPM_COMPONENT_NAME ${RPM_COMPONENT_NAME}
+    )
 
-    add_custom_target(${_TARGET_NAME} ALL
-            COMMAND go build -o ${_GO_OUTPUT_NAME}
-            WORKING_DIRECTORY ${_GO_MODULE_ROOT}
-            DEPENDS ${_FULL_OUTPUT_FILENAME} ${_FULL_SWAGGER_OUTPUT_FILENAME} ${_FULL_GO_OUTPUT_FILENAME})
-    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${_GO_MODULE_ROOT}/${_GO_OUTPUT_NAME} COMPONENT ${_COMPONENT_NAME} DESTINATION ${_INSTALL_PREFIX})
-    if(ASSFIRE_RPM_ENABLED)
-        cpack_add_component(${_COMPONENT_NAME})
-    endif()
+    add_dependencies(${TARGET_NAME} ${DEPENDS} ${TARGET_NAME}-generate-gw-impl)
 endfunction()
