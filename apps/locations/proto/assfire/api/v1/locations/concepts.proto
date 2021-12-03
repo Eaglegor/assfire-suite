@@ -3,7 +3,10 @@ syntax="proto3";
 package assfire.api.v1.locations;
 option go_package = "assfire.org/api/v1/locations";
 
-import public "assfire/api/v1/concepts/concepts.proto";
+message Location {
+  int32 encoded_latitude = 1;
+  int32 encoded_longitude = 2;
+}
 
 message MapExtents {
   int32 left_lon = 1;
@@ -32,6 +35,6 @@ enum AddressResolverType {
 
 message ResolvedAddress {
   string address = 1;
-  assfire.api.v1.concepts.Location location = 2;
+  Location location = 2;
   AddressResolverType resolver = 3;
 }

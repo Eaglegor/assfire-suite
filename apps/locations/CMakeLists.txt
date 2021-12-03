@@ -1,1 +1,12 @@
+if(ASSFIRE_RPM_ENABLED)
+    set(CPACK_GENERATOR "RPM")
+    set(CPACK_PACKAGE_VERSION ${ASSFIRE_APPLICATION_RELEASE_VERSION})
+    set(CPACK_PACKAGE_CONTACT "Nikolay Gorbachenko <eaglegor@gmail.com>")
+    set(CPACK_PACKAGE_VENDOR "Nikolay Gorbachenko <eaglegor@gmail.com>")
+    set(CPACK_RPM_COMPONENT_INSTALL ON)
+    include(CPack)
+endif()
+
+add_subdirectory(proto)
 add_subdirectory(go)
+add_subdirectory(api)

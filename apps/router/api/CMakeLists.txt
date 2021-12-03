@@ -26,5 +26,5 @@ include(pkg_utils)
 vcpkg_find_cpp_redis()
 
 add_library(assfire-router-api ${SOURCES} ${HEADERS})
-target_link_libraries(assfire-router-api PUBLIC assfire-concepts-api spdlog::spdlog)
+target_link_libraries(assfire-router-api PUBLIC assfire-locations-api assfire-concepts-api spdlog::spdlog)
 target_include_directories(assfire-router-api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
