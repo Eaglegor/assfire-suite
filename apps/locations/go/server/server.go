@@ -1,6 +1,7 @@
 package main
 
 import (
+	"assfire.org/api/v1/concepts"
 	"assfire.org/api/v1/locations"
 	"context"
 	"flag"
@@ -79,6 +80,20 @@ func main() {
 
 	mongoClient := createMongoClient(ctx)
 	defer destroyMongoClient(ctx, mongoClient)
+
+	loc := &locations.IndexedLocation{
+		Location: &concepts.Location{
+			EncodedLatitude:  124563,
+			EncodedLongitude: 535664,
+		},
+		Id: 6453,
+	}
+
+	col := mongoClient.Database("testing").Collection("locs")
+	_, err := col.InsertOne(ctx, loc)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 
 	log.Printf("Starting listening at %s:%d\n", *bindAddress, *port)
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddress, *port))

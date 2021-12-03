@@ -3,16 +3,11 @@ syntax="proto3";
 package assfire.api.v1.locations;
 option go_package = "assfire.org/api/v1/locations";
 
-import public "assfire/api/v1/concepts/concepts.proto";
+import public "assfire/api/v1/locations/concepts.proto";
 import "google/api/annotations.proto";
 
 message GetLocationsRequest {
   repeated int32 location_ids = 1;
-}
-
-message IndexedLocation {
-  int32 id = 1;
-  assfire.api.v1.concepts.Location location = 2;
 }
 
 message GetLocationsResponse {
@@ -36,10 +31,6 @@ message RemoveLocationsResponse {
   repeated int32 deleted_location_ids = 1;
 }
 
-message LocationSearchCriteria {
-
-}
-
 message FindLocationsRequest {
   repeated LocationSearchCriteria criterias = 1;
 }
@@ -48,26 +39,12 @@ message FindLocationsResponse {
   repeated IndexedLocation locations = 1;
 }
 
-message LocationGenerationConstraints {
-
-}
-
 message GenerateLocationsRequest {
   repeated LocationGenerationConstraints constraints = 1;
 }
 
 message GenerateLocationsResponse {
   repeated assfire.api.v1.concepts.Location locations = 1;
-}
-
-enum AddressResolverType {
-  ADDRESS_RESOLVER_TYPE_UNKNOWN = 0;
-}
-
-message ResolvedAddress {
-  string address = 1;
-  assfire.api.v1.concepts.Location location = 2;
-  AddressResolverType resolver = 3;
 }
 
 message ResolveAddressesRequest {

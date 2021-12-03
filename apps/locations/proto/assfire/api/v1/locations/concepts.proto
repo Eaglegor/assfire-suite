@@ -1,0 +1,30 @@
+syntax="proto3";
+
+package assfire.api.v1.locations;
+option go_package = "assfire.org/api/v1/locations";
+
+import public "assfire/api/v1/concepts/concepts.proto";
+import "google/api/annotations.proto";
+
+message IndexedLocation {
+  int32 id = 1;
+  assfire.api.v1.concepts.Location location = 2;
+}
+
+message LocationSearchCriteria {
+
+}
+
+message LocationGenerationConstraints {
+
+}
+
+enum AddressResolverType {
+  ADDRESS_RESOLVER_TYPE_UNKNOWN = 0;
+}
+
+message ResolvedAddress {
+  string address = 1;
+  assfire.api.v1.concepts.Location location = 2;
+  AddressResolverType resolver = 3;
+}
