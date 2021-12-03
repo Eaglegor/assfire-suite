@@ -254,7 +254,7 @@ function(define_go_executable_target)
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.mod ${GO_MOD_PATH} @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/cmake/go/go.sum ${GO_MOD_PATH} @ONLY)
 
-    configure_file(${CMAKE_SOURCE_DIR}/cmake/go/dev.gitignore ${CMAKE_CURRENT_SOURCE_DIR}/.gitignore)
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/go/dev.gitignore ${GO_MOD_PATH}/.gitignore)
 
     include(find_utils)
     find_required_program(go GO_EXECUTABLE)

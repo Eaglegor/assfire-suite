@@ -1,7 +1,6 @@
 package main
 
 import (
-	"assfire.org/api/v1/concepts"
 	"assfire.org/api/v1/locations"
 	"context"
 	"flag"
@@ -13,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
+	"math/rand"
 	"net"
 	"time"
 )
@@ -42,9 +42,25 @@ func (server *LocationsServer) RemoveLocations(ctx context.Context, request *loc
 func (server *LocationsServer) FindLocations(ctx context.Context, request *locations.FindLocationsRequest) (*locations.FindLocationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindLocations not implemented")
 }
+
 func (server *LocationsServer) GenerateLocations(ctx context.Context, request *locations.GenerateLocationsRequest) (*locations.GenerateLocationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GenerateLocations not implemented")
+	extents := request.GetOptions().GetExtents()
+	lonDiff := extents.GetRightLon() - extents.GetLeftLon()
+	latDiff := extents.GetTopLat() - extents.GetBottomLat()
+	result := make([]*locations.Location, request.GetOptions().GetCount())
+	for i := int32(0); i < request.GetOptions().GetCount(); i++ {
+		lonOffset := rand.Int31n(lonDiff)
+		latOffset := rand.Int31n(latDiff)
+		result[i] = &locations.Location{
+			EncodedLatitude:  extents.GetLeftLon() + lonOffset,
+			EncodedLongitude: extents.GetBottomLat() + latOffset,
+		}
+	}
+	return &locations.GenerateLocationsResponse{
+		Locations: result,
+	}, nil
 }
+
 func (server *LocationsServer) ResolveAddresses(ctx context.Context, request *locations.ResolveAddressesRequest) (*locations.ResolveAddressesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResolveAddresses not implemented")
 }
@@ -80,20 +96,6 @@ func main() {
 
 	mongoClient := createMongoClient(ctx)
 	defer destroyMongoClient(ctx, mongoClient)
-
-	loc := &locations.IndexedLocation{
-		Location: &concepts.Location{
-			EncodedLatitude:  124563,
-			EncodedLongitude: 535664,
-		},
-		Id: 6453,
-	}
-
-	col := mongoClient.Database("testing").Collection("locs")
-	_, err := col.InsertOne(ctx, loc)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
 
 	log.Printf("Starting listening at %s:%d\n", *bindAddress, *port)
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddress, *port))

@@ -4,19 +4,26 @@ package assfire.api.v1.locations;
 option go_package = "assfire.org/api/v1/locations";
 
 import public "assfire/api/v1/concepts/concepts.proto";
-import "google/api/annotations.proto";
 
-message IndexedLocation {
-  int32 id = 1;
-  assfire.api.v1.concepts.Location location = 2;
+message MapExtents {
+  int32 left_lon = 1;
+  int32 right_lon = 2;
+  int32 top_lat = 3;
+  int32 bottom_lat = 4;
 }
 
 message LocationSearchCriteria {
-
+  MapExtents extents = 1;
 }
 
-message LocationGenerationConstraints {
+enum LocationsDistributionType {
+  LOCATIONS_DISTRIBUTION_TYPE_UNIFORM = 0;
+}
 
+message LocationGenerationOptions {
+  MapExtents extents = 1;
+  int32 count = 2;
+  LocationsDistributionType distribution_type = 3;
 }
 
 enum AddressResolverType {

@@ -7,20 +7,29 @@ import public "assfire/api/v1/locations/concepts.proto";
 import "google/api/annotations.proto";
 
 message GetLocationsRequest {
-  repeated int32 location_ids = 1;
+  repeated string location_ids = 1;
 }
 
 message GetLocationsResponse {
-  repeated IndexedLocation locations = 1;
+  repeated assfire.api.v1.concepts.Location locations = 1;
 }
 
 message SaveLocationsRequest {
   repeated assfire.api.v1.concepts.Location locations = 1;
 }
 
+message LocationSaveResult {
+  enum Code {
+    LOCATION_SAVE_RESULT_CODE_SUCCESS = 0;
+    LOCATION_SAVE_RESULT_CODE_FAILED = 1;
+  }
+
+  Code code = 1;
+  string id = 2;
+}
+
 message SaveLocationsResponse {
-  repeated int32 location_ids = 1;
-  repeated assfire.api.v1.concepts.Location failed_locations = 2;
+  repeated LocationSaveResult results = 1;
 }
 
 message RemoveLocationsRequest {
@@ -36,11 +45,11 @@ message FindLocationsRequest {
 }
 
 message FindLocationsResponse {
-  repeated IndexedLocation locations = 1;
+  repeated assfire.api.v1.concepts.Location locations = 1;
 }
 
 message GenerateLocationsRequest {
-  repeated LocationGenerationConstraints constraints = 1;
+  LocationGenerationOptions options = 1;
 }
 
 message GenerateLocationsResponse {
