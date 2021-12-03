@@ -3,7 +3,11 @@ include(proto_utils)
 define_proto_target(
         TARGET_NAME assfire-tsp-proto
         PROTO_IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS assfire-concepts-proto assfire-router-proto assfire-scheduler-proto
+        DEPENDS
+        assfire-concepts-proto
+        assfire-router-proto
+        assfire-scheduler-proto
+        assfire-locations-proto
         PROTOS
         assfire/api/v1/tsp/concepts.proto
         assfire/api/v1/tsp/worker.proto
@@ -21,7 +25,11 @@ define_proto_cpp_api_translation_target(
         TARGET_NAME assfire-tsp-proto-cpp-translation
         PROTO_TARGET assfire-tsp-proto
         API_TARGET assfire-tsp-api
-        DEPENDS assfire-concepts-proto-cpp-translation assfire-router-proto-cpp-translation assfire-scheduler-proto-cpp-translation
+        DEPENDS
+        assfire-concepts-proto-cpp-translation
+        assfire-router-proto-cpp-translation
+        assfire-scheduler-proto-cpp-translation
+        assfire-locations-proto-cpp-translation
         HEADERS
         assfire/api/v1/tsp/translators/Translators.hpp
         assfire/api/v1/tsp/translators/TspCostFunctionSettingsTranslator.hpp

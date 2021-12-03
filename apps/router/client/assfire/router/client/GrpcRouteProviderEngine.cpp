@@ -1,5 +1,5 @@
 #include "GrpcRouteProviderEngine.hpp"
-#include "../../../../../concepts/proto/assfire/api/v1/concepts/translators/LocationTranslator.hpp"
+#include "assfire/api/v1/locations/translators/LocationTranslator.hpp"
 #include <assfire/api/v1/router/translators/RouteProviderSettingsTranslator.hpp>
 #include <assfire/api/v1/router/translators/RoutingProfileTranslator.hpp>
 #include <assfire/api/v1/router/translators/RouteInfoTranslator.hpp>
@@ -12,7 +12,7 @@ using namespace assfire::router;
 using RouterEngineTypeTranslator = assfire::api::v1::router::RouterEngineTypeTranslator;
 using RoutingProfileTranslator = assfire::api::v1::router::RoutingProfileTranslator;
 using RouteProviderSettingsTranslator = assfire::api::v1::router::RouteProviderSettingsTranslator;
-using LocationTranslator = assfire::api::v1::concepts::LocationTranslator;
+using LocationTranslator = assfire::api::v1::locations::LocationTranslator;
 using RouteInfoTranslator = assfire::api::v1::router::RouteInfoTranslator;
 
 using GetSingleRouteRequest = ProtobufClient::GetSingleRouteRequest;
@@ -62,7 +62,7 @@ RouteDetails GrpcRouteProviderEngine::getSingleRouteDetails(const Location &orig
 }
 
 namespace {
-    std::string buildLocationKey(const Location &location) {
+    std::string buildLocationKey(const RouteProviderEngine::Location &location) {
         return std::to_string(location.getLatitude().encodedValue()) + " " + std::to_string(location.getLongitude().encodedValue());
     }
 }

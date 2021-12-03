@@ -5,7 +5,7 @@
 using namespace assfire::api::v1::router;
 using namespace assfire::api::v1::concepts;
 
-using LocationTranslator = assfire::api::v1::concepts::LocationTranslator;
+using LocationTranslator = assfire::api::v1::locations::LocationTranslator;
 
 RouteInfoTranslator::ApiRouteInfo RouteInfoTranslator::fromProto(const ProtoRouteInfo &info)
 {
@@ -35,7 +35,7 @@ RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const ProtoLoca
     return result;
 }
 
-RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const Location &origin, const Location &destination, const ApiRouteDetails &details)
+RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const ApiLocation &origin, const ApiLocation &destination, const ApiRouteDetails &details)
 {
     return toProto(LocationTranslator::toProto(origin), LocationTranslator::toProto(destination), details);
 }
@@ -49,7 +49,7 @@ RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const ProtoLoca
     return result;
 }
 
-RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const Location &origin, const Location &destination, const ApiRouteInfo &info)
+RouteInfoTranslator::ProtoRouteInfo RouteInfoTranslator::toProto(const ApiLocation &origin, const ApiLocation &destination, const ApiRouteInfo &info)
 {
     return toProto(LocationTranslator::toProto(origin), LocationTranslator::toProto(destination), info);
 }

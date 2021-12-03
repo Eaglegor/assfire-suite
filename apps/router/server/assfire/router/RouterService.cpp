@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <assfire/api/v1/router/translators/Translators.hpp>
 #include <assfire/api/v1/concepts/translators/Translators.hpp>
+#include <assfire/api/v1/locations/translators/Translators.hpp>
 #include "assfire/router/engine/DefaultRedisSerializer.hpp"
 #include <random>
 
@@ -36,7 +37,9 @@ grpc::Status RouterService::GetSingleRoute(grpc::ServerContext *context, const G
                 RouteProviderSettingsTranslator::fromProto(request->settings())
         );
 
-        RouteDetails route_details = distance_matrix.getRouteDetails(LocationTranslator::fromProto(request->origin()), LocationTranslator::fromProto(request->destination()));
+        RouteDetails route_details = distance_matrix.getRouteDetails(
+                locations::LocationTranslator::fromProto(request->origin()),
+                locations::LocationTranslator::fromProto(request->destination()));
 
         response->mutable_status()->set_code(api::v1::router::ResponseStatus::RESPONSE_STATUS_CODE_OK);
         response->mutable_route_info()->CopyFrom(RouteInfoTranslator::toProto(request->origin(), request->destination(), route_details));
@@ -100,11 +103,11 @@ void RouterService::processBatchRequest(const RouterService::GetRoutesBatchReque
     indexed_destinations.reserve(request.destinations().size());
 
     for (const auto &from_loc : request.origins()) {
-        indexed_origins.push_back(distance_matrix.addLocation(LocationTranslator::fromProto(from_loc), DistanceMatrixEngine::LocationType::ORIGIN));
+        indexed_origins.push_back(distance_matrix.addLocation(locations::LocationTranslator::fromProto(from_loc), DistanceMatrixEngine::LocationType::ORIGIN));
     }
 
     for (const auto &to_loc : request.destinations()) {
-        indexed_destinations.push_back(distance_matrix.addLocation(LocationTranslator::fromProto(to_loc), DistanceMatrixEngine::LocationType::DESTINATION));
+        indexed_destinations.push_back(distance_matrix.addLocation(locations::LocationTranslator::fromProto(to_loc), DistanceMatrixEngine::LocationType::DESTINATION));
     }
 
     for (const auto &from_loc : indexed_origins) {

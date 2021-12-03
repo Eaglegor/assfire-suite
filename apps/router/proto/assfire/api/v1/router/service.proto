@@ -7,8 +7,8 @@ import public "assfire/api/v1/router/concepts.proto";
 import "google/api/annotations.proto";
 
 message GetSingleRouteRequest {
-  assfire.api.v1.concepts.Location origin = 1;
-  assfire.api.v1.concepts.Location destination = 2;
+  assfire.api.v1.locations.Location origin = 1;
+  assfire.api.v1.locations.Location destination = 2;
   RouteProviderSettings settings = 3;
   RoutingProfile routing_profile = 4;
 }
@@ -29,8 +29,8 @@ message GetSingleRouteResponse {
 }
 
 message GetRoutesBatchRequest {
-  repeated assfire.api.v1.concepts.Location origins = 1;
-  repeated assfire.api.v1.concepts.Location destinations = 2;
+  repeated assfire.api.v1.locations.Location origins = 1;
+  repeated assfire.api.v1.locations.Location destinations = 2;
   RouteProviderSettings settings = 3;
   RoutingProfile routing_profile = 4;
 }

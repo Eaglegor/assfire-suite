@@ -1,12 +1,14 @@
 #pragma once
 
-#include "assfire/concepts/Location.hpp"
+#include "assfire/locations/api/Location.hpp"
 
 namespace assfire::router
 {
     class IndexedLocation
     {
     public:
+        using Location = locations::Location;
+        using Coordinate = locations::Coordinate;
         using Id = int;
         using IndexTag = int;
         static constexpr IndexTag INVALID_TAG = -1;

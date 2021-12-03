@@ -6,7 +6,7 @@ using namespace assfire::router;
 using namespace assfire::scheduler;
 
 WaybillAllocation::WaybillAllocation(const assfire::TimePoint &start_time, const assfire::TimePoint &end_time, const assfire::TimeInterval &planned_duration,
-                                     WaybillAllocation::TimeWindows time_windows, const assfire::Location &location) :
+                                     WaybillAllocation::TimeWindows time_windows, const Location &location) :
         start_time(start_time),
         end_time(end_time),
         planned_duration(planned_duration),
@@ -65,7 +65,7 @@ const WaybillAllocation::TimeWindows &WaybillAllocation::getTimeWindows() const 
     return time_windows;
 }
 
-const WaybillAllocation::Location &WaybillAllocation::getLocation() const {
+const WaybillAllocation::IndexedLocation &WaybillAllocation::getLocation() const {
     return location;
 }
 
@@ -73,7 +73,7 @@ void WaybillAllocation::setNextRouteInfo(const WaybillAllocation::RouteInfo &rou
     this->next_route_info = route_info;
 }
 
-void WaybillAllocation::setLocation(const assfire::Location &loc) {
+void WaybillAllocation::setLocation(const Location &loc) {
     location = IndexedLocation(-1, IndexedLocation::INVALID_TAG, loc);
 }
 

@@ -1,12 +1,14 @@
 #pragma once
 
 #include <string>
-#include "assfire/concepts/Location.hpp"
+#include "assfire/locations/api/Location.hpp"
 #include "RouteDetails.hpp"
 
 namespace assfire::router {
     class RedisSerializer {
     public:
+        using Location = locations::Location;
+
         virtual ~RedisSerializer() = default;
 
         virtual std::string serializeKey(const Location &, const Location &) = 0;

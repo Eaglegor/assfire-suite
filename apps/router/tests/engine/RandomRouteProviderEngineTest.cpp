@@ -5,6 +5,7 @@
 
 using namespace assfire;
 using namespace assfire::router;
+using namespace assfire::locations;
 
 namespace assfire::router {
     class RandomRouteProviderEngineTest : public RouteProviderEngineTestFixtureBase {

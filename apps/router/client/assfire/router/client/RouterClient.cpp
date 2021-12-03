@@ -21,16 +21,16 @@ assfire::router::DistanceMatrix assfire::router::RouterClient::createDistanceMat
     return distance_matrix_factory.createDistanceMatrix(engine_type, caching_policy, routing_profile, settings, error_policy);
 }
 
-assfire::router::RouteInfo assfire::router::RouterClient::getRouteInfo(const Location &origin,
-                                                                       const Location &destination,
+assfire::router::RouteInfo assfire::router::RouterClient::getRouteInfo(const DistanceMatrix::Location &origin,
+                                                                       const DistanceMatrix::Location &destination,
                                                                        assfire::router::RouterEngineType engine_type,
                                                                        const assfire::router::RoutingProfile &routing_profile,
                                                                        const assfire::router::RouteProviderSettings &settings) const {
     return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getRouteInfo(origin, destination);
 }
 
-assfire::router::RouteDetails assfire::router::RouterClient::getRouteDetails(const Location &origin,
-                                                                             const Location &destination,
+assfire::router::RouteDetails assfire::router::RouterClient::getRouteDetails(const DistanceMatrix::Location &origin,
+                                                                             const DistanceMatrix::Location &destination,
                                                                              assfire::router::RouterEngineType engine_type,
                                                                              const assfire::router::RoutingProfile &routing_profile,
                                                                              const assfire::router::RouteProviderSettings &settings) const {

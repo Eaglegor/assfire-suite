@@ -179,7 +179,7 @@ namespace {
         }
     }
 
-    Location parseLocation(const std::string &l) {
+    WaybillAllocation::Location parseLocation(const std::string &l) {
         std::vector<std::string> tokens;
 
         auto matches_begin =
@@ -196,7 +196,7 @@ namespace {
 
         if (tokens.size() != 2) throw std::runtime_error("Invalid location format");
 
-        return Location::fromEncodedLatLon(std::stoi(tokens[0]), std::stoi(tokens[1]));
+        return WaybillAllocation::Location::fromEncodedLatLon(std::stoi(tokens[0]), std::stoi(tokens[1]));
     }
 };
 
@@ -231,9 +231,9 @@ WaybillBuilder &WaybillBuilder::parse(const std::string &schedule) {
             case ALLOCATION: {
                 TimeWindow allocated_time = parseTimeRange(entry.at(ALLOCATED_TIME));
                 TimeWindow time_window = entry.contains(TIME_WINDOW) ? parseTimeWindow(entry.at(TIME_WINDOW)) : TimeWindow::infinity();
-                Location location;
+                WaybillAllocation::Location location;
                 if(entry.contains(LOCATION)) location = parseLocation(entry.at(LOCATION));
-                else if(i == 0) location = Location::fromEncodedLatLon(i, i);
+                else if(i == 0) location = WaybillAllocation::Location::fromEncodedLatLon(i, i);
                 else {
                     WaybillEntryType prev_type = UNKNOWN;
                     for(int j = i - 1; j >= 0 && prev_type == UNKNOWN; --j) {
@@ -242,19 +242,19 @@ WaybillBuilder &WaybillBuilder::parse(const std::string &schedule) {
                     if(prev_type == ALLOCATION) {
                         location = allocations.back().getLocation().getRawLocation();
                     } else {
-                        location = Location::fromEncodedLatLon(i, i);
+                        location = WaybillAllocation::Location::fromEncodedLatLon(i, i);
                     }
                 }
                 allocations.push_back(WaybillAllocation(allocated_time.getStartTime(), allocated_time.getEndTime(), allocated_time.getWidth(), {time_window}, location));
                 break;
             }
             case ROUTE: {
-                Location prev_location = allocations.back().getLocation().getRawLocation();
+                WaybillAllocation::Location prev_location = allocations.back().getLocation().getRawLocation();
                 for (int j = i + 1; j < parser.getEntries().size(); ++j) {
                     const auto &next_entry = parser.getEntries()[j];
                     WaybillEntryType next_type = parseType(next_entry.at(TYPE));
                     if (next_type != ALLOCATION) continue;
-                    Location next_location = next_entry.contains(LOCATION) ? parseLocation(next_entry.at(LOCATION)) : Location::fromEncodedLatLon(j, j);
+                    WaybillAllocation::Location next_location = next_entry.contains(LOCATION) ? parseLocation(next_entry.at(LOCATION)) : WaybillAllocation::Location::fromEncodedLatLon(j, j);
 
                     TimeWindow route_time = parseTimeRange(entry.at(ALLOCATED_TIME));
                     router::RouteDetails details(Distance::fromMeters(route_time.getWidth().toSeconds()), route_time.getWidth(), {});

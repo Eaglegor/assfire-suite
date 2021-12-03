@@ -1,5 +1,6 @@
 #pragma once
 #include <gtest/gtest.h>
+#include "assfire/locations/api/Location.hpp"
 
 namespace assfire::router {
 class RouteProviderEngineTestFixtureBase : public testing::Test {
@@ -8,8 +9,8 @@ class RouteProviderEngineTestFixtureBase : public testing::Test {
             return RoutingProfile(Speed::fromKilometersPerHour(60));
         }
 
-        Location getLocation(double lat, double lon) const {
-            return Location::fromDoubleLatLon(lat, lon);
+        locations::Location getLocation(double lat, double lon) const {
+            return locations::Location::fromDoubleLatLon(lat, lon);
         }
     };
 }

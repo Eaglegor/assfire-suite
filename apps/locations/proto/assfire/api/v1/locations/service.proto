@@ -3,7 +3,7 @@ syntax="proto3";
 package assfire.api.v1.locations;
 option go_package = "assfire.org/api/v1/locations";
 
-import public "assfire/api/v1/locations/concepts.proto";
+import "assfire/api/v1/locations/concepts.proto";
 import "google/api/annotations.proto";
 
 message GetLocationsRequest {

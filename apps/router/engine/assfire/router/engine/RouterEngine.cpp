@@ -12,13 +12,13 @@ RouterEngine::createDistanceMatrix(RouterEngineType engine_type, DistanceMatrixC
     return distance_matrix_factory.createDistanceMatrix(engine_type, caching_policy, routing_profile, settings, error_policy);
 }
 
-RouteInfo RouterEngine::getRouteInfo(const assfire::Location &origin, const assfire::Location &destination, RouterEngineType engine_type, const RoutingProfile &routing_profile,
+RouteInfo RouterEngine::getRouteInfo(const DistanceMatrix::Location &origin, const DistanceMatrix::Location &destination, RouterEngineType engine_type, const RoutingProfile &routing_profile,
                                      const RouteProviderSettings &settings) const {
     return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getRouteInfo(origin,
                                                                                                                                                                          destination);
 }
 
-RouteDetails RouterEngine::getRouteDetails(const assfire::Location &origin, const assfire::Location &destination, RouterEngineType engine_type, const RoutingProfile &routing_profile,
+RouteDetails RouterEngine::getRouteDetails(const DistanceMatrix::Location &origin, const DistanceMatrix::Location &destination, RouterEngineType engine_type, const RoutingProfile &routing_profile,
                                            const RouteProviderSettings &settings) const {
     return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getRouteDetails(origin,
                                                                                                                                                                             destination);

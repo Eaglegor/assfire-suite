@@ -5,6 +5,7 @@
 
 using namespace assfire;
 using namespace assfire::router;
+using namespace assfire::locations;
 
 class DirectRequestDistanceMatrixEngineTest : public ::testing::Test {
 public:

@@ -3,6 +3,7 @@
 
 using namespace assfire;
 using namespace assfire::router;
+using namespace assfire::locations;
 
 class MockDistanceMatrixEngine : public DistanceMatrixEngine {
 public:

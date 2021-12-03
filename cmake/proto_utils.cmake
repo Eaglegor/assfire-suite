@@ -34,7 +34,8 @@ function(define_proto_target)
 
     message(VERBOSE "[Protobuf][C++]   Summarized proto import dirs: ${FINAL_IMPORT_DIRS}")
 
-    make_directory(${CMAKE_BINARY_DIR}/proto/cpp)
+    set(OUT_SUFFIX proto/cpp)
+    make_directory(${CMAKE_BINARY_DIR}/${OUT_SUFFIX})
 
     protobuf_generate(TARGET ${TARGET_NAME}
             LANGUAGE cpp

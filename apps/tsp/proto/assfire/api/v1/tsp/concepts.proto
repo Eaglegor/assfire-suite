@@ -4,6 +4,7 @@ package assfire.api.v1.tsp;
 option go_package = "assfire.org/api/v1/tsp";
 
 import "assfire/api/v1/concepts/concepts.proto";
+import "assfire/api/v1/locations/concepts.proto";
 import "assfire/api/v1/router/concepts.proto";
 
 enum TspAlgorithmType {
@@ -60,7 +61,7 @@ message TspSolverSettings {
 
 message TspPoint {
   int32 id = 1;
-  assfire.api.v1.concepts.Location location = 2;
+  assfire.api.v1.locations.Location location = 2;
 }
 
 message TspTask {

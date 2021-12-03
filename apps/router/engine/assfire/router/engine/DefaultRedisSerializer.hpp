@@ -60,7 +60,7 @@ namespace assfire::router {
                 for (int i = 0; i < waypoints_size; ++i) {
                     long lat, lon;
                     str >> lat >> lon;
-                    waypoints.emplace_back(Coordinate::fromEncodedValue(lat), Coordinate::fromEncodedValue(lon));
+                    waypoints.emplace_back(locations::Coordinate::fromEncodedValue(lat), locations::Coordinate::fromEncodedValue(lon));
                 }
             }
 

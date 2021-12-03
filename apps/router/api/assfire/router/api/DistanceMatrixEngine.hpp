@@ -9,6 +9,7 @@ namespace assfire::router
     class DistanceMatrixEngine
     {
     public:
+        using Location = IndexedLocation::Location;
         enum class LocationType {
             ORIGIN,
             DESTINATION,

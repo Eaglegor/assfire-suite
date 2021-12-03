@@ -41,7 +41,7 @@ void MockRouteProviderEngine::addResponse(const Location &from, const Location &
     indexed_responses.insert_or_assign(buildKey(from, to), details);
 }
 
-std::string MockRouteProviderEngine::buildKey(const assfire::Location &from, const assfire::Location &to) {
+std::string MockRouteProviderEngine::buildKey(const Location &from, const Location &to) {
     return std::to_string(from.getLatitude().encodedValue()) + std::to_string(from.getLongitude().encodedValue()) +
     std::to_string(to.getLatitude().encodedValue()) + std::to_string(to.getLongitude().encodedValue());
 }

@@ -16,8 +16,8 @@ namespace assfire::scheduler {
         }
     }
 
-    Location WaybillSchedulingAlgorithmFixtureBase::getLocation(int lat, int lon) {
-        return Location::fromEncodedLatLon(lat, lon);
+    WaybillAllocation::Location WaybillSchedulingAlgorithmFixtureBase::getLocation(int lat, int lon) {
+        return WaybillAllocation::Location::fromEncodedLatLon(lat, lon);
     }
 
     void WaybillSchedulingAlgorithmFixtureBase::makeSimpleTest(const std::string &schedule,

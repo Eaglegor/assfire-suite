@@ -5,6 +5,9 @@
 #include <memory>
 #include "CacheConnector.hpp"
 #include <utility>
+#include <fmt/ostream.h>
+#include "assfire/locations/api/io/Streams.hpp"
+#include "assfire/concepts/io/Streams.hpp"
 
 using namespace assfire::router;
 
@@ -35,16 +38,12 @@ RouteDetails RedisRouteProviderEngine::getSingleRouteDetails(const Location &ori
     return retrieveSingleRouteDetails(origin, destination);
 }
 
-RouteDetails RedisRouteProviderEngine::retrieveSingleRouteDetails(const assfire::Location &origin, const assfire::Location &destination) const
+RouteDetails RedisRouteProviderEngine::retrieveSingleRouteDetails(const Location &origin, const Location &destination) const
 {
-    SPDLOG_DEBUG("Requested route: ({},{})->({},{})",
-                 origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
-                 destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
+    SPDLOG_DEBUG("Requested route: {}->{}", origin, destination);
 
     if (origin == destination) {
-        SPDLOG_DEBUG("Returning empty route for: ({},{})->({},{})",
-                     origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
-                     destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
+        SPDLOG_DEBUG("Returning empty route for: {}->{}", origin, destination);
         return RouteDetails(RouteInfo::zero(), {origin, destination});
     }
 
@@ -56,27 +55,19 @@ RouteDetails RedisRouteProviderEngine::retrieveSingleRouteDetails(const assfire:
     if (reply.is_error || !reply.is_present || force_update) {
         if (!force_update) {
             metrics_collector.recordRedisCacheMiss();
-            SPDLOG_DEBUG("Route not found in cache: ({},{})->({},{}). Requesting backend service",
-                         origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
-                         destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue());
+            SPDLOG_DEBUG("Route not found in cache: {}->{}. Requesting backend service", origin, destination);
         }
 
         RouteDetails result = backend_engine->getSingleRouteDetails(origin, destination);
 
         redis_client->put(key, serializer->serializeRouteDetails(origin, destination, result));
 
-        SPDLOG_DEBUG("Putting route to the cache ({},{})->({},{}) = (dist: {}, time: {})",
-                     origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
-                     destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue(),
-                     result.getSummary().getDistance().toMeters(), result.getSummary().getDuration().toSeconds());
+        SPDLOG_DEBUG("Putting route to the cache {}->{} = (dist: {}, time: {})", origin, destination, result.getSummary().getDistance(), result.getSummary().getDuration());
         return result;
     } else {
         metrics_collector.recordRedisCacheHit();
         RouteDetails result = serializer->deserializeRouteDetails(origin, destination, reply.payload);
-        SPDLOG_DEBUG("Route found in cache ({},{})->({},{}) = (dist: {}, time: {})",
-                     origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
-                     destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue(),
-                     result.getSummary().getDistance().toMeters(), result.getSummary().getDuration().toSeconds());
+        SPDLOG_DEBUG("Route found in cache {}->{} = (dist: {}, time: {})", origin, destination, result.getSummary().getDistance(), result.getSummary().getDuration());
         return result;
     }
 }

@@ -8,6 +8,7 @@
 namespace assfire::router {
     class DistanceMatrix {
     public:
+        using Location = IndexedLocation::Location;
         using EnginePtr = std::shared_ptr<DistanceMatrixEngine>;
 
         DistanceMatrix(EnginePtr engine)

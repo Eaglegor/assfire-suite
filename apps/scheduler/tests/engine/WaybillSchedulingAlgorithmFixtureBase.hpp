@@ -7,7 +7,7 @@
 #include <ostream>
 #include <ctime>
 #include <assfire/scheduler/api/WaybillSchedulingAlgorithm.hpp>
-#include "assfire/concepts/Location.hpp"
+#include "assfire/locations/api/Location.hpp"
 #include "assfire/router/api/IndexedLocation.hpp"
 #include "assfire/router/api/DistanceMatrix.hpp"
 #include "assfire/scheduler/api/WaybillAllocation.hpp"
@@ -20,7 +20,7 @@
 namespace assfire::scheduler {
     class WaybillSchedulingAlgorithmFixtureBase : public testing::Test {
     public:
-        static Location getLocation(int lat, int lon);
+        static locations::Location getLocation(int lat, int lon);
 
         static void checkEquality(const Waybill& lhs, const Waybill& rhs);
 

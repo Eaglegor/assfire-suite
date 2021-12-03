@@ -7,16 +7,8 @@ namespace assfire {
         return os << std::put_time(std::gmtime(&time), "%F %T");
     }
 
-    std::ostream &operator<<(std::ostream &os, const Coordinate &value) {
-        return os << value.doubleValue();
-    }
-
     std::ostream &operator<<(std::ostream &os, const Distance &value) {
         return os << value.toMeters() << " m";
-    }
-
-    std::ostream &operator<<(std::ostream &os, const Location &value) {
-        return os << "(" << value.getLatitude() << ", " << value.getLongitude() << ")";
     }
 
     std::ostream &operator<<(std::ostream &os, const Speed &value) {
@@ -32,16 +24,8 @@ namespace assfire {
         return os << std::put_time(std::gmtime(&time), L"%F %T");
     }
 
-    std::wostream &operator<<(std::wostream &os, const Coordinate &value) {
-        return os << value.doubleValue();
-    }
-
     std::wostream &operator<<(std::wostream &os, const Distance &value) {
         return os << value.toMeters() << " m";
-    }
-
-    std::wostream &operator<<(std::wostream &os, const Location &value) {
-        return os << "(" << value.getLatitude() << ", " << value.getLongitude() << ")";
     }
 
     std::wostream &operator<<(std::wostream &os, const Speed &value) {

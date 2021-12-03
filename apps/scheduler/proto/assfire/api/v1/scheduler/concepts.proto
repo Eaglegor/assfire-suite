@@ -5,6 +5,7 @@ option go_package = "assfire.org/api/v1/scheduler";
 
 import "assfire/api/v1/concepts/concepts.proto";
 import "assfire/api/v1/router/concepts.proto";
+import "assfire/api/v1/locations/concepts.proto";
 
 enum WaybillSchedulingAlgorithmType {
   WAYBILL_SCHEDULING_ALGORITHM_UNSPECIFIED = 0;
@@ -28,7 +29,7 @@ message WaybillAllocation {
   assfire.api.v1.concepts.TimeInterval planned_duration = 3;
   repeated TimeWindow time_windows = 4;
   assfire.api.v1.router.RouteInfo next_route = 5;
-  assfire.api.v1.concepts.Location location = 6;
+  assfire.api.v1.locations.Location location = 6;
 }
 
 message Waybill {

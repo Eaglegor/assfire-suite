@@ -1,6 +1,5 @@
 #pragma once
 
-#include "assfire/concepts/Location.hpp"
 #include "assfire/router/api/IndexedLocation.hpp"
 #include "assfire/router/api/DistanceMatrix.hpp"
 #include "assfire/scheduler/api/WaybillAllocation.hpp"

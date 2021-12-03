@@ -1,6 +1,6 @@
 add_subdirectory(google-annotations)
 add_subdirectory(concepts)
+add_subdirectory(locations)
 add_subdirectory(router)
 add_subdirectory(scheduler)
 add_subdirectory(tsp)
-add_subdirectory(locations)

@@ -4,6 +4,7 @@ package assfire.api.v1.router;
 option go_package = "assfire.org/api/v1/router";
 
 import public "assfire/api/v1/concepts/concepts.proto";
+import public "assfire/api/v1/locations/concepts.proto";
 
 message RoutingProfile {
   assfire.api.v1.concepts.Speed speed = 1;
@@ -34,10 +35,10 @@ message RouteProviderSettings {
 }
 
 message RouteInfo {
-  assfire.api.v1.concepts.Location origin = 1;
-  assfire.api.v1.concepts.Location destination = 2;
+  assfire.api.v1.locations.Location origin = 1;
+  assfire.api.v1.locations.Location destination = 2;
   assfire.api.v1.concepts.TimeInterval duration = 3;
   assfire.api.v1.concepts.Distance distance = 4;
-  repeated assfire.api.v1.concepts.Location waypoints = 5;
+  repeated assfire.api.v1.locations.Location waypoints = 5;
 }
 

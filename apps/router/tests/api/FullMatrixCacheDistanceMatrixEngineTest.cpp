@@ -4,6 +4,7 @@
 
 using namespace assfire;
 using namespace assfire::router;
+using namespace assfire::locations;
 
 class FullMatrixCacheDistanceMatrixEngineTest : public ::testing::Test {
 public:

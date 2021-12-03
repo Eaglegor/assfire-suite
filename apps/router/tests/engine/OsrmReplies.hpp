@@ -7,7 +7,7 @@
 
 namespace assfire::router::test::osrm_replies {
 
-    utility::string_t buildRequest(const Location &origin, const Location &destination, const std::string &overview) {
+    utility::string_t buildRequest(const locations::Location &origin, const locations::Location &destination, const std::string &overview) {
         std::string result;
         result += "/route/v1/driving/";
         result += std::to_string(origin.getLongitude().doubleValue()) + ",";
@@ -19,12 +19,12 @@ namespace assfire::router::test::osrm_replies {
         return convert(result);
     }
 
-    utility::string_t createHint(const Location& loc) {
+    utility::string_t createHint(const locations::Location& loc) {
         return convert("AYa5kXOGuZEYAAAAJgAAAAAAAAAAAAAASjFaQU1xpUEAAAAAAAAAAAwAAAATAAAAAAAAAAAAAABXGAEA_kvMAKlYIQM8TMwArVghAwAA7wodsCRh");
     }
 
 
-    web::json::value buildResponse(const Location &origin, const Location &destination, const RouteDetails &route_details) {
+    web::json::value buildResponse(const locations::Location &origin, const locations::Location &destination, const RouteDetails &route_details) {
         using value = web::json::value;
 
         value result;

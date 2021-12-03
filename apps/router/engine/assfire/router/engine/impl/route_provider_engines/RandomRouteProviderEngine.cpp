@@ -25,7 +25,7 @@ RouteDetails RandomRouteProviderEngine::getSingleRouteDetails(const Location &or
     return RouteDetails(calculateRouteInfo(origin, destination), {origin, destination});
 }
 
-RouteInfo RandomRouteProviderEngine::calculateRouteInfo(const assfire::Location &origin, const assfire::Location &destination) const
+RouteInfo RandomRouteProviderEngine::calculateRouteInfo(const Location &origin, const Location &destination) const
 {
     if (origin == destination) return RouteInfo::zero();
 

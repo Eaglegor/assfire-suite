@@ -8,6 +8,7 @@ define_proto_go_target(
         DEPENDS
         assfire-concepts-proto-go
         assfire-router-proto-go
+        assfire-locations-proto-go
         PROTOS
         assfire/api/v1/tsp/concepts.proto
         assfire/api/v1/tsp/state.proto

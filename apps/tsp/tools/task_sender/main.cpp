@@ -3,7 +3,7 @@
 #include <assfire/tsp/api/TspTask.hpp>
 #include <assfire/tsp/api/TspPoint.hpp>
 #include <assfire/tsp/api/TspSolverSettings.hpp>
-#include <assfire/concepts/Location.hpp>
+#include <assfire/locations/api/Location.hpp>
 #include <grpcpp/channel.h>
 #include <grpcpp/security/credentials.h>
 #include <grpcpp/create_channel.h>
@@ -17,9 +17,9 @@ using namespace assfire::tsp;
 
 std::string startTsp(const std::string& endpoint) {
     std::vector<TspPoint> points;
-    TspPoint p1(1, Location::fromDoubleLatLon(0, 0));
-    TspPoint p2(2, Location::fromDoubleLatLon(0, 1));
-    TspPoint p3(3, Location::fromDoubleLatLon(0, 2));
+    TspPoint p1(1, locations::Location::fromDoubleLatLon(0, 0));
+    TspPoint p2(2, locations::Location::fromDoubleLatLon(0, 1));
+    TspPoint p3(3, locations::Location::fromDoubleLatLon(0, 2));
 
     points.push_back(p2);
     points.push_back(p1);

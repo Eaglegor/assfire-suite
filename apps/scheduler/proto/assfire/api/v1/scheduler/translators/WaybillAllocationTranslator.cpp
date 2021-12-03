@@ -3,13 +3,13 @@
 #include "assfire/api/v1/concepts/translators/TimePointTranslator.hpp"
 #include "assfire/api/v1/concepts/translators/TimeIntervalTranslator.hpp"
 #include "assfire/api/v1/router/translators/RouteInfoTranslator.hpp"
-#include "assfire/api/v1/concepts/translators/LocationTranslator.hpp"
+#include "assfire/api/v1/locations/translators/LocationTranslator.hpp"
 
 using namespace assfire::api::v1::scheduler;
 
 using TimePointTranslator = assfire::api::v1::concepts::TimePointTranslator;
 using TimeIntervalTranslator = assfire::api::v1::concepts::TimeIntervalTranslator;
-using LocationTranslator = assfire::api::v1::concepts::LocationTranslator;
+using LocationTranslator = assfire::api::v1::locations::LocationTranslator;
 using TimeWindowTranslator = assfire::api::v1::scheduler::TimeWindowTranslator;
 using RouteInfoTranslator = assfire::api::v1::router::RouteInfoTranslator;
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <assfire/router/api/RouteInfo.hpp>
-#include "assfire/concepts/Location.hpp"
 #include <assfire/router/api/RouteDetails.hpp>
 #include "assfire/router/api/RouteProviderEngine.hpp"
 #include "assfire/router/api/RoutingProfile.hpp"

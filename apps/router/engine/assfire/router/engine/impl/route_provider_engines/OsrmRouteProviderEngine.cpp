@@ -27,7 +27,7 @@ RouteDetails OsrmRouteProviderEngine::getSingleRouteDetails(const Location &orig
     return calculateRouteDetails(origin, destination);
 }
 
-RouteDetails OsrmRouteProviderEngine::calculateRouteDetails(const assfire::Location &origin, const assfire::Location &destination) const {
+RouteDetails OsrmRouteProviderEngine::calculateRouteDetails(const Location &origin, const Location &destination) const {
     if (origin == destination) return RouteDetails::zero(origin, destination);
 
     auto stopwatch = metrics_collector.measureSingleOsrmRouteDetailsCalculation(geometry);
@@ -78,11 +78,11 @@ RouteDetails OsrmRouteProviderEngine::calculateRouteDetails(const assfire::Locat
 
     if (response.at(U("routes")).at(0).has_field(U("geometry"))) {
         for (const auto &g : response.at(U("routes")).at(0).at(U("geometry")).at(U("coordinates")).as_array()) {
-            waypoints.emplace_back(Coordinate::fromDoubleValue(g.at(1).as_double()), Coordinate::fromDoubleValue(g.at(0).as_double()));
+            waypoints.emplace_back(locations::Coordinate::fromDoubleValue(g.at(1).as_double()), locations::Coordinate::fromDoubleValue(g.at(0).as_double()));
         }
     } else {
         if (waypoints_expected) {
-            SPDLOG_WARN("Expected list of waypoints but no waypoins were found in OSRM response. Probably something could have been gone wrong");
+            SPDLOG_WARN("Expected list of waypoints but no waypoints were found in OSRM response. Probably something could have been gone wrong");
         }
         waypoints.emplace_back(origin);
         waypoints.emplace_back(destination);

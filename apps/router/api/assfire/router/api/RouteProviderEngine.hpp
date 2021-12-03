@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Matrix.hpp"
-#include "assfire/concepts/Location.hpp"
+#include "assfire/locations/api/Location.hpp"
 #include "RouteInfo.hpp"
 #include "RouteDetails.hpp"
 
@@ -10,6 +10,7 @@ namespace assfire::router
     class RouteProviderEngine
     {
     public:
+        using Location = locations::Location;
         using Locations = std::vector<Location>;
 
         virtual ~RouteProviderEngine() = default;
