@@ -6,48 +6,6 @@ option go_package = "assfire.org/api/v1/locations";
 import "assfire/api/v1/locations/concepts.proto";
 import "google/api/annotations.proto";
 
-message GetLocationsRequest {
-  repeated string location_ids = 1;
-}
-
-message GetLocationsResponse {
-  repeated Location locations = 1;
-}
-
-message SaveLocationsRequest {
-  repeated Location locations = 1;
-}
-
-message LocationSaveResult {
-  enum Code {
-    LOCATION_SAVE_RESULT_CODE_SUCCESS = 0;
-    LOCATION_SAVE_RESULT_CODE_FAILED = 1;
-  }
-
-  Code code = 1;
-  string id = 2;
-}
-
-message SaveLocationsResponse {
-  repeated LocationSaveResult results = 1;
-}
-
-message RemoveLocationsRequest {
-  repeated int32 location_ids = 1;
-}
-
-message RemoveLocationsResponse {
-  repeated int32 deleted_location_ids = 1;
-}
-
-message FindLocationsRequest {
-  repeated LocationSearchCriteria criterias = 1;
-}
-
-message FindLocationsResponse {
-  repeated Location locations = 1;
-}
-
 message GenerateLocationsRequest {
   LocationGenerationOptions options = 1;
 }
@@ -56,43 +14,9 @@ message GenerateLocationsResponse {
   repeated Location locations = 1;
 }
 
-message ResolveAddressesRequest {
-  repeated string addresses = 1;
-}
-
-message ResolveAddressesResponse {
-  repeated ResolvedAddress locations = 1;
-}
-
 service LocationsService {
-  rpc GetLocations(GetLocationsRequest) returns (GetLocationsResponse) {
-    option (google.api.http) = {
-      get: "/v1/locations"
-    };
-  }
-  rpc SaveLocations(SaveLocationsRequest) returns (SaveLocationsResponse) {
-    option (google.api.http) = {
-      post: "/v1/locations"
-    };
-  }
-  rpc RemoveLocations(RemoveLocationsRequest) returns (RemoveLocationsResponse) {
-    option (google.api.http) = {
-      delete: "/v1/locations"
-    };
-  }
-  rpc FindLocations(FindLocationsRequest) returns (FindLocationsResponse) {
-    option (google.api.http) = {
-      get: "/v1/locations/find"
-    };
-  }
   rpc GenerateLocations(GenerateLocationsRequest) returns (GenerateLocationsResponse) {
     option (google.api.http) = {
       get: "/v1/locations/generate"
     };
-  }
-  rpc ResolveAddresses(ResolveAddressesRequest) returns (ResolveAddressesResponse) {
-    option (google.api.http) = {
-      get: "/v1/locations/resolve"
-    };
-  }
-}
+  }}

@@ -15,10 +15,6 @@ message MapExtents {
   int32 bottom_lat = 4;
 }
 
-message LocationSearchCriteria {
-  MapExtents extents = 1;
-}
-
 enum LocationsDistributionType {
   LOCATIONS_DISTRIBUTION_TYPE_UNIFORM = 0;
 }
@@ -27,14 +23,4 @@ message LocationGenerationOptions {
   MapExtents extents = 1;
   int32 count = 2;
   LocationsDistributionType distribution_type = 3;
-}
-
-enum AddressResolverType {
-  ADDRESS_RESOLVER_TYPE_UNKNOWN = 0;
-}
-
-message ResolvedAddress {
-  string address = 1;
-  Location location = 2;
-  AddressResolverType resolver = 3;
 }
