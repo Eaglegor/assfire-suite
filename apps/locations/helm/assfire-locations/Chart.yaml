@@ -1,0 +1,5 @@
+apiVersion: v2
+name: assfire-locations
+version: @ASSFIRE_APPLICATION_RELEASE_VERSION@
+appVersion: @ASSFIRE_APPLICATION_RELEASE_VERSION@
+type: application

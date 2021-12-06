@@ -1,0 +1,24 @@
+server:
+  enabled: true
+  replicas: 2
+  nodeSelector:
+    assfire_scheduler: enabled
+  labels:
+    app: assfire-locations-server
+  imagePullSecrets: []
+  metrics:
+    enabled: true
+  log:
+    level: info
+  ingress:
+    enabled: true
+    host: assfire.org
+    tls:
+      enabled: true
+      secretName: assfire-tls-ca
+      issuer: assfire-cert-ca-issuer
+  grpc_gateway:
+    enabled: true
+  service:
+    labels:
+      metrics: prometheus
