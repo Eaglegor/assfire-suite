@@ -70,7 +70,6 @@ export default {
   watch: {
     routingSettings: {
       handler(val) {
-        console.log("Emitting event: " + val)
         this.$emit('update:modelValue', val)
       },
       deep: true
@@ -87,19 +86,19 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .routing-settings {
-  border-radius: 5px;
-  background-color: #f2f2f2;
   padding: 10px 20px 20px;
 }
 
 .block-title-container {
-  padding: 10px 0 20px;
+  display: flex;
+  width: 100%;
 }
 
 .block-title {
   text-align: center;
   font-weight: bold;
-  padding: 20px 20px 20px;
+  padding: 5px 10px 15px;
+  width: 100%;
 }
 
 .form-contents input, select {
