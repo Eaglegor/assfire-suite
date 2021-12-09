@@ -1,118 +1,84 @@
 <template>
   <div class="routing-settings">
-    <input id="origin" v-model="stringOrigin"/><label for="origin">Origin</label>
-    <input id="destination" v-model="stringDestination"/><label for="destination">Destination</label>
-    <input id="speed" v-model="routing_profile.speed.meters_per_second"/><label for="speed">Speed (m/s)</label>
-    <select id="engine" v-model="settings.router_engine_type">
-      <option v-for="engine in engines" :key="engine.value" :value="engine.value">
-        {{ engine.name }}
-      </option>
-    </select>
-    <label for="engine">Engine</label>
-    <select id="geometry" v-model="settings.osrm_settings.geometry" v-if="isOsrm()">
-      <option v-for="geometry in geometries" :key="geometry.value" :value="geometry.value">
-        {{ geometry.name }}
-      </option>
-    </select>
-    <label for="geometry" v-if="isOsrm()">Geometry</label>
-    <input id="waypoints" type="checkbox"  v-model="settings.retrieve_waypoints"/><label for="waypoints">Retrieve waypoints</label>
-    <input id="forceUpdate" type="checkbox" v-model="settings.force_update"/><label for="forceUpdate">Force update</label>
+    <div class="block-title-container">
+      <span class="block-title">Routing settings</span>
+    </div>
+
+    <div class="form-contents">
+      <div class="labeled-input">
+        <label for="speed">Speed (m/s):</label>
+        <input id="speed" v-model.lazy="routingSettings.routing_profile.speed.meters_per_second"/>
+      </div>
+
+      <div class="labeled-input">
+        <label for="engine">Engine:</label>
+        <select id="engine" v-model="routingSettings.settings.router_engine_type">
+          <option v-for="engine in engines" :key="engine.value" :value="engine.value">
+            {{ engine.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="labeled-input" v-if="isOsrm()">
+        <label for="geometry">Geometry:</label>
+        <select id="geometry" v-model="routingSettings.settings.osrm_settings.geometry">
+          <option v-for="geometry in geometries" :key="geometry.value" :value="geometry.value">
+            {{ geometry.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="labeled-checkbox">
+        <label for="waypoints">Retrieve waypoints:</label>
+        <input id="waypoints" class="checkbox-input" type="checkbox"
+               v-model="routingSettings.settings.retrieve_waypoints"/>
+        <div class="label-circle"/>
+      </div>
+
+      <div class="labeled-checkbox">
+        <label for="forceUpdate">Force update:</label>
+        <input id="forceUpdate" class="checkbox-input" type="checkbox" v-model="routingSettings.settings.force_update"/>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-const ROUTER_ENGINE_TYPE_CROWFLIGHT = "ROUTER_ENGINE_TYPE_CROWFLIGHT"
-const ROUTER_ENGINE_TYPE_EUCLIDEAN = "ROUTER_ENGINE_TYPE_EUCLIDEAN"
-const ROUTER_ENGINE_TYPE_RANDOM = "ROUTER_ENGINE_TYPE_RANDOM"
-const ROUTER_ENGINE_TYPE_OSRM = "ROUTER_ENGINE_TYPE_OSRM"
-
-const OSRM_GEOMETRY_STRAIGHT_LINE = "OSRM_GEOMETRY_STRAIGHT_LINE"
-const OSRM_GEOMETRY_SIMPLIFIED = "OSRM_GEOMETRY_SIMPLIFIED"
-const OSRM_GEOMETRY_FULL = "OSRM_GEOMETRY_FULL"
-
-const COORDINATE_ENCODING_MULTIPLIER = 1000000.0;
-
-function encodeCoordinate(c) {
-  return Math.trunc(c * COORDINATE_ENCODING_MULTIPLIER)
-}
+import RoutingConstants from "@/components/RoutingSettingsModel";
 
 export default {
   name: 'RoutingSettings',
+  props: {
+    modelValue: Object
+  },
   data() {
     return {
-      origin: {
-        latitude: 55.740090,
-        longitude: 37.624716
-      },
-      destination: {
-        latitude: 53.205533,
-        longitude: 50.178594
-      },
-      routing_profile: {
-        speed: {
-          meters_per_second: 16.6
-        }
-      },
-      settings: {
-        router_engine_type: ROUTER_ENGINE_TYPE_CROWFLIGHT,
-        osrm_settings: {
-          geometry: OSRM_GEOMETRY_STRAIGHT_LINE
-        },
-        retrieve_waypoints: false,
-        force_update: false
-      },
+      routingSettings: this.modelValue,
       engines: [
-        {name: "Crowflight", value: ROUTER_ENGINE_TYPE_CROWFLIGHT},
-        {name: "Euclidean", value: ROUTER_ENGINE_TYPE_EUCLIDEAN},
-        {name: "Random", value: ROUTER_ENGINE_TYPE_RANDOM},
-        {name: "OSRM", value: ROUTER_ENGINE_TYPE_OSRM}
+        {name: "Crowflight", value: RoutingConstants.ROUTER_ENGINE_TYPE_CROWFLIGHT},
+        {name: "Euclidean", value: RoutingConstants.ROUTER_ENGINE_TYPE_EUCLIDEAN},
+        {name: "Random", value: RoutingConstants.ROUTER_ENGINE_TYPE_RANDOM},
+        {name: "OSRM", value: RoutingConstants.ROUTER_ENGINE_TYPE_OSRM}
       ],
       geometries: [
-        {name: "Straight line", value: OSRM_GEOMETRY_STRAIGHT_LINE},
-        {name: "Simplified", value: OSRM_GEOMETRY_SIMPLIFIED},
-        {name: "Full", value: OSRM_GEOMETRY_FULL},
+        {name: "Straight line", value: RoutingConstants.OSRM_GEOMETRY_STRAIGHT_LINE},
+        {name: "Simplified", value: RoutingConstants.OSRM_GEOMETRY_SIMPLIFIED},
+        {name: "Full", value: RoutingConstants.OSRM_GEOMETRY_FULL},
       ]
     }
   },
-  computed: {
-    stringOrigin: {
-      get: function() {
-        return this.origin.latitude + ' ' + this.origin.longitude
+  watch: {
+    routingSettings: {
+      handler(val) {
+        console.log("Emitting event: " + val)
+        this.$emit('update:modelValue', val)
       },
-      set: function(val) {
-        var names = val.split(' ')
-        this.origin.latitude = parseFloat(names[0])
-        this.origin.longitude = parseFloat(names[1])
-      }
-    },
-    stringDestination: {
-      get: function() {
-        return this.destination.latitude + ' ' + this.destination.longitude
-      },
-      set: function(val) {
-        var names = val.split(' ')
-        this.destination.latitude = parseFloat(names[0])
-        this.destination.longitude = parseFloat(names[1])
-      }
-    },
-    request: function() {
-      return {
-        routing_profile: this.routing_profile,
-        settings: this.settings,
-        origin: {
-          encoded_latitude: encodeCoordinate(this.origin.latitude),
-          encoded_longitude: encodeCoordinate(this.origin.longitude)
-        },
-        destination: {
-          encoded_latitude: encodeCoordinate(this.destination.latitude),
-          encoded_longitude: encodeCoordinate(this.destination.longitude)
-        }
-      }
+      deep: true
     }
   },
   methods: {
-    isOsrm: function() {
-      return this.settings.router_engine_type === ROUTER_ENGINE_TYPE_OSRM;
+    isOsrm: function () {
+      return this.routingSettings.settings.router_engine_type === RoutingConstants.ROUTER_ENGINE_TYPE_OSRM;
     }
   }
 }
@@ -121,8 +87,50 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .routing-settings {
-  grid-column: 2;
-  grid-row: 1;
-  overflow: auto;
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 10px 20px 20px;
+}
+
+.block-title-container {
+  padding: 10px 0 20px;
+}
+
+.block-title {
+  text-align: center;
+  font-weight: bold;
+  padding: 20px 20px 20px;
+}
+
+.form-contents input, select {
+  width: 100%;
+  padding: 10px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form-contents {
+  text-align: left;
+}
+
+.labeled-input {
+  margin-bottom: 10px;
+}
+
+.labeled-checkbox {
+  height: 40px;
+  line-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.labeled-checkbox input[type=checkbox] {
+  display: flex;
+  width: 25px;
+  height: 25px;
+  margin-left: 10px;
 }
 </style>
