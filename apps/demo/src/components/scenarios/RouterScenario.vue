@@ -4,8 +4,9 @@
       <routing-map :locations="validLocations" :routes="routes"/>
     </main>
     <aside class="sidebar-controls">
-      <routing-settings v-model="routingSettings"/>
-      <locations-list v-model="locations"/>
+      <routing-settings class="control-block" v-model="routingSettings"/>
+      <locations-list class="control-block" v-model="locations"/>
+      <route-summary class="control-block" v-if="routeSummary != null" :summary="routeSummary"/>
     </aside>
   </div>
 </template>
@@ -14,13 +15,16 @@
 import RoutingSettings from '@/components/RoutingSettings.vue'
 import LocationsList from "@/components/LocationsList";
 import RoutingMap from "@/components/RoutingMap";
+import RouteSummary from "@/components/RouteSummary";
+import axios from "axios";
 
 export default {
   name: 'RouterScenario',
   components: {
     RoutingSettings,
     LocationsList,
-    RoutingMap
+    RoutingMap,
+    RouteSummary
   },
   data() {
     return {
@@ -28,12 +32,43 @@ export default {
       locations: [
         new LocationsList.Location(55.75718, 37.62355),
         new LocationsList.Location(53.20780, 50.19780)
-      ]
+      ],
+      routes: [],
+      routeSummaries: []
     }
   },
   methods: {
     routingSettingsHandler(evt) {
       this.routingSettings = evt
+    },
+    makeRequest(origin, destination) {
+      return {
+        ...this.routingSettings.toRequest(),
+        ...origin.toRequest('origin'),
+        ...destination.toRequest('destination')
+      }
+    },
+    updateRoutes(locations) {
+      this.routes = []
+      this.routeSummaries = []
+      for (let i = 0; i < locations.length - 1; ++i) {
+        let request = this.makeRequest(locations[i], locations[i + 1])
+        axios
+            .get('http://localhost:8082/v1/route',
+                {
+                  params: request
+                })
+            .then(response => {
+              let waypoints = response.data.routeInfo.waypoints;
+              let resultingPoints = waypoints.map(wp => LocationsList.Location.fromResponse(wp));
+              this.routes.push(new RoutingMap.Route(resultingPoints, '#0e0ede'))
+              this.routeSummaries.push({seconds: response.data.routeInfo.duration.seconds, meters: response.data.routeInfo.distance.meters})
+            })
+            .catch(error => {
+              this.routes.push(new RoutingMap.Route([locations[i], locations[i + 1]], '#de0e0e'))
+              console.log(error)
+            })
+      }
     }
   },
   computed: {
@@ -47,12 +82,30 @@ export default {
     routingSettingsRequest: function () {
       return this.routingSettings.toRequest()
     },
-    routes: function () {
-      let result = []
-      for (let i = 0; i < this.validLocations.length - 1; ++i) {
-        result.push(new RoutingMap.Route([this.validLocations[i], this.validLocations[i + 1]]))
-      }
-      return result;
+    routeSummary: function () {
+      if (this.routes.length === 0) return null
+      if (this.routes.length !== this.routeSummaries.length) return null
+      let total_meters = 0;
+      let total_seconds = 0;
+      this.routeSummaries.forEach(function (s) {
+        total_meters += s.meters;
+        total_seconds += s.seconds;
+      });
+      return new RouteSummary.RouteSummary(total_seconds, total_meters)
+    }
+  },
+  watch: {
+    validLocations: {
+      handler: function (val) {
+        this.updateRoutes(val)
+      },
+      immediate: true
+    },
+    routingSettings: {
+      handler: function () {
+        this.updateRoutes(this.locations)
+      },
+      deep: true
     }
   }
 }
@@ -76,5 +129,11 @@ export default {
   flex-direction: column;
   width: 300px;
   overflow: auto;
+}
+
+.control-block {
+  background-color: #eeeeee;
+  margin: 10px;
+  border-radius: 10px;
 }
 </style>

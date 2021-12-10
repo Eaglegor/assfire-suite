@@ -6,7 +6,7 @@
           layer-type="base"
           name="OpenStreetMap"></l-tile-layer>
       <l-marker v-for="marker in markers" :key="marker.key" :lat-lng="marker.value"/>
-      <l-polyline v-for="polyline in polylines" :key="polyline.key" :lat-lngs="polyline.values"/>
+      <l-polyline v-for="polyline in polylines" :key="polyline.key" :lat-lngs="polyline.values" :color="polyline.color"/>
     </l-map>
   </div>
 </template>
@@ -17,8 +17,9 @@ import {LMap, LTileLayer, LMarker, LPolyline} from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 
 class Route {
-  constructor(pts) {
+  constructor(pts, color) {
     this.pts = pts
+    this.color = color
   }
 
   asKey() {
@@ -61,7 +62,8 @@ export default {
       return this.routes.map(function (r) {
         return {
           key: r.asKey(),
-          values: r.toLatLngs()
+          values: r.toLatLngs(),
+          color: r.color
         }
       })
     }

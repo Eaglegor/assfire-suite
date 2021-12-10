@@ -68,21 +68,11 @@ class RoutingSettingsModel {
 
   toRequest() {
     return {
-      routingSettings: {
-        routing_profile: {
-          speed: {
-            meters_per_second: this.speed
-          }
-        },
-        settings: {
-          router_engine_type: this.engine,
-          osrm_settings: {
-            geometry: this.geometry
-          },
-          retrieve_waypoints: this.retriveWaypoints,
-          force_update: this.forceUpdate
-        }
-      }
+      'routing_profile.speed.meters_per_second': this.speed,
+      'settings.router_engine_type': this.engine,
+      'settings.retrieve_waypoints': this.retriveWaypoints,
+      'settings.force_update': this.forceUpdate,
+      'settings.osrm_settings.geometry': this.geometry
     }
   }
 }

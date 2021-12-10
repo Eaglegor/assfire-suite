@@ -26,11 +26,19 @@ class Location {
     return this.lat + ' ' + this.lon
   }
 
-  toRequest() {
-    return {
-      encoded_latitude: Math.trunc(this.lat * 1000000),
-      encoded_longitude: Math.trunc(this.lon * 1000000)
-    }
+  toRequest(name) {
+    let result = {}
+    result[name+'.encoded_latitude'] = Math.trunc(this.lat * 1000000);
+    result[name+'.encoded_longitude'] = Math.trunc(this.lon * 1000000);
+    return result
+  }
+
+  static fromEncoded(lat, lon) {
+    return new Location(lat / 1000000.0, lon / 1000000.0)
+  }
+
+  static fromResponse(loc) {
+    return this.fromEncoded(loc.encodedLatitude, loc.encodedLongitude)
   }
 
   toLatLng() {
