@@ -33,7 +33,7 @@ export default {
   },
   data() {
     return {
-      routingSettings: RoutingSettings.createDefaultSettings(),
+      routingSettings: RoutingSettings.RoutingSettingsModel.createDefault(),
       locations: [
         {lat: 55.234, lon: 53.234},
         {lat: 57.234, lon: 52.234}
@@ -50,7 +50,7 @@ export default {
       return this.locations.filter(l => l != null && l.lat != null && l.lon != null);
     },
     routingSettingsRequest: function() {
-      return RoutingSettings.settingsToRequest(this.routingSettings)
+      return this.routingSettings.toRequest()
     }
   },
   watch: {

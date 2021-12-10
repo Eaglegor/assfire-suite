@@ -61,6 +61,30 @@ class RoutingSettingsModel {
     this.retriveWaypoints = retrieveWaypoints
     this.forceUpdate = forceUpdate
   }
+
+  static createDefault() {
+    return new RoutingSettingsModel(16.6, ROUTER_ENGINE_TYPE_CROWFLIGHT, OSRM_GEOMETRY_STRAIGHT_LINE, false, false)
+  }
+
+  toRequest() {
+    return {
+      routingSettings: {
+        routing_profile: {
+          speed: {
+            meters_per_second: this.speed
+          }
+        },
+        settings: {
+          router_engine_type: this.engine,
+          osrm_settings: {
+            geometry: this.geometry
+          },
+          retrieve_waypoints: this.retriveWaypoints,
+          force_update: this.forceUpdate
+        }
+      }
+    }
+  }
 }
 
 export default {
@@ -97,31 +121,6 @@ export default {
       return this.routingSettings.engine === ROUTER_ENGINE_TYPE_OSRM;
     }
   },
-  createDefaultSettings: function () {
-    return new RoutingSettingsModel(16.6, ROUTER_ENGINE_TYPE_CROWFLIGHT, OSRM_GEOMETRY_STRAIGHT_LINE, false, false)
-  },
-  createSettings: function (speed, engine, geometry, retrieveWaypoints, forceUpdate) {
-    return new RoutingSettingsModel(speed, engine, geometry, retrieveWaypoints, forceUpdate)
-  },
-  settingsToRequest(settings) {
-    return {
-      routingSettings: {
-        routing_profile: {
-          speed: {
-            meters_per_second: settings.speed
-          }
-        },
-        settings: {
-          router_engine_type: settings.engine,
-          osrm_settings: {
-            geometry: settings.geometry
-          },
-          retrieve_waypoints: settings.retriveWaypoints,
-          force_update: settings.forceUpdate
-        }
-      }
-    }
-  },
 
   ROUTER_ENGINE_TYPE_CROWFLIGHT: ROUTER_ENGINE_TYPE_CROWFLIGHT,
   ROUTER_ENGINE_TYPE_EUCLIDEAN: ROUTER_ENGINE_TYPE_EUCLIDEAN,
@@ -130,7 +129,9 @@ export default {
 
   OSRM_GEOMETRY_STRAIGHT_LINE: OSRM_GEOMETRY_STRAIGHT_LINE,
   OSRM_GEOMETRY_SIMPLIFIED: OSRM_GEOMETRY_SIMPLIFIED,
-  OSRM_GEOMETRY_FULL: OSRM_GEOMETRY_FULL
+  OSRM_GEOMETRY_FULL: OSRM_GEOMETRY_FULL,
+
+  RoutingSettingsModel
 }
 </script>
 
