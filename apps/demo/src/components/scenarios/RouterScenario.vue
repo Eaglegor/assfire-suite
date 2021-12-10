@@ -1,18 +1,11 @@
 <template>
   <div class="router-scenario">
     <main class="map-container">
-      <l-map class="rendered-map" :zoom="5" :center="[55.75414325118748, 37.62138538509248]">
-        <l-tile-layer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            layer-type="base"
-            name="OpenStreetMap"></l-tile-layer>
-      </l-map>
+      <routing-map :locations="validLocations" :routes="routes"/>
     </main>
     <aside class="sidebar-controls">
       <routing-settings v-model="routingSettings"/>
       <locations-list v-model="locations"/>
-      {{routingSettingsRequest}}
-      {{ filteredLocations }}
     </aside>
   </div>
 </template>
@@ -20,23 +13,21 @@
 <script>
 import RoutingSettings from '@/components/RoutingSettings.vue'
 import LocationsList from "@/components/LocationsList";
-import {LMap, LTileLayer} from "@vue-leaflet/vue-leaflet";
-import "leaflet/dist/leaflet.css";
+import RoutingMap from "@/components/RoutingMap";
 
 export default {
   name: 'RouterScenario',
   components: {
-    LMap,
-    LTileLayer,
     RoutingSettings,
-    LocationsList
+    LocationsList,
+    RoutingMap
   },
   data() {
     return {
       routingSettings: RoutingSettings.RoutingSettingsModel.createDefault(),
       locations: [
-        {lat: 55.234, lon: 53.234},
-        {lat: 57.234, lon: 52.234}
+        new LocationsList.Location(55.75718, 37.62355),
+        new LocationsList.Location(53.20780, 50.19780)
       ]
     }
   },
@@ -46,19 +37,22 @@ export default {
     }
   },
   computed: {
-    filteredLocations: function () {
-      return this.locations.filter(l => l != null && l.lat != null && l.lon != null);
+    validLocations: function () {
+      return this.locations.filter(function (l) {
+        if (l == null) return false;
+        if (l.lat == null) return false;
+        return l.lon != null;
+      });
     },
-    routingSettingsRequest: function() {
+    routingSettingsRequest: function () {
       return this.routingSettings.toRequest()
-    }
-  },
-  watch: {
-    routingSettings: {
-      handler(val) {
-        console.log(val)
-      },
-      deep: true
+    },
+    routes: function () {
+      let result = []
+      for (let i = 0; i < this.validLocations.length - 1; ++i) {
+        result.push(new RoutingMap.Route([this.validLocations[i], this.validLocations[i + 1]]))
+      }
+      return result;
     }
   }
 }
@@ -82,9 +76,5 @@ export default {
   flex-direction: column;
   width: 300px;
   overflow: auto;
-}
-
-.rendered-map {
-
 }
 </style>

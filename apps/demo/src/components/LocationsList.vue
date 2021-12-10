@@ -6,7 +6,7 @@
     <div class="locations-inputs">
       <div class="location-block" v-for="(location, index) in locations" :key="stringLocation(location)">
         <input @change="updateLocation(index, $event.target.value)" :value="stringLocation(location)">
-        <button type="button">M</button>
+<!--        <button type="button">M</button>-->
         <button type="button" @click.prevent="removeLocation(index)">X</button>
       </div>
       <button type="button" @click.prevent="addLocation()">Add</button>
@@ -15,6 +15,28 @@
 </template>
 
 <script>
+
+class Location {
+  constructor(lat, lon) {
+    this.lat = lat;
+    this.lon = lon;
+  }
+
+  asKey() {
+    return this.lat + ' ' + this.lon
+  }
+
+  toRequest() {
+    return {
+      encoded_latitude: Math.trunc(this.lat * 1000000),
+      encoded_longitude: Math.trunc(this.lon * 1000000)
+    }
+  }
+
+  toLatLng() {
+    return [this.lat, this.lon]
+  }
+}
 
 export default {
   name: 'LocationsList',
@@ -28,21 +50,23 @@ export default {
   },
   watch: {},
   methods: {
-    stringLocation: function(location) {
-      if(location == null) return '';
-      return location.lat + ' ' + location.lon;
+    stringLocation: function (location) {
+      if (location == null) return '';
+      return (location.lat == null ? '' : location.lat) + ' ' + (location.lon == null ? '' : location.lon);
     },
     removeLocation(index) {
       this.locations.splice(index, 1)
     },
     updateLocation(index, value) {
-      var lanlon = value.split(' ');
-      this.locations[index] = {lat: parseFloat(lanlon[0]), lon: parseFloat(lanlon[1])};
+      let [lat, lon] = value.split(' ').map(v => parseFloat(v));
+      this.locations[index] = new Location(isNaN(lat) ? null : lat, isNaN(lon) ? null : lon);
     },
     addLocation() {
       this.locations.push(null)
     }
-  }
+  },
+
+  Location
 }
 </script>
 
