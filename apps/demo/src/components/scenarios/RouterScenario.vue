@@ -11,6 +11,7 @@
     <aside class="sidebar-controls">
       <routing-settings v-model="routingSettings"/>
       <locations-list v-model="locations"/>
+      {{routingSettingsRequest}}
       {{ filteredLocations }}
     </aside>
   </div>
@@ -19,7 +20,6 @@
 <script>
 import RoutingSettings from '@/components/RoutingSettings.vue'
 import LocationsList from "@/components/LocationsList";
-import RoutingConstants from "@/components/RoutingSettingsModel";
 import {LMap, LTileLayer} from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -33,21 +33,7 @@ export default {
   },
   data() {
     return {
-      routingSettings: {
-        routing_profile: {
-          speed: {
-            meters_per_second: 16.6
-          }
-        },
-        settings: {
-          router_engine_type: RoutingConstants.ROUTER_ENGINE_TYPE_CROWFLIGHT,
-          osrm_settings: {
-            geometry: RoutingConstants.OSRM_GEOMETRY_STRAIGHT_LINE
-          },
-          retrieve_waypoints: false,
-          force_update: false
-        },
-      },
+      routingSettings: RoutingSettings.createDefaultSettings(),
       locations: [
         {lat: 55.234, lon: 53.234},
         {lat: 57.234, lon: 52.234}
@@ -62,6 +48,9 @@ export default {
   computed: {
     filteredLocations: function () {
       return this.locations.filter(l => l != null && l.lat != null && l.lon != null);
+    },
+    routingSettingsRequest: function() {
+      return RoutingSettings.settingsToRequest(this.routingSettings)
     }
   },
   watch: {

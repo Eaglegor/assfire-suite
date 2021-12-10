@@ -7,12 +7,12 @@
     <div class="form-contents">
       <div class="labeled-input">
         <label for="speed">Speed (m/s):</label>
-        <input id="speed" v-model.lazy="routingSettings.routing_profile.speed.meters_per_second"/>
+        <input id="speed" v-model.lazy="routingSettings.speed"/>
       </div>
 
       <div class="labeled-input">
         <label for="engine">Engine:</label>
-        <select id="engine" v-model="routingSettings.settings.router_engine_type">
+        <select id="engine" v-model="routingSettings.engine">
           <option v-for="engine in engines" :key="engine.value" :value="engine.value">
             {{ engine.name }}
           </option>
@@ -21,7 +21,7 @@
 
       <div class="labeled-input" v-if="isOsrm()">
         <label for="geometry">Geometry:</label>
-        <select id="geometry" v-model="routingSettings.settings.osrm_settings.geometry">
+        <select id="geometry" v-model="routingSettings.geometry">
           <option v-for="geometry in geometries" :key="geometry.value" :value="geometry.value">
             {{ geometry.name }}
           </option>
@@ -31,39 +31,56 @@
       <div class="labeled-checkbox">
         <label for="waypoints">Retrieve waypoints:</label>
         <input id="waypoints" class="checkbox-input" type="checkbox"
-               v-model="routingSettings.settings.retrieve_waypoints"/>
+               v-model="routingSettings.retriveWaypoints"/>
         <div class="label-circle"/>
       </div>
 
       <div class="labeled-checkbox">
         <label for="forceUpdate">Force update:</label>
-        <input id="forceUpdate" class="checkbox-input" type="checkbox" v-model="routingSettings.settings.force_update"/>
+        <input id="forceUpdate" class="checkbox-input" type="checkbox" v-model="routingSettings.forceUpdate"/>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import RoutingConstants from "@/components/RoutingSettingsModel";
+const ROUTER_ENGINE_TYPE_CROWFLIGHT = "ROUTER_ENGINE_TYPE_CROWFLIGHT"
+const ROUTER_ENGINE_TYPE_EUCLIDEAN = "ROUTER_ENGINE_TYPE_EUCLIDEAN"
+const ROUTER_ENGINE_TYPE_RANDOM = "ROUTER_ENGINE_TYPE_RANDOM"
+const ROUTER_ENGINE_TYPE_OSRM = "ROUTER_ENGINE_TYPE_OSRM"
+
+const OSRM_GEOMETRY_STRAIGHT_LINE = "OSRM_GEOMETRY_STRAIGHT_LINE"
+const OSRM_GEOMETRY_SIMPLIFIED = "OSRM_GEOMETRY_SIMPLIFIED"
+const OSRM_GEOMETRY_FULL = "OSRM_GEOMETRY_FULL"
+
+class RoutingSettingsModel {
+  constructor(speed, engine, geometry, retrieveWaypoints, forceUpdate) {
+    this.speed = speed
+    this.engine = engine
+    this.geometry = geometry
+    this.retriveWaypoints = retrieveWaypoints
+    this.forceUpdate = forceUpdate
+  }
+}
 
 export default {
   name: 'RoutingSettings',
   props: {
-    modelValue: Object
+    modelValue: RoutingSettingsModel
   },
   data() {
     return {
       routingSettings: this.modelValue,
       engines: [
-        {name: "Crowflight", value: RoutingConstants.ROUTER_ENGINE_TYPE_CROWFLIGHT},
-        {name: "Euclidean", value: RoutingConstants.ROUTER_ENGINE_TYPE_EUCLIDEAN},
-        {name: "Random", value: RoutingConstants.ROUTER_ENGINE_TYPE_RANDOM},
-        {name: "OSRM", value: RoutingConstants.ROUTER_ENGINE_TYPE_OSRM}
+        {name: "Crowflight", value: ROUTER_ENGINE_TYPE_CROWFLIGHT},
+        {name: "Euclidean", value: ROUTER_ENGINE_TYPE_EUCLIDEAN},
+        {name: "Random", value: ROUTER_ENGINE_TYPE_RANDOM},
+        {name: "OSRM", value: ROUTER_ENGINE_TYPE_OSRM}
       ],
       geometries: [
-        {name: "Straight line", value: RoutingConstants.OSRM_GEOMETRY_STRAIGHT_LINE},
-        {name: "Simplified", value: RoutingConstants.OSRM_GEOMETRY_SIMPLIFIED},
-        {name: "Full", value: RoutingConstants.OSRM_GEOMETRY_FULL},
+        {name: "Straight line", value: OSRM_GEOMETRY_STRAIGHT_LINE},
+        {name: "Simplified", value: OSRM_GEOMETRY_SIMPLIFIED},
+        {name: "Full", value: OSRM_GEOMETRY_FULL},
       ]
     }
   },
@@ -77,9 +94,43 @@ export default {
   },
   methods: {
     isOsrm: function () {
-      return this.routingSettings.settings.router_engine_type === RoutingConstants.ROUTER_ENGINE_TYPE_OSRM;
+      return this.routingSettings.engine === ROUTER_ENGINE_TYPE_OSRM;
     }
-  }
+  },
+  createDefaultSettings: function () {
+    return new RoutingSettingsModel(16.6, ROUTER_ENGINE_TYPE_CROWFLIGHT, OSRM_GEOMETRY_STRAIGHT_LINE, false, false)
+  },
+  createSettings: function (speed, engine, geometry, retrieveWaypoints, forceUpdate) {
+    return new RoutingSettingsModel(speed, engine, geometry, retrieveWaypoints, forceUpdate)
+  },
+  settingsToRequest(settings) {
+    return {
+      routingSettings: {
+        routing_profile: {
+          speed: {
+            meters_per_second: settings.speed
+          }
+        },
+        settings: {
+          router_engine_type: settings.engine,
+          osrm_settings: {
+            geometry: settings.geometry
+          },
+          retrieve_waypoints: settings.retriveWaypoints,
+          force_update: settings.forceUpdate
+        }
+      }
+    }
+  },
+
+  ROUTER_ENGINE_TYPE_CROWFLIGHT: ROUTER_ENGINE_TYPE_CROWFLIGHT,
+  ROUTER_ENGINE_TYPE_EUCLIDEAN: ROUTER_ENGINE_TYPE_EUCLIDEAN,
+  ROUTER_ENGINE_TYPE_RANDOM: ROUTER_ENGINE_TYPE_RANDOM,
+  ROUTER_ENGINE_TYPE_OSRM: ROUTER_ENGINE_TYPE_OSRM,
+
+  OSRM_GEOMETRY_STRAIGHT_LINE: OSRM_GEOMETRY_STRAIGHT_LINE,
+  OSRM_GEOMETRY_SIMPLIFIED: OSRM_GEOMETRY_SIMPLIFIED,
+  OSRM_GEOMETRY_FULL: OSRM_GEOMETRY_FULL
 }
 </script>
 
