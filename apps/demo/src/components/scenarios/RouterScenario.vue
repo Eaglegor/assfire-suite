@@ -1,7 +1,7 @@
 <template>
   <div class="router-scenario">
     <main class="map-container">
-      <routing-map :locations="validLocations" :routes="routes"/>
+      <routing-map :locations="validLocations" :routes="routes" @update-location="updateLocationByCoords" @new-location="addLocation"/>
     </main>
     <aside class="sidebar-controls">
       <routing-settings class="control-block" v-model="routingSettings"/>
@@ -69,6 +69,17 @@ export default {
               console.log(error)
             })
       }
+    },
+    updateLocationByCoords(event) {
+      let updateIndex = this.locations.findIndex(l=>l.asKey() === event.location.asKey())
+      if(updateIndex >= 0) {
+        this.locations[updateIndex] = new LocationsList.Location(event.newPosition.lat, event.newPosition.lng)
+      } else {
+        console.log("couldn't find location for key: " + event.location.asKey())
+      }
+    },
+    addLocation(event) {
+      this.locations.push(new LocationsList.Location(event.lat, event.lng))
     }
   },
   computed: {
@@ -92,7 +103,7 @@ export default {
         total_seconds += s.seconds;
       });
       return new RouteSummary.RouteSummary(total_seconds, total_meters)
-    }
+    },
   },
   watch: {
     validLocations: {

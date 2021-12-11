@@ -1,11 +1,11 @@
 <template>
   <div class="routing-map">
-    <l-map class="rendered-map" :zoom="zoom" :center="center">
+    <l-map class="rendered-map" :zoom="zoom" :center="center" @click="sendNewLocationSignal">
       <l-tile-layer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           layer-type="base"
           name="OpenStreetMap"></l-tile-layer>
-      <l-marker v-for="marker in markers" :key="marker.key" :lat-lng="marker.value"/>
+      <l-marker v-for="marker in markers" :key="marker.key" :lat-lng="marker.value.toLatLng()" draggable @dragend="updateLocationByMarker(marker.value, $event)"/>
       <l-polyline v-for="polyline in polylines" :key="polyline.key" :lat-lngs="polyline.values" :color="polyline.color"/>
     </l-map>
   </div>
@@ -33,6 +33,7 @@ class Route {
 
 export default {
   name: 'RoutingMap',
+  emits: ['updateLocation', 'newLocation'],
   components: {
     LMap,
     LTileLayer,
@@ -54,7 +55,7 @@ export default {
       return this.locations.map(function (l) {
         return {
           key: l.asKey(),
-          value: l.toLatLng()
+          value: l
         }
       })
     },
@@ -68,7 +69,23 @@ export default {
       })
     }
   },
-  methods: {},
+  methods: {
+    updateLocationByMarker(location, event){
+      this.$emit('updateLocation', {
+        location: location,
+        newPosition: event.target.getLatLng()
+      })
+    },
+    sendNewLocationSignal(event) {
+      if(event.latlng == null) {
+        return
+      }
+      if(!event.originalEvent.ctrlKey) return
+      console.log('event')
+      console.log(event)
+      this.$emit('newLocation', event.latlng)
+    }
+  },
 
   Route
 }
