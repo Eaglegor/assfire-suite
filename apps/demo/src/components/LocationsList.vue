@@ -60,7 +60,7 @@ export default {
   methods: {
     stringLocation: function (location) {
       if (location == null) return '';
-      return (location.lat == null ? '' : location.lat) + ' ' + (location.lon == null ? '' : location.lon);
+      return (location.lat == null ? '' : location.lat.toPrecision(9)) + ' ' + (location.lon == null ? '' : location.lon.toPrecision(9));
     },
     removeLocation(index) {
       this.locations.splice(index, 1)

@@ -81,8 +81,6 @@ export default {
         return
       }
       if(!event.originalEvent.ctrlKey) return
-      console.log('event')
-      console.log(event)
       this.$emit('newLocation', event.latlng)
     }
   },

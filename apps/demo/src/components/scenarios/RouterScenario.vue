@@ -1,7 +1,8 @@
 <template>
   <div class="router-scenario">
     <main class="map-container">
-      <routing-map :locations="validLocations" :routes="routes" @update-location="updateLocationByCoords" @new-location="addLocation"/>
+      <routing-map :locations="validLocations" :routes="routes" @update-location="updateLocationByCoords"
+                   @new-location="addLocation"/>
     </main>
     <aside class="sidebar-controls">
       <routing-settings class="control-block" v-model="routingSettings"/>
@@ -49,30 +50,48 @@ export default {
       }
     },
     updateRoutes(locations) {
-      this.routes = []
-      this.routeSummaries = []
+      let promises = []
       for (let i = 0; i < locations.length - 1; ++i) {
         let request = this.makeRequest(locations[i], locations[i + 1])
-        axios
+        promises.push(axios
             .get('http://localhost:8082/v1/route',
                 {
                   params: request
-                })
-            .then(response => {
+                }))
+      }
+
+      this.routes = []
+      Promise.all(promises)
+          .then(responses => {
+            let newRoutes = []
+            let newRouteSummaries = []
+
+            for (let response of responses) {
               let waypoints = response.data.routeInfo.waypoints;
               let resultingPoints = waypoints.map(wp => LocationsList.Location.fromResponse(wp));
-              this.routes.push(new RoutingMap.Route(resultingPoints, '#0e0ede'))
-              this.routeSummaries.push({seconds: response.data.routeInfo.duration.seconds, meters: response.data.routeInfo.distance.meters})
-            })
-            .catch(error => {
-              this.routes.push(new RoutingMap.Route([locations[i], locations[i + 1]], '#de0e0e'))
-              console.log(error)
-            })
-      }
+              newRoutes.push(new RoutingMap.Route(resultingPoints, '#0e0ede'))
+              newRouteSummaries.push({
+                seconds: response.data.routeInfo.duration.seconds,
+                meters: response.data.routeInfo.distance.meters
+              })
+            }
+
+            this.routes = newRoutes;
+            this.routeSummaries = newRouteSummaries;
+          })
+          .catch(error => {
+            let failedRoutes = []
+            for (let i = 0; i < locations.length - 1; ++i) {
+              failedRoutes.push(new RoutingMap.Route([locations[i], locations[i + 1]], '#de0e0e'))
+            }
+            console.log(error)
+            this.routes = failedRoutes
+            this.routeSummaries = []
+          });
     },
     updateLocationByCoords(event) {
-      let updateIndex = this.locations.findIndex(l=>l.asKey() === event.location.asKey())
-      if(updateIndex >= 0) {
+      let updateIndex = this.locations.findIndex(l => l.asKey() === event.location.asKey())
+      if (updateIndex >= 0) {
         this.locations[updateIndex] = new LocationsList.Location(event.newPosition.lat, event.newPosition.lng)
       } else {
         console.log("couldn't find location for key: " + event.location.asKey())
@@ -103,7 +122,7 @@ export default {
         total_seconds += s.seconds;
       });
       return new RouteSummary.RouteSummary(total_seconds, total_meters)
-    },
+    }
   },
   watch: {
     validLocations: {
