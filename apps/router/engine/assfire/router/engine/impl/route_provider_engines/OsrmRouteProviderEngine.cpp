@@ -39,7 +39,9 @@ TripInfo OsrmRouteProviderEngine::getTripInfo(const RouteProviderEngine::Locatio
 }
 
 TripDetails OsrmRouteProviderEngine::getTripDetails(const RouteProviderEngine::LocationsList &locations) const {
-    auto stopwatch = metrics_collector.measureSingleOsrmRouteDetailsCalculation(geometry);
+    if(locations.size() < 2) {
+        return TripDetails::zero();
+    }
 
     uri_builder builder;
     builder

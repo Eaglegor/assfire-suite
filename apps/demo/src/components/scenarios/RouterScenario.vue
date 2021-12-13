@@ -76,7 +76,7 @@ export default {
         promises.push(axios
             .get('http://localhost:8082/v1/route',
                 {
-                  data: request,
+                  params: request,
                   signal: lastRequestController.signal
                 }))
       }
@@ -203,13 +203,21 @@ export default {
   watch: {
     validLocations: {
       handler: function (val) {
-        this.updateRoutesVector(val)
+        if(this.routingSettings.vectorMode) {
+          this.updateRoutesVector(val)
+        } else {
+          this.updateRoutes(val)
+        }
       },
       immediate: true
     },
     routingSettings: {
       handler: function () {
-        this.updateRoutesVector(this.locations)
+        if(this.routingSettings.vectorMode) {
+          this.updateRoutesVector(this.locations)
+        } else {
+          this.updateRoutes(this.locations)
+        }
       },
       deep: true
     }

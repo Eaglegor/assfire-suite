@@ -39,6 +39,11 @@
         <label for="forceUpdate">Force update:</label>
         <input id="forceUpdate" class="checkbox-input" type="checkbox" v-model="routingSettings.forceUpdate"/>
       </div>
+
+      <div class="labeled-checkbox">
+        <label for="vectorMode">Vector mode:</label>
+        <input id="vectorMode" class="checkbox-input" type="checkbox" v-model="routingSettings.vectorMode"/>
+      </div>
     </div>
   </div>
 </template>
@@ -54,16 +59,17 @@ const OSRM_GEOMETRY_SIMPLIFIED = "OSRM_GEOMETRY_SIMPLIFIED"
 const OSRM_GEOMETRY_FULL = "OSRM_GEOMETRY_FULL"
 
 class RoutingSettingsModel {
-  constructor(speed, engine, geometry, retrieveWaypoints, forceUpdate) {
+  constructor(speed, engine, geometry, retrieveWaypoints, forceUpdate, vectorMode) {
     this.speed = speed
     this.engine = engine
     this.geometry = geometry
     this.retriveWaypoints = retrieveWaypoints
     this.forceUpdate = forceUpdate
+    this.vectorMode = vectorMode
   }
 
   static createDefault() {
-    return new RoutingSettingsModel(16.6, ROUTER_ENGINE_TYPE_CROWFLIGHT, OSRM_GEOMETRY_STRAIGHT_LINE, false, false)
+    return new RoutingSettingsModel(16.6, ROUTER_ENGINE_TYPE_OSRM, OSRM_GEOMETRY_SIMPLIFIED, true, false, true)
   }
 
   toRequest() {
