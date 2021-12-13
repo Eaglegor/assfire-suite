@@ -37,7 +37,7 @@ RouteInfo EuclideanRouteProviderEngine::calculateRouteInfo(const Location &origi
 
     Distance distance = Distance::fromMeters(calculateEuclideanDistance(origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
                                                                         destination.getLatitude().doubleValue(), destination.getLongitude().doubleValue()));
-    TimeInterval duration = routing_profile.getSpeed().getSecondsToTravel(distance);
+    TimeInterval duration = routing_profile.getSpeed().getTimeToTravel(distance);
 
     SPDLOG_TRACE("Euclidean route calculated {}->{} = (dist: {}, time: {})", origin, destination, distance, duration);
 

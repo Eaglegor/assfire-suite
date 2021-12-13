@@ -164,8 +164,8 @@ TEST_F(RedisRouteProviderEngineTest, OnlyMissingRoutesAreRequestedAtBackendInMat
     backend_engine->addResponse(80, 80);
     auto cached_engine = getCachedEngine(std::move(backend_engine), false);
 
-    RouteProviderEngine::Locations origins{getLocation(1, 1), getLocation(2, 2), getLocation(3, 3)};
-    RouteProviderEngine::Locations destinations{getLocation(4, 4), getLocation(2, 2), getLocation(5, 5)};
+    RouteProviderEngine::LocationsList origins{getLocation(1, 1), getLocation(2, 2), getLocation(3, 3)};
+    RouteProviderEngine::LocationsList destinations{getLocation(4, 4), getLocation(2, 2), getLocation(5, 5)};
 
     cached_engine->getSingleRouteInfo(getLocation(1,1), getLocation(5,5)); // (1,1) -> (5,5) = 10
     cached_engine->getSingleRouteInfo(getLocation(3,3), getLocation(2,2)); // (3,3) -> (2,2) = 20

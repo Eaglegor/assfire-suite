@@ -36,3 +36,13 @@ assfire::router::RouteDetails assfire::router::RouterClient::getRouteDetails(con
                                                                              const assfire::router::RouteProviderSettings &settings) const {
     return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getRouteDetails(origin, destination);
 }
+
+assfire::router::TripInfo assfire::router::RouterClient::getTripInfo(const assfire::router::DistanceMatrixEngine::LocationsList &locations_list, assfire::router::RouterEngineType engine_type,
+                                                                     const assfire::router::RoutingProfile &routing_profile, const assfire::router::RouteProviderSettings &settings) const {
+    return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getTripInfo(locations_list);
+}
+
+assfire::router::TripDetails assfire::router::RouterClient::getTripDetails(const assfire::router::DistanceMatrixEngine::LocationsList &locations_list, assfire::router::RouterEngineType engine_type,
+                                                                           const assfire::router::RoutingProfile &routing_profile, const assfire::router::RouteProviderSettings &settings) const {
+    return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getTripDetails(locations_list);
+}

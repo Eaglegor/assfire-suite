@@ -13,6 +13,12 @@ namespace assfire {
     public:
         auto operator<=>(const Distance &rhs) const = default;
 
+        Distance operator+(const Distance& rhs);
+        Distance operator-(const Distance& rhs);
+        Distance& operator+=(const Distance& rhs);
+        Distance& operator-=(const Distance& rhs);
+        Distance& operator=(const Distance& rhs);
+
         double toMeters() const;
 
         static Distance fromMeters(double meters);

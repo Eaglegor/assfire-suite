@@ -31,5 +31,15 @@ namespace assfire::router {
                                              RouterEngineType engine_type,
                                              const RoutingProfile &routing_profile,
                                              const RouteProviderSettings &settings) const = 0;
+
+        virtual TripInfo getTripInfo(const DistanceMatrixEngine::LocationsList &locations_list,
+                                     RouterEngineType engine_type,
+                                     const RoutingProfile &routing_profile,
+                                     const RouteProviderSettings &settings) const = 0;
+
+        virtual TripDetails getTripDetails(const DistanceMatrixEngine::LocationsList &locations_list,
+                                           RouterEngineType engine_type,
+                                           const RoutingProfile &routing_profile,
+                                           const RouteProviderSettings &settings) const = 0;
     };
 }

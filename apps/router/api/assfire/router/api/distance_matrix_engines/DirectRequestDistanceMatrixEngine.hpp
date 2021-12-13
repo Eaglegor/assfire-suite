@@ -24,10 +24,20 @@ namespace assfire::router {
 
         RouteDetails getRouteDetails(const Location &origin, const Location &destination) const override;
 
+        TripInfo getTripInfo(const LocationsList &locations) const override;
+
+        TripDetails getTripDetails(const LocationsList &locations) const override;
+
+        TripInfo getTripInfo(const IndexedLocationsList &locations) const override;
+
+        TripDetails getTripDetails(const IndexedLocationsList &locations) const override;
+
         IndexedLocation addLocation(const Location &location, LocationType type) override;
 
     private:
         RouteDetails processError(const Location& from, const Location& to, const std::exception& e) const;
+        TripInfo processTripInfoError(const LocationsList& locations, const std::exception& e) const;
+        TripDetails processTripDetailsError(const LocationsList& locations, const std::exception& e) const;
 
         Tag matrix_tag;
         std::unique_ptr<RouteProviderEngine> engine;

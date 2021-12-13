@@ -9,7 +9,7 @@ namespace assfire::router {
     public:
         void addReply(const utility::string_t& get_url, const web::json::value& reply);
 
-        web::json::value requestRouteInfo(const utility::string_t &get_url) override;
+        web::json::value requestOsrmRoute(const utility::string_t &get_url) override;
 
     private:
         std::unordered_map<utility::string_t, web::json::value> replies;

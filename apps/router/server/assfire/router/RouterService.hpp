@@ -15,6 +15,8 @@ namespace assfire::router
         using GetSingleRouteResponse = assfire::api::v1::router::GetSingleRouteResponse;
         using GetRoutesBatchRequest = assfire::api::v1::router::GetRoutesBatchRequest;
         using GetRoutesBatchResponse = assfire::api::v1::router::GetRoutesBatchResponse;
+        using GetRoutesVectorRequest = assfire::api::v1::router::GetRoutesVectorRequest;
+        using GetRoutesVectorResponse = assfire::api::v1::router::GetRoutesVectorResponse;
         using ResponseStatus = assfire::api::v1::router::ResponseStatus;
 
         struct Options {
@@ -33,6 +35,9 @@ namespace assfire::router
         grpc::Status GetRoutesBatch(grpc::ServerContext *, const GetRoutesBatchRequest *, grpc::ServerWriter<GetRoutesBatchResponse> *) override;
 
         grpc::Status GetStreamingRoutesBatch(grpc::ServerContext *, grpc::ServerReaderWriter<GetRoutesBatchResponse, GetRoutesBatchRequest> *) override;
+
+        grpc::Status
+        GetRoutesVector(grpc::ServerContext *context, const GetRoutesVectorRequest *request, GetRoutesVectorResponse *response) override;
 
     private:
         void processBatchRequest(const GetRoutesBatchRequest& request, const std::function<void(const GetRoutesBatchResponse&)> &consumeResponse);

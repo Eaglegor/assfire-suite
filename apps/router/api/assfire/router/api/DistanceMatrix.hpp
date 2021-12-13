@@ -8,7 +8,9 @@
 namespace assfire::router {
     class DistanceMatrix {
     public:
-        using Location = IndexedLocation::Location;
+        using Location = DistanceMatrixEngine::Location;
+        using LocationsList = DistanceMatrixEngine::LocationsList;
+        using IndexedLocationsList = DistanceMatrixEngine::IndexedLocationsList;
         using EnginePtr = std::shared_ptr<DistanceMatrixEngine>;
 
         DistanceMatrix(EnginePtr engine)
@@ -31,6 +33,22 @@ namespace assfire::router {
 
         RouteDetails getRouteDetails(const Location &origin, const Location &destination) const {
             return engine->getRouteDetails(origin, destination);
+        }
+
+        TripInfo getTripInfo(const LocationsList& locations_list) {
+            return engine->getTripInfo(locations_list);
+        }
+
+        TripDetails getTripDetails(const LocationsList& locations_list) {
+            return engine->getTripDetails(locations_list);
+        }
+
+        TripInfo getTripInfo(const IndexedLocationsList& locations_list) {
+            return engine->getTripInfo(locations_list);
+        }
+
+        TripDetails getTripDetails(const IndexedLocationsList& locations_list) {
+            return engine->getTripDetails(locations_list);
         }
 
         IndexedLocation addLocation(const Location &location, DistanceMatrixEngine::LocationType type = DistanceMatrixEngine::LocationType::ORIGIN_AND_DESTINATION) {

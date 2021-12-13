@@ -21,7 +21,7 @@ double assfire::Speed::toKilometersPerHour() const
     return meters_per_second / 1000.0 * 3600;
 }
 
-assfire::TimeInterval assfire::Speed::getSecondsToTravel(const assfire::Distance &distance)
+assfire::TimeInterval assfire::Speed::getTimeToTravel(const assfire::Distance &distance)
 {
     return TimeInterval::fromSeconds(distance.toMeters() / meters_per_second);
 }

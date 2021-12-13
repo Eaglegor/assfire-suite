@@ -32,7 +32,17 @@ namespace assfire::router {
 
         IndexedLocation addLocation(const Location &location, LocationType type) override;
 
+        TripInfo getTripInfo(const LocationsList &locations) const override;
+
+        TripDetails getTripDetails(const LocationsList &locations) const override;
+
+        TripInfo getTripInfo(const IndexedLocationsList &locations) const override;
+
+        TripDetails getTripDetails(const IndexedLocationsList &locations) const override;
+
     private:
+        using KnownLocationsMapping = std::unordered_map<std::string, int>;
+
         void initialize() const;
 
         std::string encodeLocation(const Location &location) const;
@@ -41,11 +51,16 @@ namespace assfire::router {
 
         RouteDetails getCachedRouteDetails(int origin_id, int destination_id) const;
 
+        TripInfo getCachedTripInfo(const std::vector<int>& ids) const;
+        TripDetails getCachedTripDetails(const std::vector<int>& ids) const;
+
         RouteDetails processError(const Location& from, const Location& to, const std::exception& e) const;
+        TripInfo processTripInfoError(const LocationsList& locations, const std::exception& e) const;
+        TripDetails processTripDetailsError(const LocationsList& locations, const std::exception& e) const;
 
         mutable std::atomic_bool is_initialized = false;
         std::vector<Location> known_locations;
-        std::unordered_map<std::string, int> known_locations_mapping;
+        KnownLocationsMapping known_locations_mapping;
         Tag matrix_tag;
         mutable std::unique_ptr<Matrix<RouteDetails>> route_details_cache;
         std::unique_ptr<RouteProviderEngine> engine;

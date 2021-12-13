@@ -41,4 +41,3 @@ message RouteInfo {
   assfire.api.v1.concepts.Distance distance = 4;
   repeated assfire.api.v1.locations.Location waypoints = 5;
 }
-

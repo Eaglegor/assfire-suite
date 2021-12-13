@@ -18,7 +18,7 @@ namespace assfire
 
         double toKilometersPerHour() const;
 
-        TimeInterval getSecondsToTravel(const Distance &distance);
+        TimeInterval getTimeToTravel(const Distance &distance);
 
         static Speed fromMetersPerSecond(double value);
 

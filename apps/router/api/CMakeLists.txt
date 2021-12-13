@@ -15,9 +15,12 @@ set(HEADERS
         assfire/router/api/IndexedLocation.hpp
         assfire/router/api/RouteDetails.hpp
         assfire/router/api/RouteInfo.hpp
+        assfire/router/api/TripInfo.hpp
+        assfire/router/api/TripDetails.hpp
         assfire/router/api/RouteProviderSettings.hpp
         assfire/router/api/distance_matrix_engines/FullMatrixCacheDistanceMatrixEngine.hpp
-        assfire/router/api/DistanceMatrixErrorPolicy.hpp)
+        assfire/router/api/DistanceMatrixErrorPolicy.hpp
+        )
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)

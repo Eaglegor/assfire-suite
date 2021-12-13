@@ -40,10 +40,28 @@ message GetRoutesBatchResponse {
   ResponseStatus status = 2;
 }
 
+message GetRoutesVectorRequest {
+  repeated assfire.api.v1.locations.Location locations = 1;
+  RouteProviderSettings settings = 2;
+  RoutingProfile routing_profile = 3;
+}
+
+message GetRoutesVectorResponse {
+  repeated RouteInfo route_infos = 1;
+  assfire.api.v1.concepts.TimeInterval total_duration = 2;
+  assfire.api.v1.concepts.Distance total_distance = 3;
+}
+
 service RouterService {
   rpc GetSingleRoute(GetSingleRouteRequest) returns (GetSingleRouteResponse){
     option (google.api.http) = {
       get: "/v1/route"
+    };
+  }
+  rpc GetRoutesVector(GetRoutesVectorRequest) returns (GetRoutesVectorResponse) {
+    option (google.api.http) = {
+      post: "/v1/route/vector",
+      body: "*"
     };
   }
   rpc GetRoutesBatch(GetRoutesBatchRequest) returns (stream GetRoutesBatchResponse) {}

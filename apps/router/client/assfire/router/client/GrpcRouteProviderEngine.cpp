@@ -67,7 +67,7 @@ namespace {
     }
 }
 
-Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProviderEngine::Locations &origins, const RouteProviderEngine::Locations &destinations) {
+Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProviderEngine::LocationsList &origins, const RouteProviderEngine::LocationsList &destinations) const {
     GetRoutesBatchRequest request;
 
     std::unordered_multimap<std::string, int> origins_mapping;
@@ -130,7 +130,7 @@ Matrix<RouteInfo> GrpcRouteProviderEngine::getRouteInfoMatrix(const RouteProvide
     return result;
 }
 
-Matrix<RouteDetails> GrpcRouteProviderEngine::getRouteDetailsMatrix(const RouteProviderEngine::Locations &origins, const RouteProviderEngine::Locations &destinations) {
+Matrix<RouteDetails> GrpcRouteProviderEngine::getRouteDetailsMatrix(const RouteProviderEngine::LocationsList &origins, const RouteProviderEngine::LocationsList &destinations) const {
     GetRoutesBatchRequest request;
 
     std::unordered_multimap<std::string, int> origins_mapping;

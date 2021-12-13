@@ -24,6 +24,12 @@ namespace assfire::router {
         RouteDetails getSingleRouteDetails(const Location &origin, const Location &destination) const override;
 
     private:
+    public:
+        TripInfo getTripInfo(const LocationsList &locations) const override;
+
+        TripDetails getTripDetails(const LocationsList &locations) const override;
+
+    private:
         RouteDetails calculateRouteDetails(const Location &origin, const Location &destination) const;
 
         RoutingProfile routing_profile;

@@ -1,7 +1,7 @@
 <template>
   <div class="locations-list">
     <div class="block-title-container">
-      <span class="block-title">Locations</span>
+      <span class="block-title">LocationsList</span>
     </div>
     <div class="locations-inputs">
       <div class="location-block" v-for="(location, index) in locations" :key="stringLocation(location)">
@@ -31,6 +31,13 @@ class Location {
     result[name+'.encoded_latitude'] = Math.trunc(this.lat * 1000000);
     result[name+'.encoded_longitude'] = Math.trunc(this.lon * 1000000);
     return result
+  }
+
+  toRequestRaw() {
+    return {
+      encoded_latitude: Math.trunc(this.lat * 1000000),
+      encoded_longitude: Math.trunc(this.lon * 1000000),
+    }
   }
 
   static fromEncoded(lat, lon) {

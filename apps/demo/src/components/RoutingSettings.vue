@@ -75,6 +75,24 @@ class RoutingSettingsModel {
       'settings.osrm_settings.geometry': this.geometry
     }
   }
+
+  toRequestRaw() {
+    return {
+      routing_profile: {
+        speed: {
+          meters_per_second: this.speed
+        }
+      },
+      settings: {
+        router_engine_type: this.engine,
+        retrieve_waypoints: this.retriveWaypoints,
+        force_update: this.forceUpdate,
+        osrm_settings: {
+          geometry: this.geometry
+        }
+      }
+    }
+  }
 }
 
 export default {

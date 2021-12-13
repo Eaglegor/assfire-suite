@@ -27,6 +27,12 @@ namespace assfire::router
                                      const RoutingProfile &routing_profile,
                                      const RouteProviderSettings &settings) const override;
 
+        TripInfo getTripInfo(const DistanceMatrixEngine::LocationsList &locations_list, RouterEngineType engine_type, const RoutingProfile &routing_profile,
+                             const RouteProviderSettings &settings) const override;
+
+        TripDetails getTripDetails(const DistanceMatrixEngine::LocationsList &locations_list, RouterEngineType engine_type, const RoutingProfile &routing_profile,
+                                   const RouteProviderSettings &settings) const override;
+
     private:
         EngineDistanceMatrixFactory distance_matrix_factory;
     };

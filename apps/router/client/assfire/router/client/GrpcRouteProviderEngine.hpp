@@ -18,8 +18,8 @@ namespace assfire::router {
         RouteInfo getSingleRouteInfo(const Location &origin, const Location &destination) const override;
         RouteDetails getSingleRouteDetails(const Location &origin, const Location &destination) const override;
 
-        Matrix<RouteInfo> getRouteInfoMatrix(const Locations &origins, const Locations &destinations) override;
-        Matrix<RouteDetails> getRouteDetailsMatrix(const Locations &origins, const Locations &destinations) override;
+        Matrix<RouteInfo> getRouteInfoMatrix(const LocationsList &origins, const LocationsList &destinations) const override;
+        Matrix<RouteDetails> getRouteDetailsMatrix(const LocationsList &origins, const LocationsList &destinations) const override;
 
     private:
         const ProtobufClient& client;

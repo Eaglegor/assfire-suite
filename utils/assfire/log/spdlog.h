@@ -7,13 +7,32 @@ namespace assfire {
     namespace log {
         void initializeSpdlog(std::string log_level)
         {
-            SPDLOG_INFO("Setting log level to {}", log_level);
-            if (log_level == "critical") spdlog::set_level(spdlog::level::critical);
-            else if (log_level == "err") spdlog::set_level(spdlog::level::err);
-            else if (log_level == "warn") spdlog::set_level(spdlog::level::warn);
-            else if (log_level == "info") spdlog::set_level(spdlog::level::info);
-            else if (log_level == "debug") spdlog::set_level(spdlog::level::debug);
-            else if (log_level == "trace") spdlog::set_level(spdlog::level::trace);
+            if (log_level == "critical") {
+                SPDLOG_INFO("Setting log level to CRITICAL");
+                spdlog::set_level(spdlog::level::critical);
+            }
+            else if (log_level == "err") {
+                SPDLOG_INFO("Setting log level to ERROR");
+                spdlog::set_level(spdlog::level::err);
+            }
+            else if (log_level == "warn") {
+                SPDLOG_INFO("Setting log level to WARN");
+                spdlog::set_level(spdlog::level::warn);
+            }
+            else if (log_level == "info") {
+                SPDLOG_INFO("Setting log level to INFO");
+                spdlog::set_level(spdlog::level::info);
+            }
+            else if (log_level == "debug") {
+                SPDLOG_INFO("Setting log level to DEBUG");
+                spdlog::set_level(spdlog::level::debug);
+            }
+            else if (log_level == "trace") {
+                SPDLOG_INFO("Setting log level to TRACE");
+                spdlog::set_level(spdlog::level::trace);
+            } else {
+                SPDLOG_ERROR("Unknown log level selected: {}", log_level);
+            }
 
 #ifdef ASSFIRE_DEBUG_MODE
             SPDLOG_CRITICAL("This is a sample critical message");

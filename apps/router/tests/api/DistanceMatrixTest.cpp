@@ -28,6 +28,22 @@ public:
         return IndexedLocation(0, 0, location);
     }
 
+    TripInfo getTripInfo(const LocationsList &locations) const override {
+        throw std::runtime_error("Not implemented");
+    }
+
+    TripDetails getTripDetails(const LocationsList &locations) const override {
+        throw std::runtime_error("Not implemented");
+    }
+
+    TripInfo getTripInfo(const IndexedLocationsList &locations) const override {
+        throw std::runtime_error("Not implemented");
+    }
+
+    TripDetails getTripDetails(const IndexedLocationsList &locations) const override {
+        throw std::runtime_error("Not implemented");
+    }
+
 private:
     mutable int counter = 0;
 };

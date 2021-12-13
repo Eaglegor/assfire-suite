@@ -9,7 +9,7 @@ void MockOsrmConnector::addReply(const utility::string_t &get_url, const web::js
     SPDLOG_INFO("Registered reply: ({})->{}", convert(get_url), convert(reply.serialize()));
 }
 
-web::json::value MockOsrmConnector::requestRouteInfo(const utility::string_t &get_url) {
+web::json::value MockOsrmConnector::requestOsrmRoute(const utility::string_t &get_url) {
     if(replies.contains(get_url)) {
         return replies.at(get_url);
     } else {

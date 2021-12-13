@@ -23,3 +23,13 @@ RouteDetails RouterEngine::getRouteDetails(const DistanceMatrix::Location &origi
     return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getRouteDetails(origin,
                                                                                                                                                                             destination);
 }
+
+TripInfo
+RouterEngine::getTripInfo(const DistanceMatrixEngine::LocationsList &locations_list, RouterEngineType engine_type, const RoutingProfile &routing_profile, const RouteProviderSettings &settings) const {
+    return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getTripInfo(locations_list);
+}
+
+TripDetails RouterEngine::getTripDetails(const DistanceMatrixEngine::LocationsList &locations_list, RouterEngineType engine_type, const RoutingProfile &routing_profile,
+                                         const RouteProviderSettings &settings) const {
+    return createDistanceMatrix(engine_type, DistanceMatrixCachingPolicy::NO_CACHING, routing_profile, settings, DistanceMatrixErrorPolicy::ON_ERROR_THROW).getTripDetails(locations_list);
+}

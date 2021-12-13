@@ -44,3 +44,26 @@ Distance Distance::infinity()
 {
     return fromMeters(INFINITE_DISTANCE);
 }
+
+Distance Distance::operator+(const Distance &rhs) {
+    return Distance(meters + rhs.meters);
+}
+
+Distance Distance::operator-(const Distance &rhs) {
+    return Distance(meters + rhs.meters);
+}
+
+Distance &Distance::operator+=(const Distance &rhs) {
+    meters += rhs.meters;
+    return *this;
+}
+
+Distance &Distance::operator-=(const Distance &rhs) {
+    meters -= rhs.meters;
+    return *this;
+}
+
+Distance &Distance::operator=(const Distance &rhs) {
+    meters = rhs.meters;
+    return *this;
+}

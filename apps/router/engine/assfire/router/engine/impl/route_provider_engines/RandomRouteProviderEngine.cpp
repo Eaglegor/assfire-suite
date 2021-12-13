@@ -32,7 +32,7 @@ RouteInfo RandomRouteProviderEngine::calculateRouteInfo(const Location &origin, 
     auto stopwatch = metrics_collector.measureSingleRandomRouteInfoCalculation();
 
     Distance distance = Distance::fromMeters(distr(gen));
-    TimeInterval duration = routing_profile.getSpeed().getSecondsToTravel(distance);
+    TimeInterval duration = routing_profile.getSpeed().getTimeToTravel(distance);
 
     SPDLOG_TRACE("Random route calculated ({},{})->({},{}) = (dist: {}, time: {})",
                  origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(),
