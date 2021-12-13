@@ -19,6 +19,8 @@ import RoutingMap from "@/components/RoutingMap";
 import RouteSummary from "@/components/RouteSummary";
 import axios from "axios";
 
+let lastRequestController = null
+
 export default {
   name: 'RouterScenario',
   components: {
@@ -50,17 +52,29 @@ export default {
       }
     },
     updateRoutes(locations) {
+      if(lastRequestController != null) {
+        lastRequestController.abort()
+      }
+      lastRequestController = new AbortController();
+
+      let ghostRoutes = []
+      for (let i = 0; i < locations.length - 1; ++i) {
+        ghostRoutes.push(new RoutingMap.Route([locations[i], locations[i + 1]], '#999999'))
+      }
+      this.routes = ghostRoutes
+      this.routeSummaries = []
+
       let promises = []
       for (let i = 0; i < locations.length - 1; ++i) {
         let request = this.makeRequest(locations[i], locations[i + 1])
         promises.push(axios
             .get('http://localhost:8082/v1/route',
                 {
-                  params: request
+                  params: request,
+                  signal: lastRequestController.signal
                 }))
       }
 
-      this.routes = []
       Promise.all(promises)
           .then(responses => {
             let newRoutes = []
@@ -80,13 +94,17 @@ export default {
             this.routeSummaries = newRouteSummaries;
           })
           .catch(error => {
-            let failedRoutes = []
-            for (let i = 0; i < locations.length - 1; ++i) {
-              failedRoutes.push(new RoutingMap.Route([locations[i], locations[i + 1]], '#de0e0e'))
+            if(!(error instanceof axios.Cancel)) {
+              let failedRoutes = []
+              for (let i = 0; i < locations.length - 1; ++i) {
+                failedRoutes.push(new RoutingMap.Route([locations[i], locations[i + 1]], '#de0e0e'))
+              }
+              console.log(error)
+              this.routes = failedRoutes
+              this.routeSummaries = []
+            } else {
+              console.log("Cancelled");
             }
-            console.log(error)
-            this.routes = failedRoutes
-            this.routeSummaries = []
           });
     },
     updateLocationByCoords(event) {
