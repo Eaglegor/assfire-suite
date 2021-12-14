@@ -36,6 +36,7 @@ namespace assfire::router {
         };
 
         virtual TripInfo getTripInfo(const LocationsList &locations) const {
+            if(locations.size() < 2) return TripInfo::zero();
             RouteInfoVector result;
             result.reserve(locations.size() - 1);
             Distance total_distance = Distance::zero();
@@ -50,6 +51,7 @@ namespace assfire::router {
         };
 
         virtual TripDetails getTripDetails(const LocationsList &locations) const {
+            if(locations.size() < 2) return TripDetails::zero();
             RouteDetailsVector result;
             result.reserve(locations.size() - 1);
             Distance total_distance = Distance::zero();

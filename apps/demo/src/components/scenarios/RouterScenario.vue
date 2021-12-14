@@ -126,8 +126,6 @@ export default {
       this.routes = ghostRoutes
       this.routeSummaries = []
 
-      let request = this.makeVectorRequest(locations)
-      console.log(request);
       axios
           .post('http://localhost:8082/v1/route/vector',
               {
@@ -216,7 +214,7 @@ export default {
         if(this.routingSettings.vectorMode) {
           this.updateRoutesVector(this.locations)
         } else {
-          this.updateRoutes(this.locations)
+          this.updateRoutes(this.validLocations)
         }
       },
       deep: true

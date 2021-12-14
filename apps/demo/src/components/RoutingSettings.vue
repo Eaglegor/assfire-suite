@@ -72,6 +72,10 @@ class RoutingSettingsModel {
     return new RoutingSettingsModel(16.6, ROUTER_ENGINE_TYPE_OSRM, OSRM_GEOMETRY_SIMPLIFIED, true, false, true)
   }
 
+  withRouterEngine(engine) {
+    return new RoutingSettingsModel(this.speed, engine, this.geometry, this.retriveWaypoints, this.forceUpdate, this.vectorMode)
+  }
+
   toRequest() {
     return {
       'routing_profile.speed.meters_per_second': this.speed,
