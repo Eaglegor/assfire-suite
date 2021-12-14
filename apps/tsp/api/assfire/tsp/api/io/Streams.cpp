@@ -33,7 +33,7 @@ namespace assfire::tsp {
         switch(value) {
             case TspValidatorType::DEFAULT:
                 return str << "DEFAULT";
-            case TspValidatorType::FAIL_ON_ANY_VIOLATION:
+            case TspValidatorType::REJECT_ON_ANY_VIOLATION:
                 return str << "FAIL_ON_ANY_VIOLATION";
             default:
                 return str << "<UNKNOWN>";

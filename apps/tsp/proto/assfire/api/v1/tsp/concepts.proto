@@ -32,7 +32,7 @@ message TspCostFunctionSettings {
 enum TspValidatorType {
   TSP_VALIDATOR_TYPE_UNSPECIFIED = 0;
   TSP_VALIDATOR_TYPE_DEFAULT = 1;
-  TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION = 2;
+  TSP_VALIDATOR_TYPE_REJECT_ON_ANY_VIOLATION = 2;
 }
 
 message TspValidatorSettings {
