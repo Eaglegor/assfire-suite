@@ -49,29 +49,27 @@ message GetLatestSolutionResponse {
 }
 
 message SubscribeForStatusUpdatesRequest {
-  string task_id = 1;
+  repeated string task_selector = 1;
   int32 throttling_interval_ms = 2;
 }
 
 message TspStatusUpdate {
   enum Type {
     TSP_STATUS_UPDATE_TYPE_UNKNOWN = 0;
-    TSP_STATUS_UPDATE_TYPE_STARTED = 1;
-    TSP_STATUS_UPDATE_TYPE_PAUSED = 2;
-    TSP_STATUS_UPDATE_TYPE_FINISHED = 3;
-    TSP_STATUS_UPDATE_TYPE_ERROR = 4;
-    TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION = 5;
-    TSP_STATUS_UPDATE_TYPE_INTERRUPTED = 6;
-    TSP_STATUS_UPDATE_TYPE_IN_PROGRESS = 7;
+    TSP_STATUS_UPDATE_TYPE_PENDING = 1;
+    TSP_STATUS_UPDATE_TYPE_STARTED = 2;
+    TSP_STATUS_UPDATE_TYPE_PAUSED = 3;
+    TSP_STATUS_UPDATE_TYPE_FINISHED = 4;
+    TSP_STATUS_UPDATE_TYPE_ERROR = 5;
+    TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION = 6;
+    TSP_STATUS_UPDATE_TYPE_INTERRUPTED = 7;
+    TSP_STATUS_UPDATE_TYPE_IN_PROGRESS = 8;
   }
 
-  TspCost new_solution_cost = 1;
-  TspValidationResult new_solution_validation_result = 2;
-  Type type = 3;
-  TspCost current_best_cost = 4;
-  TspValidationResult current_best_validation_result = 5;
-  bool is_finished = 6;
-  bool is_error = 7;
+  string task_id = 1;
+  TspCost new_solution_cost = 2;
+  TspValidationResult new_solution_validation_result = 3;
+  Type type = 4;
 }
 
 message SubscribeForStatusUpdatesResponse {
@@ -109,6 +107,10 @@ service TspService {
     };
   }
 
-  rpc SubscribeForStatusUpdates(SubscribeForStatusUpdatesRequest) returns (stream SubscribeForStatusUpdatesResponse);
+  rpc SubscribeForStatusUpdates(SubscribeForStatusUpdatesRequest) returns (stream SubscribeForStatusUpdatesResponse) {
+    option (google.api.http) = {
+      get: "/v1/optimize/tsp/status"
+    };
+  }
 
 }

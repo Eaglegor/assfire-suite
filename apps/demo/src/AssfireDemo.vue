@@ -16,12 +16,14 @@
 <script>
 import RouterScenario from "@/components/scenarios/RouterScenario";
 import TspScenario from "@/components/scenarios/TspScenario";
+import TspSessions from "@/components/scenarios/TspSessions";
 
 export default {
   name: 'AssfireDemo',
   components: {
     RouterScenario,
-    TspScenario
+    TspScenario,
+    TspSessions
   },
   data() {
     return {
@@ -34,6 +36,10 @@ export default {
         {
           name: "Assfire TSP",
           value: "TspScenario"
+        },
+        {
+          name: "Assfire TSP sessions",
+          value: "TspSessions"
         }
       ]
     }

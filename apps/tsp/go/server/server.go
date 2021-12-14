@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 	"log"
 	"net"
+	"time"
 )
 
 var (
@@ -43,7 +44,7 @@ const (
 	InterruptExchange  = "assfire.tsp.worker.interrupt"
 	StatusExchangeName = "assfire.tsp.worker.status"
 
-	TaskQueue      = "assfire.tsp.worker.task"
+	TaskQueue = "assfire.tsp.worker.task"
 )
 
 func taskKey(taskId string) string {
@@ -73,7 +74,7 @@ type TspServer struct {
 func publishTask(ctx context.Context, taskId string, task *tsp.TspTask, redisClient *redis.Client) error {
 	serializedTask, err := proto.Marshal(task)
 	if err == nil {
-		result := redisClient.Set(ctx, taskKey(taskId), serializedTask, 0)
+		result := redisClient.Set(ctx, taskKey(taskId), serializedTask, time.Hour*24)
 		return result.Err()
 	} else {
 		return err
@@ -204,6 +205,10 @@ func (server *TspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 
 	log.Printf("Publishing task %s", taskId)
 	err := publishTask(ctx, taskId, request.Task, server.redisClient)
+	server.forceStatus(ctx, taskId, &tsp.WorkerTspStatusUpdate{
+		TaskId: taskId,
+		Type:   tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PENDING,
+	})
 	if err != nil {
 		log.Printf("Failed to publish task %s: %s", taskId, err.Error())
 		return nil, status.Errorf(status.Code(err), "Failed to publish task %s", taskId)
@@ -270,6 +275,24 @@ func (server *TspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRe
 	return &tsp.ResumeTspResponse{}, nil
 }
 
+func (server *TspServer) forceStatus(ctx context.Context, taskId string, update *tsp.WorkerTspStatusUpdate) {
+	server.redisClient.Set(ctx, statusKey(taskId), update.Type.String(), 0)
+
+	bytes, err := proto.Marshal(update)
+	if err == nil {
+		err = server.statusRabbitChannel.Publish(
+			StatusExchangeName,
+			taskId,
+			false,
+			false,
+			amqp.Publishing{
+				ContentType: "text/plain",
+				Body:        bytes,
+			},
+		)
+	}
+}
+
 func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspRequest) (*tsp.StopTspResponse, error) {
 	log.Printf("Stopping TSP task %s", request.TaskId)
 
@@ -281,25 +304,10 @@ func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 	taskStatus, err := getTaskStatus(ctx, request.TaskId, server.redisClient)
 	if err == nil && taskStatus == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED {
 		log.Printf("Sending forced interrupt signal for paused task %s", request.TaskId)
-		server.redisClient.Set(ctx, statusKey(request.TaskId), tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED.String(), 0)
-
-		forcedStatusUpdate := &tsp.WorkerTspStatusUpdate{
+		server.forceStatus(ctx, request.TaskId, &tsp.WorkerTspStatusUpdate{
 			TaskId: request.TaskId,
 			Type:   tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED,
-		}
-		bytes, err := proto.Marshal(forcedStatusUpdate)
-		if err == nil {
-			err = server.statusRabbitChannel.Publish(
-				StatusExchangeName,
-				request.TaskId,
-				false,
-				false,
-				amqp.Publishing{
-					ContentType: "text/plain",
-					Body:        bytes,
-				},
-			)
-		}
+		})
 	}
 
 	err = sendInterruptSignal(request.TaskId, server.signalRabbitChannel)
@@ -351,6 +359,8 @@ func parseStatusUpdate(msg []byte) (*tsp.WorkerTspStatusUpdate, error) {
 
 func convertStatusUpdateType(workerType tsp.WorkerTspStatusUpdate_Type) tsp.TspStatusUpdate_Type {
 	switch workerType {
+	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PENDING:
+		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_PENDING
 	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION:
 		return tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION
 	case tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_ERROR:
@@ -377,17 +387,69 @@ func isTerminalState(update tsp.WorkerTspStatusUpdate_Type) bool {
 		update == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN
 }
 
-func retrieveLatestStatus(ctx context.Context, taskId string, redisClient *redis.Client, c chan tsp.WorkerTspStatusUpdate_Type) {
+type TspStatusUpdate struct {
+	taskId     string
+	updateType tsp.WorkerTspStatusUpdate_Type
+}
+
+type TspStatusSelector struct {
+	patterns map[string]bool
+}
+
+func (selector *TspStatusSelector) matches(taskId string) bool {
+	if selector.patterns == nil {
+		return true
+	}
+
+	if _, found := selector.patterns[taskId]; found {
+		return true
+	}
+
+	return false
+}
+
+func createStatusSelector(patterns []string) *TspStatusSelector {
+	if len(patterns) == 0 {
+		return &TspStatusSelector{}
+	} else {
+		taskSelectors := make(map[string]bool)
+		for _, id := range patterns {
+			taskSelectors[id] = true
+		}
+		return &TspStatusSelector{
+			patterns: taskSelectors,
+		}
+	}
+}
+
+func retrieveLatestStatus(ctx context.Context, taskId string, redisClient *redis.Client, c chan TspStatusUpdate) {
 	taskStatus, err := getTaskStatus(ctx, taskId, redisClient)
 	if err != nil {
 		log.Printf("Can't retrieve latest status for task %s: %v", taskId, err)
 		return
 	}
-	c <- taskStatus
+	c <- TspStatusUpdate{
+		taskId:     taskId,
+		updateType: taskStatus,
+	}
+}
+
+func (server *TspServer) getAllTaskIds(ctx context.Context) []string {
+	allTasksCmd := server.redisClient.Keys(ctx, taskKey("*"))
+	if allTasksCmd.Err() != nil {
+		log.Printf("Failed to load tasks list: %v", allTasksCmd.Err())
+		return make([]string, 0)
+	} else {
+		allTasks := make([]string, len(allTasksCmd.Val()))
+		for i, tsk := range allTasksCmd.Val() {
+			allTasks[i] = tsk[len(RedisPrefix) : len(tsk)-len(TaskSuffix)]
+		}
+		return allTasks
+	}
 }
 
 func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
-	log.Printf("Subscribing for status updates for TSP task %s", request.TaskId)
+	log.Printf("Subscribing for status updates for TSP task selector %v", request.TaskSelector)
 
 	queue, err := server.statusRabbitChannel.QueueDeclare(
 		"",
@@ -399,18 +461,34 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 	)
 	if err != nil {
 		log.Printf("Couldn't declare temporary rabbitMQ queue %s: %s", queue.Name, err.Error())
-		return status.Errorf(status.Code(err), "Couldn't declare temporary rabbitMQ status queue for task %s", request.TaskId)
+		return status.Errorf(status.Code(err), "Couldn't declare temporary rabbitMQ status queue for task %v", request.TaskSelector)
 	}
+
+	latestStatusChan := make(chan TspStatusUpdate)
+
+	var allTasks []string
+	if len(request.TaskSelector) == 0 {
+		allTasks = server.getAllTaskIds(context.Background())
+	} else {
+		allTasks = request.TaskSelector
+	}
+
+	expectedTasksCount := len(allTasks)
 
 	err = server.statusRabbitChannel.QueueBind(
 		queue.Name,
-		request.TaskId,
+		"*",
 		StatusExchangeName,
 		false,
 		nil)
 
+	for _, taskId := range allTasks {
+		go retrieveLatestStatus(context.Background(), taskId, server.redisClient, latestStatusChan)
+	}
+
 	consumerId := uuid.NewString()
 
+	log.Printf("Subscribing for status updates for task selector %v, queue: %s, consumerId: %s", request.TaskSelector, queue.Name, consumerId)
 	updates, err := server.statusRabbitChannel.Consume(
 		queue.Name,
 		consumerId,
@@ -421,68 +499,80 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 		nil,
 	)
 	if err != nil {
-		log.Printf("Failed to subscribe for status updates for task %s: %s", request.TaskId, err.Error())
-		return status.Errorf(status.Code(err), "Failed to subscribe for updates for task %s", request.TaskId)
+		log.Printf("Failed to subscribe for status updates for task selector %v: %s", request.TaskSelector, err.Error())
+		return status.Errorf(status.Code(err), "Failed to subscribe for updates for task selector %v", request.TaskSelector)
 	}
 
-	latestStatusChan := make(chan tsp.WorkerTspStatusUpdate_Type)
-	go retrieveLatestStatus(observer.Context(), request.TaskId, server.redisClient, latestStatusChan)
-
 	defer func(statusRabbitChannel *amqp.Channel, consumer string, noWait bool) {
+		log.Printf("Cancelling AMQP subscription for queue %s (consumer id: %s)", queue.Name, consumer)
 		err := statusRabbitChannel.Cancel(consumer, noWait)
 		if err != nil {
 			log.Printf("Failed to cancel AMQP subscription to %s: %v", queue.Name, err)
 		}
 	}(server.statusRabbitChannel, consumerId, false)
 
+	statusSelector := createStatusSelector(request.TaskSelector)
+
+	finished := make(map[string]bool)
+
 	for {
 		select {
+		case <-observer.Context().Done():
+			log.Printf("gRPC call is finished for task selector %v", request.TaskSelector)
+			return nil
 		case latestStatusType := <-latestStatusChan:
-			log.Printf("Retrieved latest status for task %s: %v", request.TaskId, latestStatusType)
-			err := observer.Send(&tsp.SubscribeForStatusUpdatesResponse{
-				StatusUpdate: &tsp.TspStatusUpdate{
-					Type: convertStatusUpdateType(latestStatusType),
-				},
-			})
-			if err != nil {
-				log.Printf("Failed to publish status update for task %s: %s", request.TaskId, err.Error())
-				return status.Errorf(status.Code(err), "Failed to publish status update for task %s: %s", request.TaskId, err.Error())
-			}
-			if isTerminalState(latestStatusType) {
-				log.Printf("Terminal state received for %s", request.TaskId)
-				return nil
+			if statusSelector.matches(latestStatusType.taskId) {
+				log.Printf("Retrieved latest status for task %v: %v", request.TaskSelector, latestStatusType.updateType)
+				err := observer.Send(&tsp.SubscribeForStatusUpdatesResponse{
+					StatusUpdate: &tsp.TspStatusUpdate{
+						Type:   convertStatusUpdateType(latestStatusType.updateType),
+						TaskId: latestStatusType.taskId,
+					},
+				})
+				if err != nil {
+					log.Printf("Failed to publish status update for task %v: %s", request.TaskSelector, err.Error())
+					return status.Errorf(status.Code(err), "Failed to publish status update for task %v: %s", request.TaskSelector, err.Error())
+				}
+				if isTerminalState(latestStatusType.updateType) && len(request.TaskSelector) > 0 {
+					log.Printf("Terminal state received for %v", latestStatusType.taskId)
+					finished[latestStatusType.taskId] = true
+					if len(finished) >= expectedTasksCount {
+						return nil
+					}
+				}
 			}
 		case updateMessage := <-updates:
 			update, err := parseStatusUpdate(updateMessage.Body)
 			if err != nil {
-				log.Printf("Failed to process status update for task %s: %s", request.TaskId, err.Error())
+				log.Printf("Failed to process status update for task selector %v: %s", request.TaskSelector, err.Error())
 			} else {
-				if update.GetTaskId() == request.TaskId {
-					log.Printf("Got status update for task %s: %v", request.TaskId, convertStatusUpdateType(update.Type))
+				if statusSelector.matches(update.GetTaskId()) {
+					log.Printf("Got status update for task %s: %v", update.GetTaskId(), convertStatusUpdateType(update.Type))
 					err := observer.Send(&tsp.SubscribeForStatusUpdatesResponse{
 						StatusUpdate: &tsp.TspStatusUpdate{
 							NewSolutionCost:             update.Cost,
 							NewSolutionValidationResult: update.ValidationResult,
 							Type:                        convertStatusUpdateType(update.Type),
+							TaskId:                      update.GetTaskId(),
 						},
 					})
 					if err != nil {
-						log.Printf("Failed to publish status update for task %s: %s", request.TaskId, err.Error())
-						return status.Errorf(status.Code(err), "Failed to publish status update for task %s: %s", request.TaskId, err.Error())
+						log.Printf("Failed to publish status update for task %s: %s", update.GetTaskId(), err.Error())
+						return status.Errorf(status.Code(err), "Failed to publish status update for task %s: %s", update.GetTaskId(), err.Error())
 					}
-					if isTerminalState(update.Type) {
-						log.Printf("Terminal state received for %s", request.TaskId)
-						return nil
+					if isTerminalState(update.Type) && len(request.TaskSelector) > 0 {
+						log.Printf("Terminal state received for %s", update.GetTaskId())
+						finished[update.TaskId] = true
+						if len(finished) >= expectedTasksCount {
+							return nil
+						}
 					}
 					err = server.statusRabbitChannel.Ack(updateMessage.DeliveryTag, false)
 					if err != nil {
-						log.Printf("Failed to ack rabbit message with status update for %s: %s", request.TaskId, err.Error())
+						log.Printf("Failed to ack rabbit message with status update for %s: %s", update.GetTaskId(), err.Error())
 					}
 				}
 			}
-		case <-observer.Context().Done():
-			log.Printf("gRPC call is finished for %s", request.TaskId)
-			return nil
 		}
 	}
 }
@@ -521,7 +611,7 @@ func declareStatusExchange(rabbitChannel *amqp.Channel) {
 		StatusExchangeName,
 		amqp.ExchangeFanout,
 		false,
-		true,
+		false,
 		false,
 		false,
 		nil,

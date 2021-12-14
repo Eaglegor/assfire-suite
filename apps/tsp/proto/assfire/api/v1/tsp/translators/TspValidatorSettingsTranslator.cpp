@@ -18,8 +18,8 @@ namespace assfire::api::v1::tsp {
             case TSP_VALIDATOR_TYPE_UNSPECIFIED:
             case TSP_VALIDATOR_TYPE_DEFAULT:
                 return ApiValidatorType::DEFAULT;
-            case TSP_VALIDATOR_TYPE_REJECT_ON_ANY_VIOLATION:
-                return ApiValidatorType::REJECT_ON_ANY_VIOLATION;
+            case TSP_VALIDATOR_TYPE_HARD_CONSTRAINTS:
+                return ApiValidatorType::HARD_CONSTRAINTS;
             default:
                 throw std::invalid_argument("Unknown tsp validator type");
         }
@@ -29,8 +29,8 @@ namespace assfire::api::v1::tsp {
         switch(value) {
             case ApiValidatorType::DEFAULT:
                 return TSP_VALIDATOR_TYPE_DEFAULT;
-            case ApiValidatorType::REJECT_ON_ANY_VIOLATION:
-                return TSP_VALIDATOR_TYPE_REJECT_ON_ANY_VIOLATION;
+            case ApiValidatorType::HARD_CONSTRAINTS:
+                return TSP_VALIDATOR_TYPE_HARD_CONSTRAINTS;
             default:
                 throw std::invalid_argument("Unknown tsp validator type");
         }

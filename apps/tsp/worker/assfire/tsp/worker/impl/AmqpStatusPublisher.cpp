@@ -79,7 +79,7 @@ namespace assfire::tsp {
                 TSP_WORKER_AMQP_STATUS_EXCHANGE,
                 TSP_WORKER_AMQP_STATUS_EXCHANGE_TYPE,
                 TSP_WORKER_AMQP_STATUS_CHANNEL,
-                true
+                false
         );
 
         {

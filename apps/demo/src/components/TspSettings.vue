@@ -23,10 +23,10 @@
         </select>
       </div>
 
-      <div class="labeled-input" v-if="isTotalDistanceCostFunction()">
+<!--      <div class="labeled-input" v-if="isTotalDistanceCostFunction()">
         <label for="kmCost">Cost per km:</label>
         <input id="kmCost" v-model="tspSettings.cost_per_km"/>
-      </div>
+      </div>-->
 
       <div class="labeled-input">
         <label for="validator">Validation model:</label>
@@ -49,7 +49,7 @@ const TSP_ALGORITHM_TYPE_TIME_WASTING = "TSP_ALGORITHM_TYPE_TIME_WASTING";
 
 const TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE = "TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE";
 
-const TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION = "TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION";
+const TSP_VALIDATOR_TYPE_HARD_CONSTRAINTS = "TSP_VALIDATOR_TYPE_HARD_CONSTRAINTS";
 
 
 class TspSettingsModel {
@@ -62,7 +62,7 @@ class TspSettingsModel {
   }
 
   static createDefault() {
-    return new TspSettingsModel(RoutingSettings.RoutingSettingsModel.createDefault(), TSP_ALGORITHM_TYPE_AUTO, TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE, 1, TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION)
+    return new TspSettingsModel(RoutingSettings.RoutingSettingsModel.createDefault(), TSP_ALGORITHM_TYPE_AUTO, TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE, 1, TSP_VALIDATOR_TYPE_HARD_CONSTRAINTS)
   }
 
   withRoutingSettings(settings) {
@@ -108,7 +108,7 @@ export default {
         {name: "Total distance", value: TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE},
       ],
       validators: [
-        {name: "Reject on any violation", value: TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION},
+        {name: "Hard constraints", value: TSP_VALIDATOR_TYPE_HARD_CONSTRAINTS},
       ]
     }
   },
@@ -130,7 +130,7 @@ export default {
   TSP_ALGORITHM_TYPE_TWO_OPT: TSP_ALGORITHM_TYPE_TWO_OPT,
   TSP_ALGORITHM_TYPE_TIME_WASTING: TSP_ALGORITHM_TYPE_TIME_WASTING,
   TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE: TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE,
-  TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION: TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION,
+  TSP_VALIDATOR_TYPE_FAIL_ON_ANY_VIOLATION: TSP_VALIDATOR_TYPE_HARD_CONSTRAINTS,
 
   TspSettingsModel
 }

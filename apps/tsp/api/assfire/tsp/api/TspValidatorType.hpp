@@ -5,6 +5,6 @@
 namespace assfire::tsp {
     enum class TspValidatorType {
         DEFAULT,
-        REJECT_ON_ANY_VIOLATION
+        HARD_CONSTRAINTS
     };
 }

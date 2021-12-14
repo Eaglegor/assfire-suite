@@ -83,7 +83,7 @@ namespace assfire::tsp {
             TspValidatorType type = task.getSolverSettings().getEstimatorSettings().getValidatorSettings().getType();
             SPDLOG_INFO("Creating validator of type {} for TSP session {}", type, session_id);
             switch (type) {
-                case TspValidatorType::REJECT_ON_ANY_VIOLATION:
+                case TspValidatorType::HARD_CONSTRAINTS:
                 case TspValidatorType::DEFAULT:
                     return std::make_shared<NopTspValidator>();
                 default:

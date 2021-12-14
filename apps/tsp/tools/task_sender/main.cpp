@@ -15,7 +15,7 @@
 using namespace assfire;
 using namespace assfire::tsp;
 
-std::string startTsp(const std::string& endpoint) {
+std::string startTsp(const std::string &endpoint) {
     std::vector<TspPoint> points;
     TspPoint p1(1, locations::Location::fromDoubleLatLon(0, 0));
     TspPoint p2(2, locations::Location::fromDoubleLatLon(0, 1));
@@ -45,17 +45,20 @@ std::string startTsp(const std::string& endpoint) {
     return response.task_id();
 }
 
-void listenToUpdates(const std::string& endpoint, const std::string &task) {
+void listenToUpdates(const std::string &endpoint, const std::string &task) {
     auto channel = grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());
     auto stub = assfire::api::v1::tsp::TspService::NewStub(channel);
 
     assfire::api::v1::tsp::SubscribeForStatusUpdatesRequest status_request;
-    status_request.set_task_id(task);
+    if (task != "<none>") {
+        status_request.add_task_selector(task);
+    }
     grpc::ClientContext context2;
     std::unique_ptr<::grpc::ClientReader<assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse>> reader(stub->SubscribeForStatusUpdates(&context2, status_request));
     assfire::api::v1::tsp::SubscribeForStatusUpdatesResponse status_response;
     while (reader->Read(&status_response)) {
-        std::cout << "Got status update for task: " << task << " :: " << assfire::api::v1::tsp::TspStatusUpdate_Type_Name(status_response.status_update().type()) << std::endl;
+        std::cout << "Got status update for task: " << status_response.status_update().task_id() << " :: " << assfire::api::v1::tsp::TspStatusUpdate_Type_Name(status_response.status_update().type())
+                  << std::endl;
         if (status_response.status_update().type() == assfire::api::v1::tsp::TspStatusUpdate_Type_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION) {
             std::cout << "Solution cost: " << status_response.status_update().new_solution_cost().value() << std::endl;
         }
@@ -63,7 +66,7 @@ void listenToUpdates(const std::string& endpoint, const std::string &task) {
     reader->Finish();
 }
 
-void stopTsp(const std::string& endpoint, const std::string &id) {
+void stopTsp(const std::string &endpoint, const std::string &id) {
 
     assfire::api::v1::tsp::StopTspRequest request;
     request.set_task_id(id);
@@ -82,7 +85,7 @@ void stopTsp(const std::string& endpoint, const std::string &id) {
     }
 }
 
-void pauseTsp(const std::string& endpoint, const std::string &id) {
+void pauseTsp(const std::string &endpoint, const std::string &id) {
 
     assfire::api::v1::tsp::PauseTspRequest request;
     request.set_task_id(id);
@@ -100,7 +103,7 @@ void pauseTsp(const std::string& endpoint, const std::string &id) {
     }
 }
 
-void resumeTsp(const std::string& endpoint, const std::string &id) {
+void resumeTsp(const std::string &endpoint, const std::string &id) {
 
     assfire::api::v1::tsp::ResumeTspRequest request;
     request.set_task_id(id);
@@ -118,7 +121,7 @@ void resumeTsp(const std::string& endpoint, const std::string &id) {
     }
 }
 
-void getSolution(const std::string& endpoint, const std::string &id) {
+void getSolution(const std::string &endpoint, const std::string &id) {
 
     assfire::api::v1::tsp::GetLatestSolutionRequest request;
     request.set_task_id(id);
@@ -134,7 +137,7 @@ void getSolution(const std::string& endpoint, const std::string &id) {
     } else {
         std::cout << "Solution:  " << id << std::endl;
         auto sol = response.solution();
-        for(int i = 0; i < sol.optimized_sequence_size(); ++i) {
+        for (int i = 0; i < sol.optimized_sequence_size(); ++i) {
             std::cout << (i == 0 ? "" : " - ") << sol.optimized_sequence(i);
         }
         std::cout << std::endl;
@@ -155,15 +158,15 @@ int main(int argc, char *argv[]) {
             .show_positional_help();
 
     args_template.add_options()
-    (ENDPOINT, "Endpoint to connect to", cxxopts::value<std::string>()->default_value("localhost:50051"))
-    (ACTION, "Action to take (start/stop/pause/resume/listen)", cxxopts::value<std::string>())
-    (TASK_ID, "Task id to apply action to", cxxopts::value<std::string>()->default_value("<none>"));
+            (ENDPOINT, "Endpoint to connect to", cxxopts::value<std::string>()->default_value("localhost:50051"))
+            (ACTION, "Action to take (start/stop/pause/resume/listen)", cxxopts::value<std::string>())
+            (TASK_ID, "Task id to apply action to", cxxopts::value<std::string>()->default_value("<none>"));
 
     args_template.parse_positional({ACTION, TASK_ID});
 
     auto options = args_template.parse(argc, argv);
 
-    if(!options.count(ACTION)) {
+    if (!options.count(ACTION)) {
         std::cout << args_template.help() << std::endl;
         exit(0);
     }
