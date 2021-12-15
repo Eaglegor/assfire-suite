@@ -80,11 +80,14 @@ class TspSettingsModel {
         },
         validator_settings: {
           type: this.validator_type
-        },
-        routing_settings: {
-          route_provider_settings: this.routing_settings.toRequestRaw().settings,
-          routing_profile: this.routing_settings.toRequestRaw().routing_profile
         }
+      },
+      routing_settings: {
+        route_provider_settings: this.routing_settings.toRequestRaw().settings,
+        routing_profile: this.routing_settings.toRequestRaw().routing_profile
+      },
+      algorithm_settings: {
+        algorithm_type: this.algorithm_type
       }
     }
   }
@@ -121,7 +124,7 @@ export default {
     }
   },
   methods: {
-    isTotalDistanceCostFunction: function () {
+    isTotalDistanceCostFunction() {
       return this.tspSettings.cost_function_type === TSP_COST_FUNCTION_TYPE_TOTAL_DISTANCE;
     }
   },

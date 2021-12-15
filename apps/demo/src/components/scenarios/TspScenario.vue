@@ -9,6 +9,7 @@
       <tsp-settings class="control-block" v-model="tspSettings"/>
       <locations-list class="control-block" v-model="locations"/>
       <route-summary class="control-block" v-if="routeSummary != null" :summary="routeSummary"/>
+      <button @click.prevent="startTsp()">Solve TSP</button>
     </aside>
   </div>
 </template>
@@ -38,26 +39,68 @@ export default {
       tspSettings: TspSettings.TspSettingsModel.createDefault(),
       locations: [],
       routes: [],
-      routeSummaries: []
+      routeSummaries: [],
+      currentTaskId: null,
+      currentSolution: null,
+      abortController: null
     }
   },
   methods: {
+    toJson: function (binArray) {
+      var str = "";
+      for (var i = 0; i < binArray.length; i++) {
+        str += String.fromCharCode(parseInt(binArray[i]));
+      }
+      return str.split("\n").map(c => c.trim()).filter(c => c !== "").map(c => JSON.parse(c))
+    },
+    buildTask() {
+      let result = {
+        task: {
+          points: this.locations.map(function (l, index) {
+            return {
+              id: index,
+              location: l.toRequestRaw()
+            }
+          }),
+          solver_settings: this.tspSettings.toRequestRaw()
+        }
+      }
+      console.log(result);
+      return result;
+    },
+    startTsp() {
+      axios.post("http://localhost:8082/v1/optimize/tsp/start",
+          {
+            ...this.buildTask()
+          }
+      )
+          .then(r => {
+            console.log(r)
+            this.currentTaskId = r.data.taskId
+          })
+          .catch(e => {
+            console.log(e)
+          })
+    },
     routingSettingsHandler(evt) {
       this.routingSettings = evt
-    },
+    }
+    ,
     makeRequest(origin, destination) {
       return {
         ...this.routingSettings.toRequest(),
         ...origin.toRequest('origin'),
         ...destination.toRequest('destination')
       }
-    },
+    }
+    ,
     makeVectorRequest(locations) {
       return {
         ...this.routingSettings.toRequestRaw(),
         locations: locations.map(l => l.toRequestRaw())
       }
-    },
+    }
+    ,
     updateRoutes(locations) {
       if (lastRequestController != null) {
         lastRequestController.abort()
@@ -75,7 +118,7 @@ export default {
       for (let i = 0; i < locations.length - 1; ++i) {
         let request = this.makeRequest(locations[i], locations[i + 1])
         promises.push(axios
-            .get('http://localhost:8082/v1/route',
+            .get('http://localhost:8083/v1/route',
                 {
                   params: request,
                   signal: lastRequestController.signal
@@ -113,7 +156,8 @@ export default {
               console.log("Cancelled");
             }
           });
-    },
+    }
+    ,
     updateRoutesVector(locations) {
       if (lastRequestController != null) {
         lastRequestController.abort()
@@ -128,7 +172,7 @@ export default {
       this.routeSummaries = []
 
       axios
-          .post('http://localhost:8082/v1/route/vector',
+          .post('http://localhost:8083/v1/route/vector',
               {
                 ...this.makeVectorRequest(locations),
                 signal: lastRequestController.signal
@@ -163,7 +207,8 @@ export default {
               console.log("Cancelled");
             }
           });
-    },
+    }
+    ,
     updateLocationByCoords(event) {
       let updateIndex = this.locations.findIndex(l => l.asKey() === event.location.asKey())
       if (updateIndex >= 0) {
@@ -171,10 +216,12 @@ export default {
       } else {
         console.log("couldn't find location for key: " + event.location.asKey())
       }
-    },
+    }
+    ,
     addLocation(event) {
       this.locations.push(new LocationsList.Location(event.lat, event.lng))
-    },
+    }
+    ,
     solveTsp(locations) {
       this.updateRoutesVector(locations)
     }
@@ -205,15 +252,82 @@ export default {
   watch: {
     validLocations: {
       handler: function (val) {
-        this.solveTsp(val)
+        this.updateRoutes(val)
       },
       immediate: true
     },
     routingSettings: {
-      handler: function () {
-        this.solveTsp(this.validLocations)
+      handler: function (val) {
+        this.updateRoutes(this.validLocations)
+        console.log(val)
+        this.tspSettings = this.tspSettings.withRoutingSettings(val)
       },
-      deep: true
+      deep: true,
+      immediate: true
+    },
+    currentTaskId(newVal) {
+      console.log(newVal)
+      if (this.abortController != null) {
+        this.abortController.abort()
+      }
+      this.abortController = new AbortController()
+
+      fetch('http://localhost:8082/v1/optimize/tsp/status?' + new URLSearchParams({task_selector: this.currentTaskId,}),
+          {
+            signal: this.abortController.signal
+          })
+          .then(response => {
+            const reader = response.body.getReader()
+            let parse = this.toJson
+            let thisptr = this
+            return processor()
+
+            function processor() {
+              reader.read().then(({done, value}) => {
+                if (done) {
+                  return
+                }
+                let updates = parse(value)
+                for (let chunk of updates) {
+                  let update = chunk.result.statusUpdate
+                  if (update.taskId === newVal && update.type === "TSP_STATUS_UPDATE_TYPE_FINISHED") {
+                    axios.get('http://localhost:8082/v1/optimize/tsp/solution/' + newVal)
+                        .then(r => {
+                          thisptr.currentSolution = r.data.solution
+                        })
+                        .catch(e => {
+                          console.log(e)
+                        })
+                    return
+                  }
+                }
+                return processor()
+              })
+            }
+          })
+          .catch(err => {
+            console.log(err)
+          })
+    },
+    currentSolution(newVal) {
+      console.log(newVal)
+      let indices = {}
+      let index = 0
+      for (let seq of newVal.optimizedSequence) {
+        indices[seq] = index++
+      }
+      console.log(indices)
+      let sortedLocations = this.locations.splice(0, this.locations.length)
+          .filter(l => l != null && l.isValid())
+          .map(function (l, index) {
+            return {
+              ind: index,
+              loc: l
+            }
+          })
+          .sort((a, b) => indices[b.ind] - indices[a.ind])
+          .map(l => l.loc)
+      this.locations.push(...sortedLocations)
     }
   }
 }

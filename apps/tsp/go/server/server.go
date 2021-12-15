@@ -205,14 +205,21 @@ func (server *TspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 
 	log.Printf("Publishing task %s", taskId)
 	err := publishTask(ctx, taskId, request.Task, server.redisClient)
+	if err != nil {
+		log.Printf("Failed to publish task %s: %s", taskId, err.Error())
+
+		server.forceStatus(ctx, taskId, &tsp.WorkerTspStatusUpdate{
+			TaskId: taskId,
+			Type:   tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_ERROR,
+		})
+
+		return nil, status.Errorf(status.Code(err), "Failed to publish task %s", taskId)
+	}
+
 	server.forceStatus(ctx, taskId, &tsp.WorkerTspStatusUpdate{
 		TaskId: taskId,
 		Type:   tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PENDING,
 	})
-	if err != nil {
-		log.Printf("Failed to publish task %s: %s", taskId, err.Error())
-		return nil, status.Errorf(status.Code(err), "Failed to publish task %s", taskId)
-	}
 
 	log.Printf("Sending start signal %s", taskId)
 	err = sendStartSignal(taskId, server.taskRabbitChannel)

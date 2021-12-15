@@ -79,31 +79,32 @@ message SubscribeForStatusUpdatesResponse {
 service TspService {
   rpc StartTsp(StartTspRequest) returns (StartTspResponse) {
     option (google.api.http) = {
-      post: "/v1/optimize/tsp/start"
+      post: "/v1/optimize/tsp/start",
+      body: "*"
     };
   }
 
   rpc PauseTsp(PauseTspRequest) returns (PauseTspResponse) {
     option (google.api.http) = {
-      get: "/v1/optimize/tsp/pause"
+      get: "/v1/optimize/tsp/pause/{task_id}"
     };
   }
 
   rpc ResumeTsp(ResumeTspRequest) returns (ResumeTspResponse) {
     option (google.api.http) = {
-      get: "/v1/optimize/tsp/resume"
+      get: "/v1/optimize/tsp/resume/{task_id}"
     };
   }
 
   rpc StopTsp(StopTspRequest) returns (StopTspResponse) {
     option (google.api.http) = {
-      get: "/v1/optimize/tsp/stop"
+      get: "/v1/optimize/tsp/stop/{task_id}"
     };
   }
 
   rpc GetLatestSolution(GetLatestSolutionRequest) returns (GetLatestSolutionResponse) {
     option (google.api.http) = {
-      get: "/v1/optimize/tsp/solution"
+      get: "/v1/optimize/tsp/solution/{task_id}"
     };
   }
 

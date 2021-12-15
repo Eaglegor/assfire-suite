@@ -127,7 +127,7 @@ export default {
       this.routeSummaries = []
 
       axios
-          .post('http://localhost:8082/v1/route/vector',
+          .post('http://localhost:8083/v1/route/vector',
               {
                 ...this.makeVectorRequest(locations),
                 signal: lastRequestController.signal
@@ -201,7 +201,7 @@ export default {
   watch: {
     validLocations: {
       handler: function (val) {
-        if(this.routingSettings.vectorMode) {
+        if (this.routingSettings.vectorMode) {
           this.updateRoutesVector(val)
         } else {
           this.updateRoutes(val)
@@ -211,7 +211,7 @@ export default {
     },
     routingSettings: {
       handler: function () {
-        if(this.routingSettings.vectorMode) {
+        if (this.routingSettings.vectorMode) {
           this.updateRoutesVector(this.locations)
         } else {
           this.updateRoutes(this.validLocations)
@@ -239,8 +239,6 @@ export default {
 .sidebar-controls {
   display: flex;
   flex-direction: column;
-  width: 300px;
-  overflow: auto;
 }
 
 .control-block {

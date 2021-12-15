@@ -40,6 +40,10 @@ class Location {
     }
   }
 
+  isValid() {
+    return this.lat != null && this.lon != null && !isNaN(this.lat) && !isNaN(this.lon)
+  }
+
   static fromEncoded(lat, lon) {
     return new Location(lat / 1000000.0, lon / 1000000.0)
   }

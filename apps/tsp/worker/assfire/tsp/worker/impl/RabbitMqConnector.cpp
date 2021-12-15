@@ -231,6 +231,12 @@ namespace assfire::tsp {
             : State(name, connection, queue_name, exchange_name, channel_id, auto_delete),
               consumer_tag(consumer_tag) {
 
+        amqp_basic_qos(connection, channel_id, 0, 1, false);
+        amqp_rpc_reply_t reply = amqp_get_rpc_reply(connection);
+        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+            processAmqpError(reply, "Failed to set prefetch count to 1", false);
+        }
+
         SPDLOG_INFO("Declaring RabbitMQ queue {} (channel {})", queue_name.empty() ? "<auto>" : queue_name, channel_id);
         amqp_queue_declare(
                 connection,
@@ -241,7 +247,7 @@ namespace assfire::tsp {
                 0,
                 auto_delete ? 1 : 0,
                 amqp_empty_table);
-        amqp_rpc_reply_t reply = amqp_get_rpc_reply(connection);
+        reply = amqp_get_rpc_reply(connection);
         if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
             processAmqpError(reply, "Failed to declare RabbitMQ queue");
         }

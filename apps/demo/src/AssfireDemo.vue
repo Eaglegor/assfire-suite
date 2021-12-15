@@ -8,7 +8,8 @@
     <main class="scenario-content">
       <component :is="selectedScenario"/>
     </main>
-    <footer class="footer"><label>(c) Assfire.org</label>
+    <footer class="footer">
+      <label>(c) Assfire.org</label>
     </footer>
   </div>
 </template>
@@ -52,22 +53,31 @@ htlm, body {
   margin: 0;
   font-family: Avenir, Helvetica, Arial, sans-serif;
 }
+
 .app-content {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
+
 .header {
   padding: 10px;
   flex-shrink: 0;
+  height: 20px;
 }
+
 .footer {
+  height: 20px;
   padding: 5px 10px 5px;
 }
+
 .header select {
   margin-left: 10px;
 }
+
 .scenario-content {
+  display: inline;
   flex-grow: 1;
+  height: 0;
 }
 </style>
