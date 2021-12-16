@@ -10,11 +10,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/streadway/amqp"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
-	"net"
 	"time"
 )
 
@@ -44,7 +42,7 @@ const (
 	InterruptExchange  = "assfire.tsp.worker.interrupt"
 	StatusExchangeName = "assfire.tsp.worker.status"
 
-	TaskQueue = "assfire.tsp.worker.task"
+	TaskQueueName = "assfire.tsp.worker.task"
 )
 
 func taskKey(taskId string) string {
@@ -180,7 +178,7 @@ func sendStartSignal(taskId string, rabbitChannel *amqp.Channel) error {
 
 	err = rabbitChannel.Publish(
 		TaskExchange,
-		TaskQueue,
+		TaskQueueName,
 		true,
 		false,
 		amqp.Publishing{
@@ -395,8 +393,8 @@ func isTerminalState(update tsp.WorkerTspStatusUpdate_Type) bool {
 }
 
 type TspStatusUpdate struct {
-	taskId     string
-	updateType tsp.WorkerTspStatusUpdate_Type
+	taskId string
+	status tsp.WorkerTspStatusUpdate_Type
 }
 
 type TspStatusSelector struct {
@@ -436,8 +434,8 @@ func retrieveLatestStatus(ctx context.Context, taskId string, redisClient *redis
 		return
 	}
 	c <- TspStatusUpdate{
-		taskId:     taskId,
-		updateType: taskStatus,
+		taskId: taskId,
+		status: taskStatus,
 	}
 }
 
@@ -529,10 +527,10 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 			return nil
 		case latestStatusType := <-latestStatusChan:
 			if statusSelector.matches(latestStatusType.taskId) {
-				log.Printf("Retrieved latest status for task %v: %v", request.TaskSelector, latestStatusType.updateType)
+				log.Printf("Retrieved latest status for task %v: %v", request.TaskSelector, latestStatusType.status)
 				err := observer.Send(&tsp.SubscribeForStatusUpdatesResponse{
 					StatusUpdate: &tsp.TspStatusUpdate{
-						Type:   convertStatusUpdateType(latestStatusType.updateType),
+						Type:   convertStatusUpdateType(latestStatusType.status),
 						TaskId: latestStatusType.taskId,
 					},
 				})
@@ -540,7 +538,7 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 					log.Printf("Failed to publish status update for task %v: %s", request.TaskSelector, err.Error())
 					return status.Errorf(status.Code(err), "Failed to publish status update for task %v: %s", request.TaskSelector, err.Error())
 				}
-				if isTerminalState(latestStatusType.updateType) && len(request.TaskSelector) > 0 {
+				if isTerminalState(latestStatusType.status) && len(request.TaskSelector) > 0 {
 					log.Printf("Terminal state received for %v", latestStatusType.taskId)
 					finished[latestStatusType.taskId] = true
 					if len(finished) >= expectedTasksCount {
@@ -601,7 +599,7 @@ func declareInterruptExchange(rabbitChannel *amqp.Channel) {
 
 func declareTaskQueue(rabbitChannel *amqp.Channel) {
 	_, err := rabbitChannel.QueueDeclare(
-		TaskQueue,
+		TaskQueueName,
 		false,
 		false,
 		false,
@@ -609,7 +607,7 @@ func declareTaskQueue(rabbitChannel *amqp.Channel) {
 		nil,
 	)
 	if err != nil {
-		log.Fatalf("Couldn't declare task AMQP queue %s: %v", TaskQueue, err)
+		log.Fatalf("Couldn't declare task AMQP queue %s: %v", TaskQueueName, err)
 	}
 }
 
@@ -670,25 +668,4 @@ func newServer() *TspServer {
 	}
 
 	return s
-}
-
-func main() {
-	flag.Parse()
-	log.Printf("Starting listening at %s:%d\n", *bindAddress, *port)
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddress, *port))
-	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
-	}
-	var opts []grpc.ServerOption
-	grpcServer := grpc.NewServer(opts...)
-	log.Println("Creating server...")
-	server := newServer()
-	log.Println("Registering server handlers...")
-	tsp.RegisterTspServiceServer(grpcServer, server)
-
-	log.Println("Starting accepting requests...")
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		log.Fatalf("Server failed with error: %v", err)
-	}
 }
