@@ -1,7 +1,7 @@
 <template>
   <div class="locations-list">
     <div class="block-title-container">
-      <span class="block-title">LocationsList</span>
+      <span class="block-title">Locations</span>
     </div>
     <div class="locations-inputs">
       <div class="location-block" v-for="(location, index) in locations" :key="stringLocation(location)">

@@ -223,7 +223,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .router-scenario {
   display: flex;
   flex-direction: row;
@@ -239,6 +239,7 @@ export default {
 .sidebar-controls {
   display: flex;
   flex-direction: column;
+  width: 300px;
 }
 
 .control-block {

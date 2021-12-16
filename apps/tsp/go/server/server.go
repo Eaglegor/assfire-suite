@@ -309,7 +309,7 @@ func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 	}
 
 	taskStatus, err := getTaskStatus(ctx, request.TaskId, server.redisClient)
-	if err == nil && taskStatus == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED {
+	if err == nil && taskStatus == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED || taskStatus == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN {
 		log.Printf("Sending forced interrupt signal for paused task %s", request.TaskId)
 		server.forceStatus(ctx, request.TaskId, &tsp.WorkerTspStatusUpdate{
 			TaskId: request.TaskId,

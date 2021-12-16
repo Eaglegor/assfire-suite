@@ -5,11 +5,15 @@
                    @new-location="addLocation"/>
     </main>
     <aside class="sidebar-controls">
-      <routing-settings class="control-block" v-model="routingSettings"/>
-      <tsp-settings class="control-block" v-model="tspSettings"/>
-      <locations-list class="control-block" v-model="locations"/>
-      <route-summary class="control-block" v-if="routeSummary != null" :summary="routeSummary"/>
-      <button @click.prevent="startTsp()">Solve TSP</button>
+      <div class="sidebar-column">
+        <routing-settings class="control-block" v-model="routingSettings"/>
+        <tsp-settings class="control-block" v-model="tspSettings"/>
+        <tsp-solution :task="this.task" @solution-found="this.currentSolution = $event" class="control-block"/>
+        <route-summary class="control-block" v-if="routeSummary != null" :summary="routeSummary"/>
+      </div>
+      <div class="sidebar-column">
+        <locations-list class="control-block" v-model="locations"/>
+      </div>
     </aside>
   </div>
 </template>
@@ -20,6 +24,7 @@ import LocationsList from "@/components/LocationsList";
 import RoutingMap from "@/components/RoutingMap";
 import RouteSummary from "@/components/RouteSummary";
 import TspSettings from "@/components/TspSettings";
+import TspSolution from "@/components/TspSolution";
 import axios from "axios";
 
 let lastRequestController = null
@@ -31,7 +36,8 @@ export default {
     LocationsList,
     RoutingMap,
     RouteSummary,
-    TspSettings
+    TspSettings,
+    TspSolution
   },
   data() {
     return {
@@ -42,17 +48,12 @@ export default {
       routeSummaries: [],
       currentTaskId: null,
       currentSolution: null,
-      abortController: null
+      abortController: null,
+      task: null
     }
   },
   methods: {
-    toJson: function (binArray) {
-      var str = "";
-      for (var i = 0; i < binArray.length; i++) {
-        str += String.fromCharCode(parseInt(binArray[i]));
-      }
-      return str.split("\n").map(c => c.trim()).filter(c => c !== "").map(c => JSON.parse(c))
-    },
+
     buildTask() {
       let result = {
         task: {
@@ -67,20 +68,6 @@ export default {
       }
       console.log(result);
       return result;
-    },
-    startTsp() {
-      axios.post("http://localhost:8082/v1/optimize/tsp/start",
-          {
-            ...this.buildTask()
-          }
-      )
-          .then(r => {
-            console.log(r)
-            this.currentTaskId = r.data.taskId
-          })
-          .catch(e => {
-            console.log(e)
-          })
     },
     routingSettingsHandler(evt) {
       this.routingSettings = evt
@@ -221,10 +208,6 @@ export default {
     addLocation(event) {
       this.locations.push(new LocationsList.Location(event.lat, event.lng))
     }
-    ,
-    solveTsp(locations) {
-      this.updateRoutesVector(locations)
-    }
   },
   computed: {
     validLocations: function () {
@@ -252,62 +235,26 @@ export default {
   watch: {
     validLocations: {
       handler: function (val) {
-        this.updateRoutes(val)
+        this.updateRoutesVector(val)
+        this.task = this.buildTask();
       },
       immediate: true
     },
     routingSettings: {
       handler: function (val) {
-        this.updateRoutes(this.validLocations)
+        this.updateRoutesVector(this.validLocations)
         console.log(val)
         this.tspSettings = this.tspSettings.withRoutingSettings(val)
       },
       deep: true,
       immediate: true
     },
-    currentTaskId(newVal) {
-      console.log(newVal)
-      if (this.abortController != null) {
-        this.abortController.abort()
-      }
-      this.abortController = new AbortController()
-
-      fetch('http://localhost:8082/v1/optimize/tsp/status?' + new URLSearchParams({task_selector: this.currentTaskId,}),
-          {
-            signal: this.abortController.signal
-          })
-          .then(response => {
-            const reader = response.body.getReader()
-            let parse = this.toJson
-            let thisptr = this
-            return processor()
-
-            function processor() {
-              reader.read().then(({done, value}) => {
-                if (done) {
-                  return
-                }
-                let updates = parse(value)
-                for (let chunk of updates) {
-                  let update = chunk.result.statusUpdate
-                  if (update.taskId === newVal && update.type === "TSP_STATUS_UPDATE_TYPE_FINISHED") {
-                    axios.get('http://localhost:8082/v1/optimize/tsp/solution/' + newVal)
-                        .then(r => {
-                          thisptr.currentSolution = r.data.solution
-                        })
-                        .catch(e => {
-                          console.log(e)
-                        })
-                    return
-                  }
-                }
-                return processor()
-              })
-            }
-          })
-          .catch(err => {
-            console.log(err)
-          })
+    tspSettings: {
+      handler: function () {
+        this.task = this.buildTask();
+      },
+      deep: true,
+      immediate: true
     },
     currentSolution(newVal) {
       console.log(newVal)
@@ -333,7 +280,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .tsp-scenario {
   display: flex;
   flex-direction: row;
@@ -348,9 +295,15 @@ export default {
 
 .sidebar-controls {
   display: flex;
+  flex-direction: row;
+  width: 600px;
+  overflow: auto;
+}
+
+.sidebar-column {
+  display: flex;
   flex-direction: column;
   width: 300px;
-  overflow: auto;
 }
 
 .control-block {
