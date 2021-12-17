@@ -41,14 +41,20 @@ func (storage *TaskStorage) removeTask(taskId string) error {
 	return err
 }
 
-func (storage *TaskStorage) getTaskStatus(taskId string) (tsp.WorkerTspStatusUpdate_Type, error) {
+func (storage *TaskStorage) getTaskStatus(taskId string) (*tsp.TspStatusUpdate, error) {
 	result, err := storage.redisConnector.getStringWithReconnect(func(client *redis.Client) *redis.StringCmd {
 		return client.Get(context.Background(), statusKey(taskId))
 	})
 	if err != nil {
-		return tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_UNKNOWN, fmt.Errorf("failed to obtain status for task %s: %v", taskId, err)
+		return &tsp.TspStatusUpdate{
+			TaskId: taskId,
+			Type:   tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_UNKNOWN,
+		}, fmt.Errorf("failed to obtain status for task %s: %v", taskId, err)
 	}
-	return tsp.WorkerTspStatusUpdate_Type(tsp.WorkerTspStatusUpdate_Type_value[result]), nil
+	return &tsp.TspStatusUpdate{
+		TaskId: taskId,
+		Type:   convertStatusUpdateType(tsp.WorkerTspStatusUpdate_Type(tsp.WorkerTspStatusUpdate_Type_value[result])),
+	}, nil
 }
 
 func (storage *TaskStorage) setTaskStatus(taskId string, status tsp.WorkerTspStatusUpdate_Type) error {
@@ -62,7 +68,7 @@ func (storage *TaskStorage) canBeResumed(taskId string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to determine if task %s can be resumed: %v", taskId, err)
 	}
-	return status == tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED, nil
+	return status.GetType() == tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_PAUSED, nil
 }
 
 func (storage *TaskStorage) taskExists(taskId string) (bool, error) {
@@ -75,8 +81,8 @@ func (storage *TaskStorage) taskExists(taskId string) (bool, error) {
 	return result != 0, nil
 }
 
-func (storage *TaskStorage) forEachTaskKey(process func(string)) error {
-	return storage.redisConnector.scanAllWithReconnect(RedisPrefix+"*"+TaskSuffix, func(key string) {
+func (storage *TaskStorage) forEachTaskKey(ctx context.Context, process func(string)) error {
+	return storage.redisConnector.scanAllWithReconnect(ctx, RedisPrefix+"*"+TaskSuffix, func(key string) {
 		process(key[len(RedisPrefix) : len(key)-len(TaskSuffix)])
 	})
 }

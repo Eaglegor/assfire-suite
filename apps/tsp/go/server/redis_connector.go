@@ -23,9 +23,9 @@ func (connector *RedisConnector) getInt64WithReconnect(action func(*redis.Client
 	return result.Val(), result.Err()
 }
 
-func (connector *RedisConnector) scanAllWithReconnect(pattern string, process func(string)) error {
-	iter := connector.client.Scan(context.Background(), 0, pattern, 0).Iterator()
-	for iter.Next(context.Background()) {
+func (connector *RedisConnector) scanAllWithReconnect(ctx context.Context, pattern string, process func(string)) error {
+	iter := connector.client.Scan(ctx, 0, pattern, 0).Iterator()
+	for iter.Next(ctx) {
 		process(iter.Val())
 	}
 	return iter.Err()
