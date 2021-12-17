@@ -97,6 +97,8 @@ func (channelController *AmqpChannelController) createQueue(
 	noLocal bool,
 	autoAck bool,
 	consumerId string,
+	routingKey string,
+	exchangeName string,
 ) (*AmqpQueueConnector, error) {
 	queue, err := channelController.channel.QueueDeclare(
 		name,
@@ -118,6 +120,8 @@ func (channelController *AmqpChannelController) createQueue(
 		noLocal:           noLocal,
 		noWait:            noWait,
 		args:              args,
+		routingKey:        routingKey,
+		exchangeName:      exchangeName,
 	}
 	channelController.queues[name] = connector
 	return connector, nil

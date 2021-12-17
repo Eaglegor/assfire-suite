@@ -80,6 +80,7 @@ func (provider *StatusProvider) subscribeForWorkerStatusUpdates(ctx context.Cont
 			select {
 			case <-ctx.Done():
 				close(ch)
+				return
 			case upd := <-wch:
 				ch <- &tsp.TspStatusUpdate{
 					TaskId:                      upd.GetTaskId(),
@@ -95,16 +96,34 @@ func (provider *StatusProvider) subscribeForWorkerStatusUpdates(ctx context.Cont
 }
 
 func (provider *StatusProvider) subscribeForStatusUpdates(ctx context.Context, taskIds []string) (<-chan *tsp.TspStatusUpdate, error) {
-	ch := make(chan *tsp.TspStatusUpdate)
+	taskStatusChannel := make(chan *tsp.TspStatusUpdate)
 
-	err := provider.subscribeForStoredTaskStatus(ch, ctx, taskIds)
+	err := provider.subscribeForStoredTaskStatus(taskStatusChannel, ctx, taskIds)
 	if err != nil {
 		log.Printf("Failed to retrieve latest status from storage (task selector: %v: %v", taskIds, err)
 	}
-	err = provider.subscribeForWorkerStatusUpdates(ctx, ch, taskIds)
+
+	workerUpdateChannel := make(chan *tsp.TspStatusUpdate)
+	err = provider.subscribeForWorkerStatusUpdates(ctx, workerUpdateChannel, taskIds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to subscribe to worker status updates channelController: %v", err)
 	}
+
+	ch := make(chan *tsp.TspStatusUpdate)
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				close(ch)
+				return
+			case taskUpdate := <-taskStatusChannel:
+				ch <- taskUpdate
+			case workerUpdate := <-workerUpdateChannel:
+				ch <- workerUpdate
+			}
+		}
+	}()
 
 	return ch, nil
 }

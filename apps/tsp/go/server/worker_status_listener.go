@@ -17,8 +17,9 @@ func (listener *WorkerStatusListener) subscribeForTaskUpdates(ctx context.Contex
 
 	consumerId := uuid.NewString()
 
+	log.Infof("Using consumer id %s", consumerId)
 	go func() {
-		queue, err := listener.statusChannel.createQueue("", false, true, false, false, nil, false, false, consumerId)
+		queue, err := listener.statusChannel.createQueue("", false, true, false, false, nil, false, false, consumerId, "", StatusExchangeName)
 		if err != nil {
 			log.Errorf("Failed to create queue for updating status: %v", err)
 			close(ch)
@@ -33,7 +34,12 @@ func (listener *WorkerStatusListener) subscribeForTaskUpdates(ctx context.Contex
 		for {
 			select {
 			case <-ctx.Done():
+				log.Infof("Consumer id is done: %s", consumerId)
 				close(ch)
+				err = queue.cancel()
+				if err != nil {
+					log.Errorf("Failed to cancel queue %s: %v", queue.queue.Name, err)
+				}
 				return
 			case update := <-wch:
 				var parsedUpdate tsp.WorkerTspStatusUpdate
