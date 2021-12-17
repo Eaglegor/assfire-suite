@@ -6,27 +6,18 @@ import (
 )
 
 type AmqpQueueConnector struct {
-	connection *amqp.Connection
-	channel    *amqp.Channel
-	queue      *amqp.Queue
-	consumerId string
-	autoAck    bool
-	exclusive  bool
-	noLocal    bool
-	noWait     bool
-	args       amqp.Table
-}
-
-func createTmpAmqpQueue(connection *amqp.Connection, channel *amqp.Channel) *AmqpQueueConnector {
-	return &AmqpQueueConnector{
-		connection: connection,
-		channel:    channel,
-		queue:      nil,
-	}
+	channelController *AmqpChannelController
+	queue             amqp.Queue
+	consumerId        string
+	autoAck           bool
+	exclusive         bool
+	noLocal           bool
+	noWait            bool
+	args              amqp.Table
 }
 
 func (connector *AmqpQueueConnector) consumeWithReconnect() (<-chan amqp.Delivery, error) {
-	ch, err := connector.channel.Consume(
+	ch, err := connector.channelController.channel.Consume(
 		connector.queue.Name,
 		connector.consumerId,
 		connector.autoAck,

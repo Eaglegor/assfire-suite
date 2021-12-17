@@ -3,6 +3,7 @@ package main
 import (
 	"assfire.org/api/v1/tsp"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"google.golang.org/protobuf/proto"
@@ -61,6 +62,38 @@ func (storage *TaskStorage) setTaskStatus(taskId string, status tsp.WorkerTspSta
 	return storage.redisConnector.performWithReconnect(func(client *redis.Client) *redis.StatusCmd {
 		return client.Set(context.Background(), statusKey(taskId), status.String(), 0)
 	})
+}
+
+var (
+	TaskNotFound      = errors.New("task not found")
+	TaskStatusUnknown = errors.New("can not determine task status")
+)
+
+func (storage *TaskStorage) canBePaused(taskId string) (bool, error) {
+	status, err := storage.getTaskStatus(taskId)
+	if err != nil {
+		if err == redis.Nil {
+			return false, TaskNotFound
+		} else {
+			return false, TaskStatusUnknown
+		}
+	}
+	return status.GetType() == tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_IN_PROGRESS, nil
+}
+
+func (storage *TaskStorage) canBeStopped(taskId string) (bool, error) {
+	status, err := storage.getTaskStatus(taskId)
+	if err != nil {
+		if err == redis.Nil {
+			return false, TaskNotFound
+		} else {
+			return false, TaskStatusUnknown
+		}
+	}
+	return status.GetType() != tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_FINISHED ||
+		status.GetType() != tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_ERROR ||
+		status.GetType() != tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_UNKNOWN ||
+		status.GetType() != tsp.TspStatusUpdate_TSP_STATUS_UPDATE_TYPE_INTERRUPTED, nil
 }
 
 func (storage *TaskStorage) canBeResumed(taskId string) (bool, error) {

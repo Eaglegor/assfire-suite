@@ -10,7 +10,7 @@ type TaskQueue struct {
 	exchange *AmqpExchangeConnector
 }
 
-func (queue *TaskQueue) sendNewTaskId(taskId string) error {
+func (queue *TaskQueue) sendStartTaskSignal(taskId string) error {
 	msg, err := proto.Marshal(&tsp.WorkerTask{TaskId: taskId})
 
 	if err != nil {

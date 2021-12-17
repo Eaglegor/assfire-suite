@@ -76,12 +76,17 @@ func (provider *StatusProvider) subscribeForWorkerStatusUpdates(ctx context.Cont
 	}
 
 	go func() {
-		for upd := range wch {
-			ch <- &tsp.TspStatusUpdate{
-				TaskId:                      upd.GetTaskId(),
-				Type:                        convertStatusUpdateType(upd.GetType()),
-				NewSolutionCost:             upd.GetCost(),
-				NewSolutionValidationResult: upd.GetValidationResult(),
+		for {
+			select {
+			case <-ctx.Done():
+				close(ch)
+			case upd := <-wch:
+				ch <- &tsp.TspStatusUpdate{
+					TaskId:                      upd.GetTaskId(),
+					Type:                        convertStatusUpdateType(upd.GetType()),
+					NewSolutionCost:             upd.GetCost(),
+					NewSolutionValidationResult: upd.GetValidationResult(),
+				}
 			}
 		}
 	}()
@@ -98,7 +103,7 @@ func (provider *StatusProvider) subscribeForStatusUpdates(ctx context.Context, t
 	}
 	err = provider.subscribeForWorkerStatusUpdates(ctx, ch, taskIds)
 	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to worker status updates channel: %v", err)
+		return nil, fmt.Errorf("failed to subscribe to worker status updates channelController: %v", err)
 	}
 
 	return ch, nil

@@ -2,17 +2,21 @@ package main
 
 import (
 	"assfire.org/api/v1/tsp"
-	"context"
-	"github.com/streadway/amqp"
 )
 
 type TaskPublisher struct {
-	connection     *amqp.Connection
-	publishChannel *amqp.Channel
-	publishQueue   *amqp.Queue
-	taskStorage    *TaskStorage
+	taskStorage *TaskStorage
+	taskQueue   *TaskQueue
 }
 
-func (publisher *TaskPublisher) publishTask(ctx context.Context, taskId string, task *tsp.TspTask) error {
-	return publisher.taskStorage.persistTask(taskId, task)
+func (publisher *TaskPublisher) publishTask(taskId string, task *tsp.TspTask) error {
+	err := publisher.taskStorage.persistTask(taskId, task)
+	if err != nil {
+		return err
+	}
+	err = publisher.taskQueue.sendStartTaskSignal(taskId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

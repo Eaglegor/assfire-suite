@@ -4,7 +4,6 @@ import (
 	"assfire.org/api/v1/tsp"
 	"context"
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/proto"
@@ -14,19 +13,6 @@ import (
 	"google.golang.org/grpc/status"
 	"log"
 	"time"
-)
-
-var (
-	bindAddress    = flag.String("bind-address", "localhost", "Server bind address")
-	port           = flag.Int("port", 50051, "Server port")
-	redisEndpoint  = flag.String("redis-endpoint", "localhost", "Redis endpoint")
-	redisPort      = flag.Int("redis-port", 6379, "Redis port")
-	redisPassword  = flag.String("redis-password", "", "Redis password")
-	redisDatabase  = flag.Int("redis-database", 0, "Redis database id")
-	rabbitEndpoint = flag.String("rabbit-endpoint", "localhost", "Rabbit MQ endpoint")
-	rabbitPort     = flag.Int("rabbit-port", 5672, "Rabbit MQ port")
-	rabbitUser     = flag.String("rabbit-user", "guest", "Rabbit MQ user")
-	rabbitPassword = flag.String("rabbit-password", "guest", "Rabbit MQ password")
 )
 
 const (
@@ -57,7 +43,7 @@ func solutionKey(taskId string) string {
 	return fmt.Sprintf("%s%s%s", RedisPrefix, taskId, SolutionSuffix)
 }
 
-type TspServer struct {
+type TspServerOld struct {
 	tsp.UnimplementedTspServiceServer
 
 	redisClient              *redis.Client
@@ -197,7 +183,7 @@ func sendInterruptSignal(taskId string, rabbitChannel *amqp.Channel) error {
 	return sendSignal(taskId, InterruptSignal, rabbitChannel)
 }
 
-func (server *TspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequest) (*tsp.StartTspResponse, error) {
+func (server *TspServerOld) StartTsp(ctx context.Context, request *tsp.StartTspRequest) (*tsp.StartTspResponse, error) {
 	taskId := uuid.New().String()
 	log.Printf("Starting new TSP task %s", taskId)
 
@@ -231,7 +217,7 @@ func (server *TspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 	}, nil
 }
 
-func (server *TspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequest) (*tsp.PauseTspResponse, error) {
+func (server *TspServerOld) PauseTsp(ctx context.Context, request *tsp.PauseTspRequest) (*tsp.PauseTspResponse, error) {
 	log.Printf("Pausing TSP task %s", request.TaskId)
 
 	if exists := hasTask(ctx, request.TaskId, server.redisClient); !exists {
@@ -258,7 +244,7 @@ func (server *TspServer) PauseTsp(ctx context.Context, request *tsp.PauseTspRequ
 	}, nil
 }
 
-func (server *TspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRequest) (*tsp.ResumeTspResponse, error) {
+func (server *TspServerOld) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRequest) (*tsp.ResumeTspResponse, error) {
 	log.Printf("Resuming TSP task %s", request.TaskId)
 
 	if exists := hasTask(ctx, request.TaskId, server.redisClient); !exists {
@@ -280,7 +266,7 @@ func (server *TspServer) ResumeTsp(ctx context.Context, request *tsp.ResumeTspRe
 	return &tsp.ResumeTspResponse{}, nil
 }
 
-func (server *TspServer) forceStatus(ctx context.Context, taskId string, update *tsp.WorkerTspStatusUpdate) {
+func (server *TspServerOld) forceStatus(ctx context.Context, taskId string, update *tsp.WorkerTspStatusUpdate) {
 	server.redisClient.Set(ctx, statusKey(taskId), update.Type.String(), 0)
 
 	bytes, err := proto.Marshal(update)
@@ -298,7 +284,7 @@ func (server *TspServer) forceStatus(ctx context.Context, taskId string, update 
 	}
 }
 
-func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspRequest) (*tsp.StopTspResponse, error) {
+func (server *TspServerOld) StopTsp(ctx context.Context, request *tsp.StopTspRequest) (*tsp.StopTspResponse, error) {
 	log.Printf("Stopping TSP task %s", request.TaskId)
 
 	if exists := hasTask(ctx, request.TaskId, server.redisClient); !exists {
@@ -340,7 +326,7 @@ func (server *TspServer) StopTsp(ctx context.Context, request *tsp.StopTspReques
 	}, nil
 }
 
-func (server *TspServer) GetLatestSolution(ctx context.Context, request *tsp.GetLatestSolutionRequest) (*tsp.GetLatestSolutionResponse, error) {
+func (server *TspServerOld) GetLatestSolution(ctx context.Context, request *tsp.GetLatestSolutionRequest) (*tsp.GetLatestSolutionResponse, error) {
 	log.Printf("Retrieving latest solution for TSP task %s", request.TaskId)
 
 	solution, err := loadSolution(ctx, request.TaskId, server.redisClient)
@@ -439,7 +425,7 @@ func retrieveLatestStatus(ctx context.Context, taskId string, redisClient *redis
 	}
 }
 
-func (server *TspServer) getAllTaskIds(ctx context.Context) []string {
+func (server *TspServerOld) getAllTaskIds(ctx context.Context) []string {
 	allTasksCmd := server.redisClient.Keys(ctx, taskKey("*"))
 	if allTasksCmd.Err() != nil {
 		log.Printf("Failed to load tasks list: %v", allTasksCmd.Err())
@@ -453,7 +439,7 @@ func (server *TspServer) getAllTaskIds(ctx context.Context) []string {
 	}
 }
 
-func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
+func (server *TspServerOld) SubscribeForStatusUpdates(request *tsp.SubscribeForStatusUpdatesRequest, observer tsp.TspService_SubscribeForStatusUpdatesServer) error {
 	log.Printf("Subscribing for status updates for TSP task selector %v", request.TaskSelector)
 
 	queue, err := server.statusRabbitChannel.QueueDeclare(
@@ -626,7 +612,7 @@ func declareStatusExchange(rabbitChannel *amqp.Channel) {
 	}
 }
 
-func newServer() *TspServer {
+func newServer() *TspServerOld {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", *redisEndpoint, *redisPort),
 		Password: *redisPassword,
@@ -639,27 +625,27 @@ func newServer() *TspServer {
 		*rabbitEndpoint,
 		*rabbitPort))
 	if err != nil {
-		log.Fatalf("Couldn't initialize rabbitMQ connection: %s", err.Error())
+		log.Fatalf("Couldn't initialize rabbitMQ connectionController: %s", err.Error())
 	}
 
 	taskRabbitChannel, err := rabbitConnection.Channel()
 	if err != nil {
-		log.Fatalf("Couldn't initialize task rabbitMQ channel: %s", err.Error())
+		log.Fatalf("Couldn't initialize task rabbitMQ channelController: %s", err.Error())
 	}
 	singalRabbitChannel, err := rabbitConnection.Channel()
 	if err != nil {
-		log.Fatalf("Couldn't initialize signal rabbitMQ channel: %s", err.Error())
+		log.Fatalf("Couldn't initialize signal rabbitMQ channelController: %s", err.Error())
 	}
 	statusRabbitChannel, err := rabbitConnection.Channel()
 	if err != nil {
-		log.Fatalf("Couldn't initialize status rabbitMQ channel: %s", err.Error())
+		log.Fatalf("Couldn't initialize status rabbitMQ channelController: %s", err.Error())
 	}
 
 	declareInterruptExchange(singalRabbitChannel)
 	declareTaskQueue(taskRabbitChannel)
 	declareStatusExchange(statusRabbitChannel)
 
-	s := &TspServer{
+	s := &TspServerOld{
 		redisClient:         redisClient,
 		rabbitConnection:    rabbitConnection,
 		taskRabbitChannel:   taskRabbitChannel,
