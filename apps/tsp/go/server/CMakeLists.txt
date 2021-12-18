@@ -24,7 +24,7 @@ if (ASSFIRE_IN_SOURCE_GO_ENABLED)
 else ()
     set(ASSFIRE_TSP_SERVER_GO_MOD_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
-    foreach (file SOURCES)
+    foreach (file ${SOURCES})
         configure_file(${file} ${file})
     endforeach ()
 
