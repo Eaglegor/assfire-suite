@@ -7,7 +7,7 @@ import (
 )
 
 type InterruptSignalPublisher struct {
-	exchange *AmqpExchangeConnector
+	writer *AmqpWriter
 }
 
 func (publisher *InterruptSignalPublisher) sendSignal(taskId string, signal_type tsp.WorkerControlSignal_Type) error {
@@ -21,7 +21,7 @@ func (publisher *InterruptSignalPublisher) sendSignal(taskId string, signal_type
 		return fmt.Errorf("failed to serialize interrupt signal for task %s: %v", taskId, err)
 	}
 
-	return publisher.exchange.sendWithReconnect(msg)
+	return publisher.writer.send(msg)
 }
 
 func (publisher *InterruptSignalPublisher) sendInterrupt(taskId string) error {

@@ -1,9 +1,7 @@
 include(go_utils)
 
 set(SOURCES
-        amqp_connection_controller.go
-        amqp_exchange_connector.go
-        amqp_queue_connector.go
+        amqp_connector.go
         interrupt_signal_publisher.go
         main.go
         redis_connector.go

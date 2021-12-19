@@ -20,61 +20,62 @@ func createServer(
 
 	log.Infof("Creating TSP server...")
 
-	amqpConnection, err := createAmqpConnectionController(amqpHost, amqpPort, amqpUser, amqpPassword)
+	amqpConnector, err := createAmqpConnector(AmqpConnectorOptions{
+		amqpHost:     amqpHost,
+		amqpPort:     amqpPort,
+		amqpUser:     amqpUser,
+		amqpPassword: amqpPassword,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AMQP connection: %v", err)
+		return nil, fmt.Errorf("failed to create AMQP connector: %v", err)
 	}
 
-	taskChannel, err := amqpConnection.createChannel()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create AMQP task channel: %v", err)
-	}
-
-	taskExchange, err := taskChannel.createExchange(
-		TaskExchange,
-		amqp.ExchangeDirect,
-		true,
-		false,
-		false,
-		false,
-		nil,
-		TaskQueueName,
-		true,
-		false,
-		"text/plain",
+	taskWriter, err := amqpConnector.createWriter("TaskWriter",
+		AmqpWriterOptions{
+			exchangeName: TaskExchange,
+			exchangeType: amqp.ExchangeDirect,
+			durable:      true,
+			autoDelete:   false,
+			internal:     false,
+			noWait:       false,
+			args:         nil,
+			routingKey:   TaskQueueName,
+			mandatory:    true,
+			immediate:    false,
+			contentType:  "text/plain",
+		},
 	)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AMQP tasks exchange: %v", err)
+		return nil, fmt.Errorf("failed to create AMQP writer for publishing tasks: %v", err)
 	}
 
 	taskQueue := &TaskQueue{
-		exchange: taskExchange,
+		writer: taskWriter,
 	}
 
-	interruptChannel, err := amqpConnection.createChannel()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create AMQP interrupt channel: %v", err)
-	}
-
-	interruptExchange, err := interruptChannel.createExchange(
-		InterruptExchange,
-		amqp.ExchangeFanout,
-		false,
-		false,
-		false,
-		false,
-		nil,
-		"",
-		false,
-		false,
-		"text/plain",
+	interruptWriter, err := amqpConnector.createWriter("InterruptWriter",
+		AmqpWriterOptions{
+			exchangeName: InterruptExchange,
+			exchangeType: amqp.ExchangeFanout,
+			durable:      true,
+			autoDelete:   false,
+			internal:     false,
+			noWait:       false,
+			args:         nil,
+			routingKey:   "",
+			mandatory:    false,
+			immediate:    false,
+			contentType:  "text/plain",
+		},
 	)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AMQP interrupt exchange: %v", err)
+		return nil, fmt.Errorf("failed to create interrupt signal AMQP writer: %v", err)
 	}
 
 	interruptSignalPublisher := &InterruptSignalPublisher{
-		exchange: interruptExchange,
+		writer: interruptWriter,
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
@@ -85,37 +86,36 @@ func createServer(
 	redisConnector := &RedisConnector{redisClient}
 	taskStorage := &TaskStorage{redisConnector}
 
-	statusChannel, err := amqpConnection.createChannel()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create AMQP status channel: %v", err)
+	workerStatusListener := &WorkerStatusListener{
+		amqpConnector: amqpConnector,
 	}
-
-	workerStatusListener := &WorkerStatusListener{statusChannel}
 
 	statusProvider := &StatusProvider{
 		taskStorage:          taskStorage,
 		workerStatusListener: workerStatusListener,
 	}
 
-	statusEnforcerExchange, err := statusChannel.createExchange(
-		StatusExchangeName,
-		amqp.ExchangeFanout,
-		false,
-		false,
-		false,
-		false,
-		nil,
-		"",
-		false,
-		false,
-		"text/plain",
+	statusEnforcerWriter, err := amqpConnector.createWriter("StatusEnforcer",
+		AmqpWriterOptions{
+			exchangeName: StatusExchangeName,
+			exchangeType: amqp.ExchangeFanout,
+			durable:      true,
+			autoDelete:   false,
+			internal:     false,
+			noWait:       false,
+			args:         nil,
+			routingKey:   "",
+			mandatory:    false,
+			immediate:    false,
+			contentType:  "text/plain",
+		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create status enforcer exchange: %v", err)
+		return nil, fmt.Errorf("failed to create status enforcer writer: %v", err)
 	}
 
 	statusEnforcer := &StatusEnforcer{
-		exchange:    statusEnforcerExchange,
+		writer:      statusEnforcerWriter,
 		taskStorage: taskStorage,
 	}
 

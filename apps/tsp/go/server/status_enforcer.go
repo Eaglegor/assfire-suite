@@ -8,7 +8,7 @@ import (
 )
 
 type StatusEnforcer struct {
-	exchange    *AmqpExchangeConnector
+	writer      *AmqpWriter
 	taskStorage *TaskStorage
 }
 
@@ -30,5 +30,5 @@ func (enforcer *StatusEnforcer) enforceStatus(taskId string, status tsp.WorkerTs
 	if err != nil {
 		return fmt.Errorf("failed to serialize forced status update for %s: %v", taskId, err)
 	}
-	return enforcer.exchange.sendWithReconnect(msg)
+	return enforcer.writer.send(msg)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type WorkerStatusListener struct {
-	statusChannel *AmqpChannelController
+	amqpConnector *AmqpConnector
 }
 
 func (listener *WorkerStatusListener) subscribeForTaskUpdates(ctx context.Context, tasks []string) (<-chan *tsp.WorkerTspStatusUpdate, error) {
@@ -19,30 +19,48 @@ func (listener *WorkerStatusListener) subscribeForTaskUpdates(ctx context.Contex
 
 	log.Infof("Using consumer id %s", consumerId)
 	go func() {
-		queue, err := listener.statusChannel.createQueue("", false, true, false, false, nil, false, false, consumerId, "", StatusExchangeName)
+		reader, err := listener.amqpConnector.createReader(
+			consumerId,
+			AmqpReaderOptions{
+				queueName:    "",
+				exchangeName: StatusExchangeName,
+				durable:      false,
+				autoDelete:   true,
+				exclusive:    false,
+				noWait:       false,
+				args:         nil,
+				routingKey:   "",
+				consumerId:   consumerId,
+				autoAck:      false,
+				noLocal:      false,
+			})
+		defer func(amqpConnector *AmqpConnector, name string) {
+			err := amqpConnector.deleteReader(name)
+			if err != nil {
+				log.Errorf("Failed to delete reader %s", consumerId)
+			}
+		}(listener.amqpConnector, consumerId)
 		if err != nil {
-			log.Errorf("Failed to create queue for updating status: %v", err)
+			log.Errorf("Failed to create AMQP reader for updating status: %v", err)
 			close(ch)
 			return
 		}
-		wch, err := queue.consumeWithReconnect()
+		wch, err := reader.createChannel(consumerId)
 		if err != nil {
-			log.Errorf("Can't consume worker status updates: %v", err)
+			log.Errorf("Failed to consume AMQP worker status updates: %v", err)
 			close(ch)
 			return
 		}
 		for {
 			select {
 			case <-ctx.Done():
-				log.Infof("Consumer id is done: %s", consumerId)
 				close(ch)
-				err = queue.cancel()
-				if err != nil {
-					log.Errorf("Failed to cancel queue %s: %v", queue.queue.Name, err)
-				}
 				return
 			case update := <-wch:
-				err := queue.channelController.channel.Ack(update.DeliveryTag, false)
+				if update.Body == nil {
+					continue
+				}
+				err := reader.ack(update.DeliveryTag)
 				if err != nil {
 					log.Errorf("Failed to ack status update message: %v", err)
 				}

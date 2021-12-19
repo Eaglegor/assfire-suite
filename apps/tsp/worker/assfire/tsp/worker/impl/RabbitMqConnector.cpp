@@ -132,7 +132,7 @@ namespace assfire::tsp {
                 amqp_cstring_bytes(exchange_name.c_str()),
                 amqp_cstring_bytes(exchange_type.c_str()),
                 0,
-                0,
+                1,
                 auto_delete ? 1 : 0,
                 0,
                 amqp_empty_table
@@ -244,7 +244,7 @@ namespace assfire::tsp {
                 amqp_cstring_bytes(queue_name.c_str()),
                 0,
                 0,
-                0,
+                1,
                 auto_delete ? 1 : 0,
                 amqp_empty_table);
         reply = amqp_get_rpc_reply(connection);
@@ -294,7 +294,7 @@ namespace assfire::tsp {
                 amqp_cstring_bytes(exchange_name.c_str()),
                 amqp_cstring_bytes(exchange_type.c_str()),
                 0,
-                0,
+                1,
                 auto_delete ? 1 : 0,
                 0,
                 amqp_empty_table

@@ -7,7 +7,7 @@ import (
 )
 
 type TaskQueue struct {
-	exchange *AmqpExchangeConnector
+	writer *AmqpWriter
 }
 
 func (queue *TaskQueue) sendStartTaskSignal(taskId string) error {
@@ -17,5 +17,5 @@ func (queue *TaskQueue) sendStartTaskSignal(taskId string) error {
 		return fmt.Errorf("failed to serialize new task signal for %s: %v", taskId, err)
 	}
 
-	return queue.exchange.sendWithReconnect(msg)
+	return queue.writer.send(msg)
 }

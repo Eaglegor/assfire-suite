@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"sync"
+	"time"
 )
 
 type AmqpConnectorOptions struct {
@@ -71,6 +72,38 @@ func createConnection(options AmqpConnectorOptions) (*amqp.Connection, error) {
 	return amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d", options.amqpUser, options.amqpPassword, options.amqpHost, options.amqpPort))
 }
 
+func (connector *AmqpConnector) createChannel() (*amqp.Channel, error) {
+	return connector.connection.Channel()
+}
+
+func (connector *AmqpConnector) startReconnectLoop(connection *amqp.Connection, interval time.Duration) {
+	log.Infof("Scheduling AMQP reconnect loop with interval %v", interval)
+	ch := connection.NotifyClose(make(chan *amqp.Error))
+	for signal := range ch {
+		log.Errorf("AMQP connection broken: %v. Trying to reconnect", signal)
+
+		done := false
+
+		for !done {
+			conn, err := createConnection(connector.options)
+			if err != nil {
+				log.Errorf("Failed to reconnect AMQP connector: %v. Will retry in %v", err, interval)
+				time.Sleep(interval)
+				continue
+			}
+			err = connector.replaceConnection(conn)
+			if err != nil {
+				log.Errorf("Failed to replace connection in AMQP connector: %v. Will retry in %v", err, interval)
+				time.Sleep(interval)
+				continue
+			}
+			log.Infof("AMQP connection re-established")
+			done = true
+			go connector.startReconnectLoop(conn, interval)
+		}
+	}
+}
+
 func createAmqpConnector(options AmqpConnectorOptions) (*AmqpConnector, error) {
 	connector := &AmqpConnector{
 		mutex:   sync.Mutex{},
@@ -88,6 +121,8 @@ func createAmqpConnector(options AmqpConnectorOptions) (*AmqpConnector, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	go connector.startReconnectLoop(conn, time.Second*5)
 
 	return connector, nil
 }
@@ -123,27 +158,46 @@ func (connector *AmqpConnector) replaceConnection(connection *amqp.Connection) e
 }
 
 func (connector *AmqpConnector) createWriter(name string, options AmqpWriterOptions) (*AmqpWriter, error) {
+	log.Infof("Creating AMQP writer %s", name)
 	connector.mutex.Lock()
 	defer connector.mutex.Unlock()
 	if connector.writers[name] != nil {
 		return nil, fmt.Errorf("writer %s already exists", name)
 	}
 
-	connector.writers[name] = &AmqpWriter{
+	ch, err := connector.createChannel()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create AMQP channel for writer: %v", err)
+	}
+
+	writer := &AmqpWriter{
 		name:      name,
 		connector: connector,
 		options:   options,
 	}
-	return connector.writers[name], nil
+	err = writer.replaceChannel(ch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set new AMQP channel for writer: %v", err)
+	}
+
+	connector.writers[name] = writer
+	return writer, nil
 }
 
 func (connector *AmqpConnector) createReader(name string, options AmqpReaderOptions) (*AmqpReader, error) {
+	log.Infof("Creating AMQP reader %s", name)
 	connector.mutex.Lock()
 	defer connector.mutex.Unlock()
 	if connector.readers[name] != nil {
 		return nil, fmt.Errorf("reader %s already exists", name)
 	}
-	connector.readers[name] = &AmqpReader{
+
+	ch, err := connector.createChannel()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create AMQP channel for reader: %v", err)
+	}
+
+	reader := &AmqpReader{
 		mutex:        sync.RWMutex{},
 		name:         name,
 		connector:    connector,
@@ -151,10 +205,19 @@ func (connector *AmqpConnector) createReader(name string, options AmqpReaderOpti
 		downChannels: make(map[string]chan amqp.Delivery),
 		cancel:       make(chan *amqp.Channel),
 	}
-	return connector.readers[name], nil
+
+	err = reader.replaceChannel(ch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set new AMQP channel for reader: %v", err)
+	}
+
+	connector.readers[name] = reader
+
+	return reader, nil
 }
 
 func (connector *AmqpConnector) deleteWriter(name string) error {
+	log.Infof("Destroying AMQP writer %s", name)
 	connector.mutex.Lock()
 	defer connector.mutex.Unlock()
 	err := connector.writers[name].close()
@@ -166,6 +229,7 @@ func (connector *AmqpConnector) deleteWriter(name string) error {
 }
 
 func (connector *AmqpConnector) deleteReader(name string) error {
+	log.Infof("Destroying AMQP reader %s", name)
 	connector.mutex.Lock()
 	defer connector.mutex.Unlock()
 	err := connector.readers[name].close()
@@ -176,16 +240,22 @@ func (connector *AmqpConnector) deleteReader(name string) error {
 	return nil
 }
 
-func (reader *AmqpReader) createChannel(name string) <-chan amqp.Delivery {
+func (reader *AmqpReader) createChannel(name string) (<-chan amqp.Delivery, error) {
+	log.Infof("Creating AMQP reader channel %s/%s", reader.name, name)
 	reader.mutex.Lock()
 	defer reader.mutex.Unlock()
 
 	reader.downChannels[name] = make(chan amqp.Delivery)
-	return reader.downChannels[name]
+	return reader.downChannels[name], nil
+}
+
+func (reader *AmqpReader) ack(tag uint64) error {
+	return reader.upChannel.Ack(tag, false)
 }
 
 func (reader *AmqpReader) close() error {
-	return nil
+	err := reader.upChannel.Close()
+	return err
 }
 
 func (reader *AmqpReader) replaceChannel(channel *amqp.Channel) error {
@@ -197,6 +267,7 @@ func (reader *AmqpReader) replaceChannel(channel *amqp.Channel) error {
 }
 
 func (reader *AmqpReader) bind() error {
+	log.Infof("Binding queue for reader %s", reader.name)
 	_, err := reader.upChannel.QueueDeclare(
 		reader.options.queueName,
 		reader.options.durable,
@@ -244,6 +315,16 @@ func (reader *AmqpReader) bind() error {
 		return err
 	}
 
+	closeChannel := reader.upChannel.NotifyClose(make(chan *amqp.Error))
+	go func() {
+		for signal := range closeChannel {
+			log.Errorf("AMQP channel for %s broken: %v", reader.name, signal)
+			reader.cancel <- reader.upChannel
+			reader.upChannel = nil
+			<-reader.cancel
+		}
+	}()
+
 	go func() {
 		currentChan := reader.upChannel
 		for {
@@ -272,6 +353,7 @@ func (writer *AmqpWriter) replaceChannel(channel *amqp.Channel) error {
 }
 
 func (writer *AmqpWriter) bind() error {
+	log.Infof("Binding exchange for writer %s", writer.name)
 	err := writer.channel.ExchangeDeclare(
 		writer.options.exchangeName,
 		writer.options.exchangeType,
@@ -288,7 +370,7 @@ func (writer *AmqpWriter) bind() error {
 	return err
 }
 
-func (writer *AmqpWriter) write(msg []byte) error {
+func (writer *AmqpWriter) send(msg []byte) error {
 	return writer.channel.Publish(
 		writer.options.exchangeName,
 		writer.options.routingKey,
@@ -302,5 +384,5 @@ func (writer *AmqpWriter) write(msg []byte) error {
 }
 
 func (writer *AmqpWriter) close() error {
-	return nil
+	return writer.channel.Close()
 }

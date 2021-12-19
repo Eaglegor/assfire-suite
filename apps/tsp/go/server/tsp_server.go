@@ -153,6 +153,6 @@ func (server *TspServer) SubscribeForStatusUpdates(request *tsp.SubscribeForStat
 		}
 	}
 
-	log.Infof("Subscription %s disposed", subId)
+	log.Infof("Status subscription %s disposed", subId)
 	return nil
 }
