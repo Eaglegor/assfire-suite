@@ -42,8 +42,12 @@ func (listener *WorkerStatusListener) subscribeForTaskUpdates(ctx context.Contex
 				}
 				return
 			case update := <-wch:
+				err := queue.channelController.channel.Ack(update.DeliveryTag, false)
+				if err != nil {
+					log.Errorf("Failed to ack status update message: %v", err)
+				}
 				var parsedUpdate tsp.WorkerTspStatusUpdate
-				err := proto.Unmarshal(update.Body, &parsedUpdate)
+				err = proto.Unmarshal(update.Body, &parsedUpdate)
 				if err != nil {
 					log.Errorf("Failed to process worker status update: %v", err)
 				}

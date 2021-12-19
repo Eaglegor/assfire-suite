@@ -55,7 +55,7 @@ func (provider *StatusProvider) subscribeForStoredTaskStatus(ch chan *tsp.TspSta
 		go func() {
 			err := provider.taskStorage.forEachTaskKey(ctx, func(key string) {
 				status, err := provider.getLatestStatus(key)
-				if err != nil {
+				if err == nil {
 					ch <- status
 				} else {
 					ch <- provider.createInvalidStatus(key)

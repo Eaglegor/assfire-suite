@@ -25,6 +25,11 @@ func (server *TspServer) StartTsp(ctx context.Context, request *tsp.StartTspRequ
 	taskId := uuid.New().String()
 	log.Infof("Starting new task %s", taskId)
 
+	enforceError := server.statusEnforcer.enforceStatus(taskId, tsp.WorkerTspStatusUpdate_WORKER_TSP_STATUS_UPDATE_TYPE_PENDING)
+	if enforceError != nil {
+		log.Errorf("Failed to enforce pending status for task %s: %v", taskId, enforceError)
+	}
+
 	publishError := server.taskPublisher.publishTask(taskId, request.GetTask())
 	if publishError != nil {
 		log.Error(publishError)
