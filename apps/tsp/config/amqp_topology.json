@@ -1,0 +1,49 @@
+{
+  "Exchanges": [
+    {
+      "Name": "assfire.tsp.task",
+      "Type": "direct",
+      "PassiveDeclare": false,
+      "Durable": true,
+      "AutoDelete": false,
+      "InternalOnly": false,
+      "Nowait": false
+    },
+    {
+      "Name": "assfire.tsp.status",
+      "Type": "fanout",
+      "PassiveDeclare": false,
+      "Durable": false,
+      "AutoDelete": false,
+      "InternalOnly": false,
+      "Nowait": false
+    },
+    {
+      "Name": "assfire.tsp.interrupt",
+      "Type": "fanout",
+      "PassiveDeclare": false,
+      "Durable": true,
+      "AutoDelete": false,
+      "InternalOnly": false,
+      "NoWait": false
+    }
+  ],
+  "Queues": [
+    {
+      "Name": "assfire.tsp.task",
+      "PassiveDeclare": false,
+      "Durable": true,
+      "AutoDelete": false,
+      "Exclusive": false,
+      "NoWait": false
+    }
+  ],
+  "QueueBindings": [
+    {
+      "QueueName": "assfire.tsp.task",
+      "ExchangeName": "assfire.tsp.task",
+      "RoutingKey": "",
+      "NoWait": false
+    }
+  ]
+}
