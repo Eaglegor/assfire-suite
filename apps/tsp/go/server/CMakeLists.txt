@@ -40,6 +40,7 @@ define_go_executable_target(
         "google.golang.org/grpc v1.42.0"
         "github.com/golang/protobuf v1.5.2"
         "github.com/sirupsen/logrus v1.8.1"
+        "github.com/houseofcat/turbocookedrabbit/v2 v2.1.4"
         RPM_COMPONENT_NAME tsp-server
         GO_MOD_PATH ${ASSFIRE_TSP_SERVER_GO_MOD_PATH}
 )
