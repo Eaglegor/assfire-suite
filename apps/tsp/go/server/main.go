@@ -4,8 +4,8 @@ import (
 	"assfire.org/api/v1/tsp"
 	"flag"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 )
 
@@ -46,10 +46,10 @@ func main() {
 		log.Fatalf("Error while trying to initilize server: %v", err)
 	}
 
-	log.Println("Registering server handlers...")
+	log.Infoln("Registering server handlers...")
 	tsp.RegisterTspServiceServer(grpcServer, server)
 
-	log.Println("Starting accepting requests...")
+	log.Infoln("Starting accepting requests...")
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Fatalf("Server failed with error: %v", err)

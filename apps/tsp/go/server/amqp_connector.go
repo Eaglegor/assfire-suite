@@ -105,6 +105,7 @@ func (connector *AmqpConnector) startReconnectLoop(connection *amqp.Connection, 
 }
 
 func createAmqpConnector(options AmqpConnectorOptions) (*AmqpConnector, error) {
+	log.Infof("Creating AMQP connector to %s:%d", options.amqpHost, options.amqpPort)
 	connector := &AmqpConnector{
 		mutex:   sync.Mutex{},
 		options: options,
