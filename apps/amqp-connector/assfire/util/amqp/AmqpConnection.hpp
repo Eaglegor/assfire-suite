@@ -7,6 +7,7 @@
 #include <atomic>
 #include <unordered_map>
 #include <optional>
+#include <vector>
 #include "AmqpChannelPool.hpp"
 #include "AmqpConnectionOpts.hpp"
 #include "AmqpExchangeOpts.hpp"

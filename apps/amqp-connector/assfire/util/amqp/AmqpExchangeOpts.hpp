@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <amqp.h>
 
 namespace assfire::util {
     enum class AmqpExchangeType {

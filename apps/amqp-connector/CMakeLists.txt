@@ -6,10 +6,16 @@ set(HEADERS
         assfire/util/amqp/AmqpExchangeOpts.hpp
         assfire/util/amqp/AmqpQueueOpts.hpp
         assfire/util/amqp/AmqpQueueBinding.hpp
+        assfire/util/amqp/AmqpService.hpp
+        assfire/util/amqp/AmqpPublisher.hpp
+        assfire/util/amqp/AmqpPublisherOpts.hpp
+        assfire/util/amqp/AmqpConsumer.hpp
+        assfire/util/amqp/AmqpConsumerOpts.hpp
         )
 
 set(SOURCES
         assfire/util/amqp/AmqpConnection.cpp
+        assfire/util/amqp/AmqpService.cpp
         )
 
 find_package(rabbitmq-c CONFIG REQUIRED)
