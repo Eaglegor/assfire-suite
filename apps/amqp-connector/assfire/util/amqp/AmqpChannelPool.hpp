@@ -1,26 +1,25 @@
 #pragma once
 
+#include <amqp.h>
 #include "AmqpChannel.hpp"
 
 namespace assfire::util {
-    class ChannelRef {
+    class AmqpChannelPool {
     public:
-        const AmqpChannel &get() const {
-            return channel;
+        AmqpChannel recreateChannel(const AmqpChannel &channel) {
+            return AmqpChannel(connection, -1);
         }
 
-        int getId() const {
-            return channel.getId();
+        AmqpChannel takeChannel() {
+            return AmqpChannel(connection, -1);
+        }
+
+        void replaceConnection(amqp_connection_state_t new_connection){
+            this->connection = new_connection;
+            // [todo] Recreate channels
         }
 
     private:
-        AmqpChannel channel;
-    };
-
-    class AmqpChannelPool {
-    public:
-        void putChannel(AmqpChannel channel);
-
-        ChannelRef takeChannel();
+        amqp_connection_state_t connection = nullptr;
     };
 }

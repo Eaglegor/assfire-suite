@@ -11,11 +11,13 @@ set(HEADERS
         assfire/util/amqp/AmqpPublisherOpts.hpp
         assfire/util/amqp/AmqpConsumer.hpp
         assfire/util/amqp/AmqpConsumerOpts.hpp
+        assfire/util/amqp/AmqpError.hpp
         )
 
 set(SOURCES
         assfire/util/amqp/AmqpConnection.cpp
         assfire/util/amqp/AmqpService.cpp
+        assfire/util/amqp/AmqpChannel.cpp
         )
 
 find_package(rabbitmq-c CONFIG REQUIRED)

@@ -22,13 +22,13 @@ namespace assfire::util {
 
         ~AmqpConnection();
 
-        bool connect();
+        void connect();
 
-        bool declareExchange(const std::string &name, const AmqpExchangeOpts &exchange_opts);
+        void declareExchange(const std::string &name, const AmqpExchangeOpts &exchange_opts);
 
-        bool declareQueue(const std::string &name, const AmqpQueueOpts &queue_opts);
+        std::string declareQueue(const std::string &name, const AmqpQueueOpts &queue_opts);
 
-        bool bindQueue(const AmqpQueueBinding &queue_binding);
+        void bindQueue(const AmqpQueueBinding &queue_binding);
 
     private:
         enum class State {
@@ -37,8 +37,9 @@ namespace assfire::util {
             CONNECTED
         };
 
-        bool ensureConnected();
-        ChannelRef takeChannel();
+        AmqpChannel takeChannel();
+
+        AmqpChannel recoverChannel(const AmqpError &error, const AmqpChannel &channel);
 
         std::string name;
         AmqpConnectionOpts options;
