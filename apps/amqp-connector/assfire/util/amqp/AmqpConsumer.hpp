@@ -2,19 +2,24 @@
 
 #include <functional>
 #include "AmqpConsumerOpts.hpp"
+#include "AmqpChannel.hpp"
+#include "AmqpConnection.hpp"
 
-namespace assfire::util {
-    class AmqpConsumer {
+namespace assfire::util
+{
+    class AmqpConsumer
+    {
     public:
-        using MessageProcessor = std::function<bool>(const char *);
+        AmqpConsumer(const std::string &name, const AmqpConsumerOpts &options, AmqpConnection &connection)
+                : name(name), options(options), connection(connection) {}
 
-        AmqpConsumer(const AmqpConsumerOpts &options) : options(options) {}
-
-        void consume(MessageProcessor process) {
+        void consumeMessage(AmqpChannel::MessageCallback process) {
 
         }
 
     private:
+        std::string name;
         AmqpConsumerOpts options;
+        AmqpConnection &connection;
     };
 }

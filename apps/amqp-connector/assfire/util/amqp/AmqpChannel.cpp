@@ -1,8 +1,22 @@
 #include "AmqpChannel.hpp"
+#include <chrono>
 #include <spdlog/spdlog.h>
+#include <crossguid/guid.hpp>
 
-namespace assfire::util {
-    AmqpChannel::AmqpChannel(amqp_connection_state_t connection, int channel_id) :
+#if WIN32
+
+#include <WinSock2.h>
+
+#else
+#include <sys/time.h>
+#endif
+
+using namespace std::literals::chrono_literals;
+
+namespace assfire::util
+{
+    AmqpChannel::AmqpChannel(amqp_connection_state_t connection, int channel_id)
+            :
             connection(connection),
             channel_id(channel_id) {
 
@@ -23,7 +37,7 @@ namespace assfire::util {
         }
     }
 
-    void AmqpChannel::declareExchange(const AmqpExchangeOpts &exchange_opts) {
+    void AmqpChannel::declareExchange(const AmqpExchangeOpts &exchange_opts) const {
         amqp_exchange_declare(
                 connection,
                 channel_id,
@@ -42,7 +56,7 @@ namespace assfire::util {
         }
     }
 
-    std::string AmqpChannel::declareQueue(const AmqpQueueOpts &queue_opts) {
+    std::string AmqpChannel::declareQueue(const AmqpQueueOpts &queue_opts) const {
         auto result = amqp_queue_declare(
                 connection,
                 channel_id,
@@ -61,7 +75,7 @@ namespace assfire::util {
         return static_cast<const char *>(result->queue.bytes);
     }
 
-    void AmqpChannel::bindQueue(const AmqpQueueBinding &queue_binding) {
+    void AmqpChannel::bindQueue(const AmqpQueueBinding &queue_binding) const {
         amqp_queue_bind(
                 connection,
                 channel_id,
@@ -71,6 +85,137 @@ namespace assfire::util {
                 queue_binding.amqpArgs()
         );
 
+        auto rpl = amqp_get_rpc_reply(connection);
+        if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
+            throw amqp_exception(AmqpError::fromReply(rpl));
+        }
+    }
+
+    void AmqpChannel::publish(const std::string &bytes, const AmqpEnvelopeOpts &options) const {
+        auto props = options.amqpProperties();
+        amqp_bytes_t message_bytes;
+        message_bytes.len = bytes.length();
+        message_bytes.bytes = const_cast<void *>(static_cast<const void *>(bytes.c_str()));
+        auto result = amqp_basic_publish(
+                connection,
+                channel_id,
+                options.bytesExchangeName(),
+                options.bytesRoutingKey(),
+                options.mandatory,
+                options.immediate,
+                props.get(),
+                message_bytes
+        );
+
+        if (result != AMQP_STATUS_OK) {
+            if (result == AMQP_STATUS_CONNECTION_CLOSED ||
+                result == AMQP_STATUS_SSL_ERROR ||
+                result == AMQP_STATUS_SOCKET_ERROR ||
+                result == AMQP_STATUS_TCP_ERROR) {
+                throw amqp_exception(AmqpError(AmqpErrorType::CONNECTION_CLOSED, amqp_error_string2(result)));
+            }
+            throw amqp_exception(AmqpError(AmqpErrorType::UNKNOWN, amqp_error_string2(result)));
+        }
+    }
+
+    std::string AmqpChannel::subscribe(const AmqpSubscriptionOpts &options) const {
+        std::string consumer_id = xg::newGuid().str();
+        auto result = amqp_basic_consume(
+                connection,
+                channel_id,
+                options.bytesQueueName(),
+                amqp_cstring_bytes(consumer_id.c_str()),
+                options.intNoLocal(),
+                options.inNoAck(),
+                options.inExclusive(),
+                options.amqpArgs()
+        );
+
+        auto rpl = amqp_get_rpc_reply(connection);
+        if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
+            throw amqp_exception(AmqpError::fromReply(rpl));
+        }
+
+        return {
+                static_cast<const char *>(result->consumer_tag.bytes),
+                result->consumer_tag.len
+        };
+    }
+
+    void AmqpChannel::consumeMessage(AmqpChannel::MessageCallback callback) const {
+        consumeMessage(callback, 0ms);
+    }
+
+    void AmqpChannel::consumeMessage(AmqpChannel::MessageCallback callback, std::chrono::milliseconds timeout) const {
+        amqp_envelope_t envelope;
+
+        timeval *timeout_value_ptr = nullptr;
+        timeval timeout_value{};
+        if (timeout != 0ms) {
+            auto sec = std::chrono::duration_cast<std::chrono::seconds>(timeout);
+            timeout_value.tv_sec = sec.count();
+            timeout_value.tv_usec = std::chrono::duration_cast<std::chrono::microseconds>(timeout - sec).count();
+            timeout_value_ptr = &timeout_value;
+        }
+
+
+        auto rpl = amqp_consume_message(
+                connection,
+                &envelope,
+                timeout_value_ptr,
+                0
+        );
+
+        if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
+            throw amqp_exception(AmqpError::fromReply(rpl));
+        }
+
+        AmqpDelivery delivery(envelope.message.body.bytes, envelope.message.body.len);
+
+        callback(delivery);
+
+        switch (delivery.getAckStatus()) {
+            case AmqpDelivery::AckStatus::NACK: {
+                amqp_basic_nack(
+                        connection,
+                        channel_id,
+                        envelope.delivery_tag,
+                        false,
+                        delivery.intShouldRequeue()
+                );
+
+                rpl = amqp_get_rpc_reply(connection);
+                if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
+                    throw amqp_exception(AmqpError::fromReply(rpl));
+                }
+
+                break;
+            }
+            case AmqpDelivery::AckStatus::ACK: {
+                amqp_basic_ack(
+                        connection,
+                        channel_id,
+                        envelope.delivery_tag,
+                        false
+                );
+
+                rpl = amqp_get_rpc_reply(connection);
+                if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
+                    throw amqp_exception(AmqpError::fromReply(rpl));
+                };
+
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+        amqp_destroy_envelope(&envelope);
+    }
+
+    void AmqpChannel::unsubscribe(const std::string &consumer_id) const {
+        amqp_basic_cancel(connection, channel_id, amqp_cstring_bytes(consumer_id.c_str()));
         auto rpl = amqp_get_rpc_reply(connection);
         if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
             throw amqp_exception(AmqpError::fromReply(rpl));

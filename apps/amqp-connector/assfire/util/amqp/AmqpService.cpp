@@ -13,12 +13,4 @@ namespace assfire::util {
     bool AmqpService::bindQueue(const AmqpQueueBinding &queue_binding) {
         return false;
     }
-
-    AmqpConsumer AmqpService::createConsumer(const AmqpConsumerOpts &consumer_opts) {
-        return AmqpConsumer(consumer_opts);
-    }
-
-    AmqpPublisher AmqpService::createPublisher(const AmqpPublisherOpts &publisher_opts) {
-        return AmqpPublisher(publisher_opts);
-    }
 }

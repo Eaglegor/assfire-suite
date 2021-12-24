@@ -18,10 +18,6 @@ namespace assfire::util {
 
         bool bindQueue(const AmqpQueueBinding &queue_binding);
 
-        AmqpConsumer createConsumer(const AmqpConsumerOpts &consumer_opts);
-
-        AmqpPublisher createPublisher(const AmqpPublisherOpts &publisher_opts);
-
     private:
     };
 }

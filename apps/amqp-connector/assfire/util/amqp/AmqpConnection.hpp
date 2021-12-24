@@ -8,15 +8,20 @@
 #include <unordered_map>
 #include <optional>
 #include <vector>
+#include <functional>
+#include <utility>
 #include "AmqpChannelPool.hpp"
 #include "AmqpConnectionOpts.hpp"
 #include "AmqpExchangeOpts.hpp"
 #include "AmqpQueueOpts.hpp"
 #include "AmqpChannel.hpp"
 #include "AmqpQueueBinding.hpp"
+#include "AmqpEnvelopeOpts.hpp"
 
-namespace assfire::util {
-    class AmqpConnection {
+namespace assfire::util
+{
+    class AmqpConnection
+    {
     public:
         AmqpConnection(const std::string &name, const AmqpConnectionOpts &options);
 
@@ -30,14 +35,31 @@ namespace assfire::util {
 
         void bindQueue(const AmqpQueueBinding &queue_binding);
 
+        void publish(const std::string &bytes, const AmqpEnvelopeOpts &options);
+
+        std::string subscribe(const AmqpSubscriptionOpts &options);
+
+        void consumeMessage(const std::string &consumer_id, AmqpChannel::MessageCallback callback);
+
+        void consumeMessage(const std::string &consumer_id, AmqpChannel::MessageCallback callback, std::chrono::milliseconds timeout);
+
+        void unsubscribe(const std::string &consumer_id);
+
     private:
-        enum class State {
+        enum class State
+        {
             NOT_CONNECTED,
             CONNECTING,
             CONNECTED
         };
 
+        void executeWithAutoReconnect(const AmqpChannel &channel, std::function<void(const AmqpChannel &)>);
+
+        void executeWithAutoReconnect(std::function<void(const AmqpChannel &)>);
+
         AmqpChannel takeChannel();
+
+        void recycleChannel(AmqpChannel channel);
 
         AmqpChannel recoverChannel(const AmqpError &error, const AmqpChannel &channel);
 
@@ -54,5 +76,6 @@ namespace assfire::util {
         std::unordered_map<std::string, std::string> queue_name_mappings;
         std::vector<AmqpQueueBinding> bound_queues;
         AmqpChannelPool channels;
+        std::unordered_map<std::string, std::pair<AmqpSubscriptionOpts, AmqpChannel>> subscriptions;
     };
 }
