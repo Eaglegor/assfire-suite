@@ -12,6 +12,7 @@ set(SOURCES
         assfire/tsp/worker/impl/RedisSavedStateManager.cpp assfire/tsp/worker/impl/TspWorkerKeys.cpp)
 
 set(HEADERS
+        TspAmqpTopology.hpp
         assfire/tsp/worker/SolutionPublisher.hpp
         assfire/tsp/worker/TaskProcessor.hpp
         assfire/tsp/worker/impl/StdoutSolutionPublisher.hpp

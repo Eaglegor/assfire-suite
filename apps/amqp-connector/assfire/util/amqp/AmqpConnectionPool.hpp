@@ -63,8 +63,6 @@ namespace assfire::util
 
         std::string declareQueue(const std::string &name, const AmqpQueueOpts &queue_opts);
 
-        void releaseQueue(const std::string &name);
-
         void bindQueue(const AmqpQueueBinding &queue_binding);
 
         PublisherRef createPublisher(const std::string &name, const AmqpPublisherOpts &opts);

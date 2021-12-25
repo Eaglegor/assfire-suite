@@ -11,7 +11,8 @@ namespace assfire::util
     {
         UNKNOWN,
         CONNECTION_CLOSED,
-        CHANNEL_CLOSED
+        CHANNEL_CLOSED,
+        TIMEOUT
     };
 
     struct AmqpError
@@ -28,23 +29,35 @@ namespace assfire::util
 
                 case AMQP_RESPONSE_LIBRARY_EXCEPTION: {
                     SPDLOG_DEBUG("Internal AMQP library exception: {}", amqp_error_string2(reply.library_error));
-                    return {AmqpErrorType::UNKNOWN, amqp_error_string2(reply.library_error)};
+                    switch(reply.library_error) {
+                        case AMQP_STATUS_TIMEOUT:
+                            return {AmqpErrorType::TIMEOUT, amqp_error_string2(reply.library_error)};
+                        case AMQP_STATUS_SOCKET_ERROR:
+                        case AMQP_STATUS_TCP_ERROR:
+                        case AMQP_STATUS_SSL_ERROR:
+                        case AMQP_STATUS_CONNECTION_CLOSED:
+                        case AMQP_STATUS_SOCKET_CLOSED:
+                        case AMQP_STATUS_SSL_CONNECTION_FAILED:
+                            return {AmqpErrorType::CONNECTION_CLOSED, amqp_error_string2(reply.library_error)};
+                        default:
+                            return {AmqpErrorType::UNKNOWN, amqp_error_string2(reply.library_error)};
+                    }
                 }
 
                 case AMQP_RESPONSE_SERVER_EXCEPTION: {
                     switch (reply.reply.id) {
                         case AMQP_CONNECTION_CLOSE_METHOD: {
                             auto reply_decoded = static_cast<amqp_connection_close_t *>(reply.reply.decoded);
-                            SPDLOG_DEBUG("AMQP server exception (connection closed): error code {} ({})", reply_decoded->reply_code, static_cast<const char *>(reply_decoded->reply_text.bytes));
+                            SPDLOG_ERROR("AMQP server exception (connection closed): error code {} ({})", reply_decoded->reply_code, static_cast<const char *>(reply_decoded->reply_text.bytes));
                             return {AmqpErrorType::CONNECTION_CLOSED, static_cast<const char *>(reply_decoded->reply_text.bytes)};
                         }
                         case AMQP_CHANNEL_CLOSE_METHOD: {
                             auto reply_decoded = static_cast<amqp_channel_close_t *>(reply.reply.decoded);
-                            SPDLOG_DEBUG("AMQP server exception (channel closed): error code {} ({})", reply_decoded->reply_code, static_cast<const char *>(reply_decoded->reply_text.bytes));
+                            SPDLOG_ERROR("AMQP server exception (channel closed): error code {} ({})", reply_decoded->reply_code, static_cast<const char *>(reply_decoded->reply_text.bytes));
                             return {AmqpErrorType::CHANNEL_CLOSED, static_cast<const char *>(reply_decoded->reply_text.bytes)};
                         }
                         default: {
-                            SPDLOG_DEBUG("Unknown AMQP server exception");
+                            SPDLOG_ERROR("Unknown AMQP server exception");
                             return {AmqpErrorType::UNKNOWN, "Unknown AMQP server exception"};
                         }
                     }
@@ -63,10 +76,10 @@ namespace assfire::util
     class amqp_exception : public std::runtime_error
     {
     public:
-        explicit amqp_exception(const AmqpError &error)
+        explicit amqp_exception(AmqpError error)
                 :
                 std::runtime_error(error.message),
-                error(error) {}
+                error(std::move(error)) {}
 
         amqp_exception(const amqp_exception &rhs) noexcept = default;
 

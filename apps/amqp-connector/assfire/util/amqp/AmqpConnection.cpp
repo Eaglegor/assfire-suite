@@ -13,7 +13,7 @@ namespace assfire::util
     static const auto RECONNECT_BACKOFF_INTERVAL = 5s;
 
     AmqpConnection::AmqpConnection(const std::string &name, const AmqpConnectionOpts &options)
-            : name(name), options(options), state(State::NOT_CONNECTED) {
+            : name(name), options(options), state(State::NOT_CONNECTED), channels(name) {
     }
 
     AmqpConnection::~AmqpConnection() {
@@ -35,7 +35,7 @@ namespace assfire::util
                 throw amqp_exception(AmqpError(AmqpErrorType::UNKNOWN, "failed to open amqp socket"));
             }
 
-            amqp_rpc_reply_t rpl = amqp_login(new_connection, "/", 0, 0, 0, AMQP_SASL_METHOD_PLAIN, options.login.c_str(), options.password.c_str());
+            amqp_rpc_reply_t rpl = amqp_login(new_connection, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, options.login.c_str(), options.password.c_str());
             if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
                 throw amqp_exception(AmqpError::fromReply(rpl));
             }
@@ -205,10 +205,9 @@ namespace assfire::util
                         if (i == RECONNECT_BACKOFF_ATTEMPTS - 1) throw e;
                     }
                 }
-            case AmqpErrorType::UNKNOWN:
             default:
-                SPDLOG_ERROR("Failed to recover AMQP channel {}/{} after error: {}", name, channel.getId());
-                throw amqp_exception(AmqpError(AmqpErrorType::UNKNOWN, "Failed to recover AMQP channel after error"));
+                // Couldn't recover channel
+                return channel;
         }
     }
 

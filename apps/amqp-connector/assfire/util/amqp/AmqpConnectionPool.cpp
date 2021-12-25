@@ -4,7 +4,6 @@
 
 namespace assfire::util
 {
-
     AmqpConnectionPool::PublisherRef AmqpConnectionPool::createPublisher(const std::string &name, const AmqpPublisherOpts &opts) {
         auto connection = takeConnection();
         auto &connection_ref = *connection;
@@ -54,8 +53,4 @@ namespace assfire::util
 
     AmqpConnectionPool::AmqpConnectionPool(AmqpConnectionOpts options)
             : options(std::move(options)) {}
-
-    void AmqpConnectionPool::releaseQueue(const std::string &name) {
-        // [todo]
-    }
 }

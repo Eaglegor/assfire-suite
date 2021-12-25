@@ -16,7 +16,7 @@
 #include <assfire/tsp/worker/Worker.hpp>
 #include "assfire/tsp/worker/impl/RedisConnectionCallback.hpp"
 #include "assfire/util/amqp/AmqpConnectionPool.hpp"
-
+#include "TspAmqpTopology.hpp"
 
 #include <cpp_redis/core/client.hpp>
 #include <numeric>
@@ -145,13 +145,16 @@ int main(int argc, char **argv) {
                                 .withPassword(amqp_password)
                 );
 
+        SPDLOG_INFO("Declaring AMQP topology");
+        assfire::tsp::declareTopology(*amqp_connection_pool);
+
         SPDLOG_INFO("Creating task queue listener");
         std::unique_ptr<assfire::tsp::TaskQueueListener> task_queue_listener =
                 std::make_unique<assfire::tsp::AmqpTaskQueueListener>("TaskQueueListener", *amqp_connection_pool);
 
         SPDLOG_INFO("Creating status publisher");
         std::unique_ptr<assfire::tsp::StatusPublisher> status_publisher =
-                std::make_unique<assfire::tsp::AmqpStatusPublisher>("StatusPubilsher", *amqp_connection_pool);
+                std::make_unique<assfire::tsp::AmqpStatusPublisher>("StatusPublisher", *amqp_connection_pool);
 
         SPDLOG_INFO("Creating interrupt listener");
         std::unique_ptr<assfire::tsp::InterruptListener> interrupt_listener =

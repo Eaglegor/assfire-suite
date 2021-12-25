@@ -16,28 +16,12 @@ using namespace std::literals::chrono_literals;
 namespace assfire::util
 {
     AmqpChannel::AmqpChannel(amqp_connection_state_t connection, int channel_id)
-            :
-            connection(connection),
-            channel_id(channel_id) {
-
-        amqp_channel_open(connection, channel_id);
-
-        auto reply = amqp_get_rpc_reply(connection);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            SPDLOG_ERROR("Failed to open channel {}: {}", channel_id, AmqpError::fromReply(reply).message);
-        }
-    }
-
-    AmqpChannel::~AmqpChannel() {
-        amqp_channel_close(connection, channel_id, AMQP_REPLY_SUCCESS);
-
-        auto reply = amqp_get_rpc_reply(connection);
-        if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-            SPDLOG_ERROR("Failed to close channel {}, {}", channel_id, AmqpError::fromReply(reply).message);
-        }
+            : connection(connection),
+              channel_id(channel_id) {
     }
 
     void AmqpChannel::declareExchange(const AmqpExchangeOpts &exchange_opts) const {
+        SPDLOG_INFO("Declaring exchange {}", exchange_opts.name);
         amqp_exchange_declare(
                 connection,
                 channel_id,
@@ -57,6 +41,7 @@ namespace assfire::util
     }
 
     std::string AmqpChannel::declareQueue(const AmqpQueueOpts &queue_opts) const {
+        SPDLOG_INFO("Declaring queue {}", queue_opts.name.empty() ? "<auto_name>" : queue_opts.name);
         auto result = amqp_queue_declare(
                 connection,
                 channel_id,
@@ -76,6 +61,7 @@ namespace assfire::util
     }
 
     void AmqpChannel::bindQueue(const AmqpQueueBinding &queue_binding) const {
+        SPDLOG_INFO("Binding queue {} to exchange {}", queue_binding.queue_name, queue_binding.exchange_name);
         amqp_queue_bind(
                 connection,
                 channel_id,
@@ -124,6 +110,7 @@ namespace assfire::util
     }
 
     std::string AmqpChannel::subscribe(const std::string &consumer_id, const AmqpSubscriptionOpts &options) const {
+        SPDLOG_INFO("Subscribing consumer {} to queue {}", consumer_id, options.queue_name);
         auto result = amqp_basic_consume(
                 connection,
                 channel_id,
@@ -161,7 +148,6 @@ namespace assfire::util
             timeout_value.tv_usec = std::chrono::duration_cast<std::chrono::microseconds>(timeout - sec).count();
             timeout_value_ptr = &timeout_value;
         }
-
 
         auto rpl = amqp_consume_message(
                 connection,
@@ -219,6 +205,7 @@ namespace assfire::util
     }
 
     void AmqpChannel::unsubscribe(const std::string &consumer_id) const {
+        SPDLOG_INFO("Unsubscribing consumer {}", consumer_id);
         amqp_basic_cancel(connection, channel_id, amqp_cstring_bytes(consumer_id.c_str()));
         auto rpl = amqp_get_rpc_reply(connection);
         if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
@@ -231,6 +218,7 @@ namespace assfire::util
     }
 
     void AmqpChannel::deleteQueue(const std::string &queue, bool if_unused, bool if_empty) const {
+        SPDLOG_INFO("Deleting queue {}", queue);
         amqp_queue_delete(
                 connection,
                 channel_id,

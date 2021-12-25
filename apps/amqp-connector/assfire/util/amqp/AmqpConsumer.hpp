@@ -15,14 +15,16 @@ namespace assfire::util
         AmqpConsumer(const std::string &name, const AmqpConsumerOpts &options, AmqpConnection &connection)
                 : name(name), options(options), connection(connection) {}
 
+        AmqpConsumer(const AmqpConsumer& rhs) = delete;
+
         void consumeMessage(AmqpChannel::MessageCallback process) {
             if (consumer_id.empty()) subscribe();
-            connection.consumeMessage(name, process);
+            connection.consumeMessage(consumer_id, process);
         }
 
         void consumeMessage(AmqpChannel::MessageCallback process, std::chrono::milliseconds timeout) {
             if (consumer_id.empty()) subscribe();
-            connection.consumeMessage(name, process, timeout);
+            connection.consumeMessage(consumer_id, process, timeout);
         }
 
         ~AmqpConsumer() {
@@ -33,7 +35,7 @@ namespace assfire::util
 
                     }
                 } catch (const amqp_exception &e) {
-                    SPDLOG_ERROR("Failed to unsubscribe AQMP consumer {}, consumer_id: {}", name, consumer_id);
+                    SPDLOG_ERROR("Failed to unsubscribe AQMP consumer {}, consumer_id = {}: {}", name, consumer_id, e.what());
                 }
             }
         }

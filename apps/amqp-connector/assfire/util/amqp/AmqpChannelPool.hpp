@@ -11,12 +11,13 @@ namespace assfire::util
     class AmqpChannelPool
     {
     public:
-        AmqpChannelPool()
-                : connection(nullptr), channel_counter(0) {}
+        AmqpChannelPool(std::string name)
+                : name(std::move(name)), connection(nullptr), channel_counter(1) {}
 
         AmqpChannel recreateChannel(const AmqpChannel &channel) {
-            openChannel(channel.getId());
-            return channel;
+            auto new_channel = takeChannel();
+            SPDLOG_INFO("Channel {}/{} was replaced with channel {}/{}", name, channel.getId(), name, new_channel.getId());
+            return new_channel;
         }
 
         AmqpChannel takeChannel() {
@@ -25,8 +26,9 @@ namespace assfire::util
                 openChannel(channel_id);
                 return {connection, channel_id};
             }
-
-            return AmqpChannel(connection, -1);
+            AmqpChannel ch = channels.front();
+            channels.pop();
+            return ch;
         }
 
         void recycleChannel(AmqpChannel channel) {
@@ -42,24 +44,28 @@ namespace assfire::util
         }
 
         virtual ~AmqpChannelPool() {
-            while(!channels.empty()) {
+            while (!channels.empty()) {
                 AmqpChannel c = channels.front();
                 channels.pop();
                 try {
                     closeChannel(c.getId());
-                } catch (const amqp_exception& e) {
-                    SPDLOG_WARN("Failed to close AMQP channel {}", c.getId());
+                } catch (const amqp_exception &e) {
+                    SPDLOG_WARN("Failed to close AMQP channel {}: {}", c.getId(), e.what());
                 }
             }
         }
 
     private:
         void openChannel(int channel_id) {
+            SPDLOG_INFO("Trying to open AMQP channel {}/{}", name, channel_id);
             amqp_channel_open(connection, channel_id);
             amqp_rpc_reply_t reply = amqp_get_rpc_reply(connection);
             if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-                throw amqp_exception(AmqpError::fromReply(reply));
+                AmqpError error = AmqpError::fromReply(reply);
+                SPDLOG_ERROR("Failed to open AMQP channel {}/{}: {}", name, channel_id, error.message);
+                throw amqp_exception(std::move(error));
             }
+            SPDLOG_INFO("Successfully opened AMQP channel {}/{}", name, channel_id);
         }
 
         void closeChannel(int channel_id) {
@@ -69,6 +75,7 @@ namespace assfire::util
             }
         }
 
+        std::string name;
         amqp_connection_state_t connection;
         std::queue<AmqpChannel> channels;
         std::atomic_int channel_counter;

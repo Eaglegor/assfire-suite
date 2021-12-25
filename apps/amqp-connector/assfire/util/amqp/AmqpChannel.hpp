@@ -20,8 +20,6 @@ namespace assfire::util
 
         AmqpChannel(amqp_connection_state_t connection, int channel_id);
 
-        virtual ~AmqpChannel();
-
         int getId() const;
 
         void declareExchange(const AmqpExchangeOpts &exchange_opts) const;

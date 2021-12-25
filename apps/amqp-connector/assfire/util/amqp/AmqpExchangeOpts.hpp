@@ -22,13 +22,13 @@ namespace assfire::util {
         const char* stringType() const {
             switch (type) {
                 case AmqpExchangeType::Direct:
-                    return "amq.direct";
+                    return "direct";
                 case AmqpExchangeType::Topic:
-                    return "amq.topic";
+                    return "topic";
                 case AmqpExchangeType::Fanout:
-                    return "amq.fanout";
+                    return "fanout";
             }
-            return "amq.direct"; // [todo] default?
+            return "direct"; // [todo] default?
         }
 
         amqp_bytes_t bytesName() const {

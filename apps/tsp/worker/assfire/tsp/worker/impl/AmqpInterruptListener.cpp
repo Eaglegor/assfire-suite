@@ -13,7 +13,7 @@ namespace assfire::tsp
     using namespace std::literals::chrono_literals;
 
     AmqpInterruptListener::AmqpInterruptListener(std::string name, util::AmqpConnectionPool &connection_pool)
-            : name(name), connection_pool(connection_pool) {}
+            : name(name), connection_pool(connection_pool), interrupted(false) {}
 
     void AmqpInterruptListener::startListening() {
         control_state = std::async(std::launch::async, [&]() {
@@ -68,7 +68,7 @@ namespace assfire::tsp
                     }
 
                     delivery.ack();
-                }, 5000ms);
+                });
             }
         });
     }
