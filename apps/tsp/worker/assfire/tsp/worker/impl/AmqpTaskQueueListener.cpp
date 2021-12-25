@@ -1,24 +1,34 @@
 #include "AmqpTaskQueueListener.hpp"
+
+#include <utility>
 #include "assfire/api/v1/tsp/worker.pb.h"
 #include "TspWorkerConstants.hpp"
+#include "assfire/util/amqp/AmqpProtoParse.hpp"
 
-namespace assfire::tsp {
-    AmqpTaskQueueListener::AmqpTaskQueueListener(std::unique_ptr<RabbitMqConnector> rabbit_mq_connector)
-            : rabbit_mq_connector(std::move(rabbit_mq_connector)) {}
+namespace assfire::tsp
+{
+    using WorkerTask = api::v1::tsp::WorkerTask;
+
+    AmqpTaskQueueListener::AmqpTaskQueueListener(std::string name,
+                                                 util::AmqpConnectionPool &connection_pool)
+            : name(std::move(name)), connection_pool(connection_pool) {}
 
     void AmqpTaskQueueListener::startListening() {
-        listener = std::make_unique<RabbitMqConnector::Listener>(rabbit_mq_connector->listen(
-                TSP_WORKER_AMQP_TASK_QUEUE_NAME,
-                TSP_WORKER_AMQP_TASK_EXCHANGE,
-                TSP_WORKER_AMQP_TASK_CHANNEL));
+        consumer = connection_pool.createConsumer(name, {
+                {
+                        TSP_WORKER_AMQP_TASK_QUEUE_NAME,
+                        false,
+                        false,
+                        false
+                }
+        });
     }
 
     std::string AmqpTaskQueueListener::nextTask() {
         std::string result;
-        listener->next([&](const amqp_envelope_t &envelope) {
-            api::v1::tsp::WorkerTask worker_task;
-            worker_task.ParseFromArray(envelope.message.body.bytes, envelope.message.body.len);
-            result = worker_task.task_id();
+        consumer->consumeMessage([&](util::AmqpDelivery &delivery) {
+            result = delivery.parse<WorkerTask>(util::AmqpProtoParse<WorkerTask>()).task_id();
+            delivery.ack();
         });
         return result;
     }

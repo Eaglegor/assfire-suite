@@ -28,6 +28,8 @@ namespace assfire::util
 
         std::string declareQueue(const AmqpQueueOpts &queue_opts) const;
 
+        void deleteQueue(const std::string& queue, bool if_unused, bool if_empty) const;
+
         void bindQueue(const AmqpQueueBinding &queue_binding) const;
 
         void publish(const std::string &bytes, const AmqpEnvelopeOpts &options) const;

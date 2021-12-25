@@ -31,7 +31,6 @@ set(HEADERS
         assfire/tsp/worker/impl/AmqpTaskQueueListener.hpp
         assfire/tsp/worker/impl/RedisSavedStateManager.hpp assfire/tsp/worker/impl/TspWorkerKeys.hpp assfire/tsp/worker/impl/RedisConnectionCallback.hpp assfire/tsp/worker/impl/RedisConnectionCallback.cpp)
 
-find_package(rabbitmq-c CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(civetweb CONFIG REQUIRED) # Required by prometheus
@@ -42,13 +41,8 @@ find_cpp_redis_vcpkg()
 
 add_executable(assfire-tsp-worker ${SOURCES} ${HEADERS})
 
-if (WIN32)
-    set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq rabbitmq::rabbitmq-static)
-else ()
-    set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq-static)
-endif ()
 
-target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis cxxopts::cxxopts crossguid ${RABBIT_MQ_TARGETS})
+target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis cxxopts::cxxopts crossguid assfire-amqp-connector)
 
 install(TARGETS assfire-tsp-worker COMPONENT tsp-worker)
 if (ASSFIRE_RPM_ENABLED)

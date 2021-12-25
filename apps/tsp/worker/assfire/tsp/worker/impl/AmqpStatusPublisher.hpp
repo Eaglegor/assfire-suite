@@ -6,11 +6,12 @@
 #include <mutex>
 #include "RabbitMqConnector.hpp"
 #include "assfire/tsp/worker/StatusPublisher.hpp"
+#include "assfire/util/amqp/AmqpConnectionPool.hpp"
 
 namespace assfire::tsp {
     class AmqpStatusPublisher : public StatusPublisher {
     public:
-        AmqpStatusPublisher(std::unique_ptr<RabbitMqConnector> rabbit_mq_connector);
+        AmqpStatusPublisher(std::string name, util::AmqpConnectionPool& connection_pool);
 
         void release(const std::string &task_id) override;
 
@@ -27,11 +28,12 @@ namespace assfire::tsp {
         void publishNewSolution(std::string &task_id, const TspCost &cost, const TspValidationResult &validation_result) override;
 
     private:
+        std::string name;
+        util::AmqpConnectionPool& connection_pool;
         std::mutex publishers_lock;
-        RabbitMqConnector::Publisher getPublisher(const std::string &task_id);
+        util::AmqpConnectionPool::PublisherRef& getPublisher(const std::string &task_id);
         void releasePublisher(const std::string &task_id);
 
-        std::unique_ptr<RabbitMqConnector> rabbit_mq_connector;
-        std::unordered_map<std::string, RabbitMqConnector::Publisher> publishers;
+        std::unordered_map<std::string, util::AmqpConnectionPool::PublisherRef> publishers;
     };
 }

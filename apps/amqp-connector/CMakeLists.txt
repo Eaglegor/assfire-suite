@@ -14,6 +14,7 @@ set(HEADERS
         assfire/util/amqp/AmqpConnectionPool.hpp
         assfire/util/amqp/AmqpDelivery.hpp
         assfire/util/amqp/AmqpSubscriptionOpts.hpp
+        assfire/util/amqp/AmqpProtoParse.hpp
         )
 
 set(SOURCES
@@ -24,6 +25,7 @@ set(SOURCES
 
 find_package(rabbitmq-c CONFIG REQUIRED)
 find_package(crossguid CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 add_library(assfire-amqp-connector ${SOURCES} ${HEADERS})
 
@@ -33,5 +35,5 @@ else ()
     set(RABBIT_MQ_TARGETS rabbitmq::rabbitmq-static)
 endif ()
 
-target_link_libraries(assfire-amqp-connector PRIVATE crossguid ${RABBIT_MQ_TARGETS})
+target_link_libraries(assfire-amqp-connector PRIVATE crossguid ${RABBIT_MQ_TARGETS} spdlog::spdlog)
 target_include_directories(assfire-amqp-connector PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -31,6 +31,7 @@ namespace assfire::util
 
             int status = amqp_socket_open(new_socket, options.host.c_str(), options.port);
             if (status != AMQP_STATUS_OK) {
+                SPDLOG_ERROR("Error while trying to open AMQP socket: {}", amqp_error_string2(status));
                 throw amqp_exception(AmqpError(AmqpErrorType::UNKNOWN, "failed to open amqp socket"));
             }
 
@@ -40,7 +41,7 @@ namespace assfire::util
             }
 
             return new_connection;
-        } catch (const std::exception &e) {
+        } catch (const amqp_exception &e) {
             if (new_connection) {
                 amqp_destroy_connection(new_connection);
             }
@@ -69,6 +70,17 @@ namespace assfire::util
         }
 
         return actual_name;
+    }
+
+    void AmqpConnection::releaseQueue(const std::string &name) {
+        const auto &opts = declared_queues.at(name);
+        if (!opts.auto_delete) {
+            executeWithAutoReconnect([&](const auto &ch) {
+                ch.deleteQueue(name, true, false);
+            });
+        }
+        queue_name_mappings.erase(name);
+        declared_queues.erase(name);
     }
 
     void AmqpConnection::bindQueue(const AmqpQueueBinding &queue_binding) {
@@ -201,8 +213,14 @@ namespace assfire::util
     }
 
     void AmqpConnection::connect() {
-        SPDLOG_INFO("Connecting {} to AMQP broker", name);
-        replaceConnection(createConnection());
+        SPDLOG_INFO("Trying to establish connection to AMQP broker at {}:{}, ({})", options.host, options.port, name);
+        try {
+            replaceConnection(createConnection());
+        } catch (const amqp_exception &e) {
+            SPDLOG_ERROR("Failed to establish connection to AMQP broker ({}): {}", name, e.what());
+            throw e;
+        }
+        SPDLOG_INFO("Successfully connected to AMQP broker ({})", name);
         state = State::CONNECTED;
     }
 
@@ -219,6 +237,9 @@ namespace assfire::util
         }
 
         // Recreate bindings
+        std::remove_if(bound_queues.begin(), bound_queues.end(), [&](const auto &bnd) {
+            return !declared_queues.contains(bnd.queue_name);
+        });
         for (const auto &binding: bound_queues) {
             bindQueue(binding);
         }

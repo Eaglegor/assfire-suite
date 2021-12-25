@@ -31,6 +31,8 @@ namespace assfire::util
 
         std::string declareQueue(const std::string &name, const AmqpQueueOpts &queue_opts);
 
+        void releaseQueue(const std::string& name);
+
         void bindQueue(const AmqpQueueBinding &queue_binding);
 
         void publish(const std::string &bytes, const AmqpEnvelopeOpts &options);
@@ -76,7 +78,7 @@ namespace assfire::util
         std::mutex mtx;
         std::atomic<State> state;
         amqp_socket_t *socket = nullptr;
-        amqp_connection_state_t connection;
+        amqp_connection_state_t connection = nullptr;
 
         std::unordered_map<std::string, AmqpExchangeOpts> declared_exchanges;
         std::unordered_map<std::string, AmqpQueueOpts> declared_queues;

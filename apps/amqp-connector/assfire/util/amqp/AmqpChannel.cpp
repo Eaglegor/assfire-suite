@@ -229,4 +229,19 @@ namespace assfire::util
     int AmqpChannel::getId() const {
         return channel_id;
     }
+
+    void AmqpChannel::deleteQueue(const std::string &queue, bool if_unused, bool if_empty) const {
+        amqp_queue_delete(
+                connection,
+                channel_id,
+                amqp_cstring_bytes(queue.c_str()),
+                if_unused ? 1 : 0,
+                if_empty ? 1 : 0
+        );
+
+        auto rpl = amqp_get_rpc_reply(connection);
+        if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
+            throw amqp_exception(AmqpError::fromReply(rpl));
+        }
+    }
 }

@@ -29,6 +29,9 @@ namespace assfire::util
             if (!consumer_id.empty()) {
                 try {
                     unsubscribe();
+                    if(options.release_queue) {
+
+                    }
                 } catch (const amqp_exception &e) {
                     SPDLOG_ERROR("Failed to unsubscribe AQMP consumer {}, consumer_id: {}", name, consumer_id);
                 }

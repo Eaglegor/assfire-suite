@@ -15,6 +15,8 @@
 #include <assfire/tsp/worker/impl/RedisSavedStateManager.hpp>
 #include <assfire/tsp/worker/Worker.hpp>
 #include "assfire/tsp/worker/impl/RedisConnectionCallback.hpp"
+#include "assfire/util/amqp/AmqpConnectionPool.hpp"
+
 
 #include <cpp_redis/core/client.hpp>
 #include <numeric>
@@ -133,36 +135,27 @@ int main(int argc, char **argv) {
         std::unique_ptr<assfire::tsp::TaskProvider> task_provider =
                 std::make_unique<assfire::tsp::RedisTaskProvider>(std::move(redis_client));
 
-        SPDLOG_INFO("Creating AMQP connector for task queue listener");
-        std::unique_ptr<RabbitMqConnector> amqp_connector =
-                std::make_unique<RabbitMqConnector>("TaskQueueListener");
+        SPDLOG_INFO("Creating AMQP connection pool");
+        std::unique_ptr<assfire::util::AmqpConnectionPool> amqp_connection_pool =
+                std::make_unique<assfire::util::AmqpConnectionPool>(
+                        assfire::util::AmqpConnectionOpts()
+                                .withHost(amqp_host)
+                                .withPort(amqp_port)
+                                .withLogin(amqp_login)
+                                .withPassword(amqp_password)
+                );
 
-        SPDLOG_INFO("Connecting AMQP connector for task queue listener to RabbitMQ server");
-        amqp_connector->connect(amqp_host, amqp_port, amqp_login, amqp_password);
-
-        SPDLOG_INFO("Connecting task queue listener");
+        SPDLOG_INFO("Creating task queue listener");
         std::unique_ptr<assfire::tsp::TaskQueueListener> task_queue_listener =
-                std::make_unique<assfire::tsp::AmqpTaskQueueListener>(std::move(amqp_connector));
-
-        SPDLOG_INFO("Creating AMQP connector for status publisher");
-        amqp_connector = std::make_unique<RabbitMqConnector>("StatusPublisher");
-
-        SPDLOG_INFO("Connecting AMQP connector for status publisher to RabbitMQ server");
-        amqp_connector->connect(amqp_host, amqp_port, amqp_login, amqp_password);
+                std::make_unique<assfire::tsp::AmqpTaskQueueListener>("TaskQueueListener", *amqp_connection_pool);
 
         SPDLOG_INFO("Creating status publisher");
         std::unique_ptr<assfire::tsp::StatusPublisher> status_publisher =
-                std::make_unique<assfire::tsp::AmqpStatusPublisher>(std::move(amqp_connector));
-
-        SPDLOG_INFO("Creating AMQP connector for interrupt listener");
-        amqp_connector = std::make_unique<RabbitMqConnector>("InterruptListener");
-
-        SPDLOG_INFO("Connecting AMQP connector for interrupt listener to RabbitMQ server");
-        amqp_connector->connect(amqp_host, amqp_port, amqp_login, amqp_password);
+                std::make_unique<assfire::tsp::AmqpStatusPublisher>("StatusPubilsher", *amqp_connection_pool);
 
         SPDLOG_INFO("Creating interrupt listener");
         std::unique_ptr<assfire::tsp::InterruptListener> interrupt_listener =
-                std::make_unique<assfire::tsp::AmqpInterruptListener>(std::move(amqp_connector));
+                std::make_unique<assfire::tsp::AmqpInterruptListener>("InterruptListener", *amqp_connection_pool);
 
         SPDLOG_INFO("Creating worker");
         std::unique_ptr<assfire::tsp::Worker> worker =

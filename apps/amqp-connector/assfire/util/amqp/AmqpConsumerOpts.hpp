@@ -6,5 +6,6 @@
 namespace assfire::util {
     struct AmqpConsumerOpts {
         AmqpSubscriptionOpts subscription_opts;
+        bool release_queue;
     };
 }

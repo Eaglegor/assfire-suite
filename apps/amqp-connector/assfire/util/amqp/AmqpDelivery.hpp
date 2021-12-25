@@ -7,6 +7,9 @@ namespace assfire::util
     class AmqpDelivery
     {
     public:
+        template<typename T>
+        using MessageConsumer = std::function<T(void *, int)>;
+
         enum class AckStatus
         {
             NONE,
@@ -18,7 +21,7 @@ namespace assfire::util
                 : data(data), len(len) {}
 
         template<typename T>
-        T parse(std::function<T(void *, int)> parseFunc) {
+        T parse(MessageConsumer<T> parseFunc) {
             return parseFunc(data, len);
         }
 

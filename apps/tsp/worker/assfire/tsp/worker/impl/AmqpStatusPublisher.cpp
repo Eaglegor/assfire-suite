@@ -4,18 +4,19 @@
 #include "assfire/api/v1/tsp/translators/TspValidationResultTranslator.hpp"
 #include "TspWorkerConstants.hpp"
 #include "TspWorkerKeys.hpp"
+#include "assfire/util/amqp/AmqpProtoEncode.hpp"
 
-namespace assfire::tsp {
+namespace assfire::tsp
+{
+    using WorkerStatusUpdate = assfire::api::v1::tsp::WorkerTspStatusUpdate;
 
-    AmqpStatusPublisher::AmqpStatusPublisher(std::unique_ptr<RabbitMqConnector> rabbit_mq_connector)
-            : rabbit_mq_connector(std::move(rabbit_mq_connector)) {}
+    AmqpStatusPublisher::AmqpStatusPublisher(std::string name, util::AmqpConnectionPool &connection_pool)
+            : name(std::move(name)), connection_pool(connection_pool) {}
 
-    namespace {
-        void publish(RabbitMqConnector::Publisher publisher, const assfire::api::v1::tsp::WorkerTspStatusUpdate &update) {
-            void *msg = malloc(update.ByteSizeLong());
-            update.SerializeToArray(msg, update.ByteSizeLong());
-            publisher.publish(msg, update.ByteSizeLong());
-            free(msg);
+    namespace
+    {
+        void publish(util::AmqpConnectionPool::PublisherRef &publisher, const WorkerStatusUpdate &update) {
+            publisher->publish<WorkerStatusUpdate>(update, util::AmqpProtoEncode<WorkerStatusUpdate>());
         }
     }
 
@@ -67,27 +68,29 @@ namespace assfire::tsp {
         publish(getPublisher(task_id), update);
     }
 
-    RabbitMqConnector::Publisher AmqpStatusPublisher::getPublisher(const std::string &task_id) {
+    util::AmqpConnectionPool::PublisherRef &AmqpStatusPublisher::getPublisher(const std::string &task_id) {
         {
             std::lock_guard<std::mutex> lock(publishers_lock);
             auto iter = publishers.find(task_id);
             if (iter != publishers.end()) return iter->second;
         }
 
-        RabbitMqConnector::Publisher publisher = rabbit_mq_connector->publish(
-                task_id,
-                TSP_WORKER_AMQP_STATUS_EXCHANGE,
-                TSP_WORKER_AMQP_STATUS_EXCHANGE_TYPE,
-                TSP_WORKER_AMQP_STATUS_CHANNEL,
-                false
-        );
+        auto publisher =
+                connection_pool.createPublisher(name + "/" + task_id, {
+                        {
+                                TSP_WORKER_AMQP_STATUS_EXCHANGE,
+                                "",
+                                false,
+                                false
+                        }
+                });
 
         {
             std::lock_guard<std::mutex> lock(publishers_lock);
-            publishers.emplace(task_id, publisher);
+            publishers[task_id] = std::move(publisher);
         }
 
-        return publisher;
+        return publishers[task_id];
     }
 
     void AmqpStatusPublisher::releasePublisher(const std::string &task_id) {
