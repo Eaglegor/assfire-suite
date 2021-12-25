@@ -20,6 +20,7 @@ namespace assfire::util
         std::lock_guard<std::mutex> guard(mtx);
         if (connections.empty()) {
             auto conn = std::make_shared<AmqpConnection>(xg::newGuid().str(), options);
+            conn->createConnection();
             return conn;
         } else {
             auto conn = std::move(connections.front());

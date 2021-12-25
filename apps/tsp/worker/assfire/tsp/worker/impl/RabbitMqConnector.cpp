@@ -58,8 +58,8 @@ namespace assfire::tsp {
             SPDLOG_INFO("Connecting to RabbitMQ at {}:{} ({})", host, port, name);
             int status = amqp_socket_open(socket, host.c_str(), port);
             if (status != AMQP_STATUS_OK) {
-                SPDLOG_ERROR("Failed to connect to RabbitMQ: {} ({})", amqp_error_string2(status), name);
-                throw std::runtime_error("Failed to connect to RabbitMQ");
+                SPDLOG_ERROR("Failed to createConnection to RabbitMQ: {} ({})", amqp_error_string2(status), name);
+                throw std::runtime_error("Failed to createConnection to RabbitMQ");
             }
 
             SPDLOG_INFO("Logging in to RabbitMQ as {} ({})", login.c_str(), name);

@@ -25,7 +25,7 @@ namespace assfire::tsp {
                 client.expire(key, SOLUTION_EXPIRY_PERIOD_SECONDS);
                 client.sync_commit();
             } catch (std::exception &e) {
-                SPDLOG_ERROR("Couldn't connect to Redis storage to save results: {}", e.what());
+                SPDLOG_ERROR("Couldn't createConnection to Redis storage to save results: {}", e.what());
             }
         }
     }

@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
             .show_positional_help();
 
     args_template.add_options()
-            (ENDPOINT, "Endpoint to connect to", cxxopts::value<std::string>()->default_value("localhost:50051"))
+            (ENDPOINT, "Endpoint to createConnection to", cxxopts::value<std::string>()->default_value("localhost:50051"))
             (ACTION, "Action to take (start/stop/pause/resume/listen)", cxxopts::value<std::string>())
             (TASK_ID, "Task id to apply action to", cxxopts::value<std::string>()->default_value("<none>"));
 

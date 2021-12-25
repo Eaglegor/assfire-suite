@@ -55,11 +55,13 @@ namespace assfire::util {
         std::string message;
     };
 
-    class amqp_exception : public std::exception {
+    class amqp_exception : public std::runtime_error {
     public:
-        amqp_exception(const AmqpError &error) :
-                exception(error.message.c_str()),
+        explicit amqp_exception(const AmqpError &error) :
+                std::runtime_error(error.message.c_str()),
                 error(error) {}
+
+        amqp_exception(const amqp_exception& rhs) noexcept = default;
 
         const AmqpError &getError() const {
             return error;

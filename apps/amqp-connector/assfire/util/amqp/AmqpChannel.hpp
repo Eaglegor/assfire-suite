@@ -22,6 +22,8 @@ namespace assfire::util
 
         virtual ~AmqpChannel();
 
+        int getId() const;
+
         void declareExchange(const AmqpExchangeOpts &exchange_opts) const;
 
         std::string declareQueue(const AmqpQueueOpts &queue_opts) const;
@@ -31,6 +33,7 @@ namespace assfire::util
         void publish(const std::string &bytes, const AmqpEnvelopeOpts &options) const;
 
         std::string subscribe(const AmqpSubscriptionOpts &options) const;
+        std::string subscribe(const std::string& consumer_id, const AmqpSubscriptionOpts &options) const;
 
         void consumeMessage(MessageCallback callback) const;
         void consumeMessage(MessageCallback callback, std::chrono::milliseconds timeout) const;

@@ -41,8 +41,8 @@ int main(int argc, char **argv)
             (METRICS_EXPOSER_URI, "Prometheus exposer URI", cxxopts::value<std::string>()->default_value("/metrics"))
             (METRICS_EXPOSER_THREADS_COUNT, "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"))
             (ROUTER_HOST, "Assfire Router server host", cxxopts::value<std::string>()->default_value("http://localhost"))
-            (ROUTER_PORT, "Assfire Router port to connect to", cxxopts::value<int>()->default_value("50051"))
-            (ROUTER_USE_SSL, "If true, SSL will be used to connect to the Assfire Router", cxxopts::value<bool>()->default_value("false"));
+            (ROUTER_PORT, "Assfire Router port to createConnection to", cxxopts::value<int>()->default_value("50051"))
+            (ROUTER_USE_SSL, "If true, SSL will be used to createConnection to the Assfire Router", cxxopts::value<bool>()->default_value("false"));
 
     auto options = args_template.parse(argc, argv);
 

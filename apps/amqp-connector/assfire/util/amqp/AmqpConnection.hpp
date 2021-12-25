@@ -27,8 +27,6 @@ namespace assfire::util
 
         ~AmqpConnection();
 
-        void connect();
-
         void declareExchange(const std::string &name, const AmqpExchangeOpts &exchange_opts);
 
         std::string declareQueue(const std::string &name, const AmqpQueueOpts &queue_opts);
@@ -46,12 +44,15 @@ namespace assfire::util
         void unsubscribe(const std::string &consumer_id);
 
     private:
-        enum class State
-        {
-            NOT_CONNECTED,
-            CONNECTING,
-            CONNECTED
-        };
+        void connect();
+
+        amqp_connection_state_t createConnection() const;
+
+        void replaceConnection(amqp_connection_state_t new_connection);
+
+        std::string subscribe(const std::string &consumer_id, const AmqpSubscriptionOpts &options);
+
+        void recreateTopology();
 
         void executeWithAutoReconnect(const AmqpChannel &channel, std::function<void(const AmqpChannel &)>);
 
@@ -62,6 +63,12 @@ namespace assfire::util
         void recycleChannel(AmqpChannel channel);
 
         AmqpChannel recoverChannel(const AmqpError &error, const AmqpChannel &channel);
+
+        enum class State {
+            NOT_CONNECTED,
+            CONNECTED,
+            RECONNECTING
+        };
 
         std::string name;
         AmqpConnectionOpts options;

@@ -120,6 +120,10 @@ namespace assfire::util
 
     std::string AmqpChannel::subscribe(const AmqpSubscriptionOpts &options) const {
         std::string consumer_id = xg::newGuid().str();
+        return subscribe(consumer_id, options);
+    }
+
+    std::string AmqpChannel::subscribe(const std::string &consumer_id, const AmqpSubscriptionOpts &options) const {
         auto result = amqp_basic_consume(
                 connection,
                 channel_id,
@@ -220,5 +224,9 @@ namespace assfire::util
         if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
             throw amqp_exception(AmqpError::fromReply(rpl));
         }
+    }
+
+    int AmqpChannel::getId() const {
+        return channel_id;
     }
 }
