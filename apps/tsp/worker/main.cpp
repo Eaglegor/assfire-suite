@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
             (METRICS_EXPOSER_BIND_ADDRESS, "Prometheus exposer binding address", cxxopts::value<std::string>()->default_value("0.0.0.0:8081"))
             (METRICS_EXPOSER_URI, "Prometheus exposer URI", cxxopts::value<std::string>()->default_value("/metrics"))
             (METRICS_EXPOSER_THREADS_COUNT, "Prometheus exposer threads count", cxxopts::value<std::size_t>()->default_value("1"))
-            (ROUTER_HOST, "Assfire Router server host", cxxopts::value<std::string>()->default_value("http://localhost"))
+            (ROUTER_HOST, "Assfire Router server host", cxxopts::value<std::string>()->default_value("localhost"))
             (ROUTER_PORT, "Assfire Router port to createConnection to", cxxopts::value<int>()->default_value("50051"))
             (ROUTER_USE_SSL, "If true, SSL will be used to createConnection to the Assfire Router", cxxopts::value<bool>()->default_value("false"))
             (REDIS_HOST, "Redis host address", cxxopts::value<std::string>()->default_value("127.0.0.1"))

@@ -47,7 +47,7 @@ namespace assfire::tsp
         connection_pool.bindQueue({
                                           TSP_WORKER_AMQP_TASK_QUEUE_NAME,
                                           TSP_WORKER_AMQP_TASK_EXCHANGE,
-                                          ""
+                                          TSP_WORKER_AMQP_TASK_QUEUE_NAME
                                   });
     }
 }

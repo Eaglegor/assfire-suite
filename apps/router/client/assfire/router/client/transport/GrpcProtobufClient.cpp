@@ -6,21 +6,20 @@
 
 using namespace assfire::router;
 
-GrpcProtobufClient::GrpcProtobufClient(const std::string &server_host, Port server_port, bool use_ssl)
-{
+GrpcProtobufClient::GrpcProtobufClient(const std::string &server_host, Port server_port, bool use_ssl) {
     std::shared_ptr<grpc::ChannelCredentials> credentials;
     if (use_ssl) {
         credentials = grpc::SslCredentials(grpc::SslCredentialsOptions());
     } else {
         credentials = grpc::InsecureChannelCredentials();
     }
+    SPDLOG_INFO("Creating router grpc channel for {}:{}", server_host, server_port);
 
-    channel = grpc::CreateChannel(server_host + ": " + std::to_string(server_port), credentials);
+    channel = grpc::CreateChannel(server_host + ":" + std::to_string(server_port), credentials);
     stub = assfire::api::v1::router::RouterService::NewStub(channel);
 }
 
-GrpcProtobufClient::GetSingleRouteResponse GrpcProtobufClient::getRoute(const GetSingleRouteRequest &request) const
-{
+GrpcProtobufClient::GetSingleRouteResponse GrpcProtobufClient::getRoute(const GetSingleRouteRequest &request) const {
     grpc::ClientContext client_context;
     GetSingleRouteResponse response;
 
@@ -34,8 +33,7 @@ GrpcProtobufClient::GetSingleRouteResponse GrpcProtobufClient::getRoute(const Ge
     return response;
 }
 
-void GrpcProtobufClient::getRoutesBatch(const GetRoutesBatchRequest &request, const RoutesBatchConsumer &consumer) const
-{
+void GrpcProtobufClient::getRoutesBatch(const GetRoutesBatchRequest &request, const RoutesBatchConsumer &consumer) const {
     grpc::ClientContext client_context;
     GetRoutesBatchResponse response;
 
@@ -52,15 +50,14 @@ void GrpcProtobufClient::getRoutesBatch(const GetRoutesBatchRequest &request, co
     }
 }
 
-void GrpcProtobufClient::getRoutesBatch(const RequestSupplier &request_supplier, const RoutesBatchConsumer &consumer) const
-{
+void GrpcProtobufClient::getRoutesBatch(const RequestSupplier &request_supplier, const RoutesBatchConsumer &consumer) const {
     grpc::ClientContext client_context;
     GetRoutesBatchResponse response;
 
     std::unique_ptr<grpc::ClientReaderWriter<GetRoutesBatchRequest, GetRoutesBatchResponse>> reader_writer = stub->GetStreamingRoutesBatch(&client_context);
-    std::future<void> f = std::async(std::launch::async, [&](){
+    std::future<void> f = std::async(std::launch::async, [&]() {
         GetRoutesBatchRequest request;
-        while(request_supplier(request) && reader_writer->Write(request));
+        while (request_supplier(request) && reader_writer->Write(request));
         reader_writer->WritesDone();
     });
     while (reader_writer->Read(&response)) {

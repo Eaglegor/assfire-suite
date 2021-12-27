@@ -99,7 +99,7 @@ func createServer(
 		AmqpWriterOptions{
 			exchangeName: StatusExchangeName,
 			exchangeType: amqp.ExchangeFanout,
-			durable:      true,
+			durable:      false,
 			autoDelete:   false,
 			internal:     false,
 			noWait:       false,
