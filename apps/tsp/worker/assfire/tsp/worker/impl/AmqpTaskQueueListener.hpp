@@ -16,7 +16,7 @@ namespace assfire::tsp
 
         void startListening() override;
 
-        std::string nextTask() override;
+        void nextTask(NewTaskProcessor process) override;
 
     private:
         std::string name;

@@ -15,9 +15,9 @@ namespace assfire::tsp {
 
         std::optional<TspTask> retrieveTask(const std::string &task_id) override;
 
-        bool isFinished(std::string &task_id) override;
+        bool isFinished(const std::string &task_id) override;
 
-        bool isPaused(std::string &task_id) override;
+        bool isPaused(const std::string &task_id) override;
 
         bool tryLock(const std::string &task_id) override;
 

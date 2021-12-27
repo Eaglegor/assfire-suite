@@ -29,6 +29,8 @@ namespace assfire::tsp
                     }
             );
 
+            SPDLOG_DEBUG("{} - declared queue = {}", name, queue_name);
+
             connection_pool.bindQueue({
                                               queue_name,
                                               TSP_WORKER_AMQP_INTERRUPT_EXCHANGE,
@@ -46,29 +48,33 @@ namespace assfire::tsp
             });
 
             while (!interrupted) {
-                consumer->consumeMessage([&](util::AmqpDelivery &delivery) {
-                    auto signal = delivery.parse<WorkerSignal>(util::AmqpProtoParse<WorkerSignal>());
-                    SignalProcessor process;
-                    {
-                        std::lock_guard<std::mutex> guard(processors_lock);
-                        auto processor_iter = processors.find(signal.task_id());
-                        if (processor_iter == processors.end()) return;
-                        process = processor_iter->second;
-                    }
+                try {
+                    consumer->consumeMessage([&](util::AmqpDelivery &delivery) {
+                        auto signal = delivery.parse<WorkerSignal>(util::AmqpProtoParse<WorkerSignal>());
+                        SignalProcessor process;
+                        {
+                            std::lock_guard<std::mutex> guard(processors_lock);
+                            auto processor_iter = processors.find(signal.task_id());
+                            if (processor_iter == processors.end()) return;
+                            process = processor_iter->second;
+                        }
 
-                    switch (signal.signal_type()) {
-                        case assfire::api::v1::tsp::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_PAUSE:
-                            process(InterruptListener::PAUSE);
-                            break;
-                        case assfire::api::v1::tsp::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT:
-                            process(InterruptListener::INTERRUPT);
-                            break;
-                        default:
-                            SPDLOG_WARN("Unknown control signal received for task {}: {}", signal.task_id(), static_cast<int>(signal.signal_type()));
-                    }
+                        switch (signal.signal_type()) {
+                            case assfire::api::v1::tsp::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_PAUSE:
+                                process(InterruptListener::PAUSE);
+                                break;
+                            case assfire::api::v1::tsp::WorkerControlSignal::WORKER_CONTROL_SIGNAL_TYPE_INTERRUPT:
+                                process(InterruptListener::INTERRUPT);
+                                break;
+                            default:
+                                SPDLOG_WARN("Unknown control signal received for task {}: {}", signal.task_id(), static_cast<int>(signal.signal_type()));
+                        }
 
-                    delivery.ack();
-                });
+                        delivery.ack();
+                    });
+                } catch (const std::exception& e) {
+                    SPDLOG_ERROR("Error occurred on interrupt signal consume loop for {}: {}", name, e.what());
+                }
             }
         });
     }

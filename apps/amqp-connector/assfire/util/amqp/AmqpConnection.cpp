@@ -9,7 +9,7 @@ using namespace std::literals::chrono_literals;
 namespace assfire::util
 {
 
-    static const int RECONNECT_BACKOFF_ATTEMPTS = 5;
+    static const int RECONNECT_BACKOFF_ATTEMPTS = 20;
     static const auto RECONNECT_BACKOFF_INTERVAL = 5s;
 
     AmqpConnection::AmqpConnection(const std::string &name, const AmqpConnectionOpts &options)
@@ -24,6 +24,9 @@ namespace assfire::util
         amqp_connection_state_t new_connection = nullptr;
         try {
             new_connection = amqp_new_connection();
+            if (!new_connection) {
+                throw amqp_exception(AmqpError(AmqpErrorType::UNKNOWN, "failed to create amqp connection"));
+            }
             amqp_socket_t *new_socket = amqp_tcp_socket_new(new_connection);
             if (!new_socket) {
                 throw amqp_exception(AmqpError(AmqpErrorType::UNKNOWN, "failed to create amqp socket"));
@@ -37,7 +40,9 @@ namespace assfire::util
 
             amqp_rpc_reply_t rpl = amqp_login(new_connection, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, options.login.c_str(), options.password.c_str());
             if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
-                throw amqp_exception(AmqpError::fromReply(rpl));
+                AmqpError error = AmqpError::fromReply(rpl);
+                SPDLOG_ERROR("Error while trying to login to AMQP broker: {}", error.message);
+                throw amqp_exception(error);
             }
 
             return new_connection;
@@ -54,7 +59,7 @@ namespace assfire::util
             ch.declareExchange(exchange_opts);
         });
 
-        declared_exchanges.emplace(name, exchange_opts);
+        declared_exchanges[name] = exchange_opts;
     }
 
     std::string AmqpConnection::declareQueue(const std::string &name, const AmqpQueueOpts &queue_opts) {
@@ -64,12 +69,14 @@ namespace assfire::util
             actual_name = ch.declareQueue(queue_opts);
         });
 
-        declared_queues.emplace(name, queue_opts);
+        SPDLOG_DEBUG("Declared queue: {}->{}", name, actual_name);
+
+        declared_queues[name] = queue_opts;
         if (actual_name != name) {
-            queue_name_mappings.emplace(name, actual_name);
+            queue_name_mappings[name] = actual_name;
         }
 
-        return actual_name;
+        return name;
     }
 
     void AmqpConnection::releaseQueue(const std::string &name) {
@@ -85,9 +92,7 @@ namespace assfire::util
 
     void AmqpConnection::bindQueue(const AmqpQueueBinding &queue_binding) {
         AmqpQueueBinding mapped_binding(queue_binding);
-        if (queue_name_mappings.contains(queue_binding.queue_name)) {
-            mapped_binding.queue_name = queue_name_mappings.at(queue_binding.queue_name);
-        }
+        mapped_binding.queue_name = resolveQueueName(queue_binding.queue_name);
 
         executeWithAutoReconnect([&](const auto &ch) {
             ch.bindQueue(mapped_binding);
@@ -105,23 +110,29 @@ namespace assfire::util
     std::string AmqpConnection::subscribe(const AmqpSubscriptionOpts &options) {
         auto channel = takeChannel();
 
+        AmqpSubscriptionOpts mapped_options(options);
+        mapped_options.queue_name = resolveQueueName(options.queue_name);
+
         std::string consumer_id;
         executeWithAutoReconnect(channel, [&](const auto &ch) {
-            consumer_id = ch.subscribe(options);
+            consumer_id = ch.subscribe(mapped_options);
         });
 
-        subscriptions.emplace(consumer_id, std::make_pair(options, channel));
+        subscriptions[consumer_id] = std::make_pair(options, channel);
         return consumer_id;
     }
 
     std::string AmqpConnection::subscribe(const std::string &consumer_id, const AmqpSubscriptionOpts &options) {
         auto channel = takeChannel();
 
+        AmqpSubscriptionOpts mapped_options(options);
+        mapped_options.queue_name = resolveQueueName(options.queue_name);
+
         executeWithAutoReconnect(channel, [&](const auto &ch) {
-            ch.subscribe(consumer_id, options);
+            ch.subscribe(consumer_id, mapped_options);
         });
 
-        subscriptions.emplace(consumer_id, std::make_pair(options, channel));
+        subscriptions[consumer_id] = std::make_pair(options, channel);
         return consumer_id;
     }
 
@@ -153,14 +164,16 @@ namespace assfire::util
     }
 
     void AmqpConnection::executeWithAutoReconnect(const AmqpChannel &channel, std::function<void(const AmqpChannel &)> action) {
-        try {
-            action(channel);
-        }
-        catch (const amqp_exception &e) {
-            if (state != State::RECONNECTING) {
-                action(recoverChannel(e.getError(), channel));
-            } else {
-                throw e;
+        AmqpChannel ch = channel;
+        for (int i = 0; i < RECONNECT_BACKOFF_ATTEMPTS; ++i) {
+            try {
+                action(ch);
+                return;
+            } catch (const amqp_exception &e) {
+                if (state == State::RECONNECTING || i == RECONNECT_BACKOFF_ATTEMPTS - 1) {
+                    throw e;
+                }
+                ch = recoverChannel(e.getError(), ch);
             }
         }
     }
@@ -184,16 +197,23 @@ namespace assfire::util
         SPDLOG_INFO("Trying to recover channel {}/{} after error: {}", name, channel.getId(), error.message);
         switch (error.type) {
             case AmqpErrorType::CONNECTION_CLOSED:
-                state = State::RECONNECTING;
                 for (int i = 0; i < RECONNECT_BACKOFF_ATTEMPTS; ++i) {
                     try {
+                        state = State::RECONNECTING;
+                        SPDLOG_INFO("Trying to connect to AMQP broker at {}:{}, ({})", options.host, options.port, name);
                         replaceConnection(createConnection());
+                        SPDLOG_INFO("Recreating topology for ({})", name);
                         recreateTopology();
                         state = State::CONNECTED;
+                        SPDLOG_INFO("Successfully connected to AMQP broker ({})", name);
                         return channels.recreateChannel(channel);
                     } catch (const amqp_exception &e) {
+                        state = State::NOT_CONNECTED;
                         std::this_thread::sleep_for(RECONNECT_BACKOFF_INTERVAL);
                         if (i == RECONNECT_BACKOFF_ATTEMPTS - 1) throw e;
+                    } catch (const std::exception &e) {
+                        SPDLOG_ERROR("Unexpected exception in reconnection loop: {}", e.what());
+                        throw e;
                     }
                 }
             case AmqpErrorType::CHANNEL_CLOSED:
@@ -225,26 +245,35 @@ namespace assfire::util
 
     void AmqpConnection::recreateTopology() {
         // Recreate exchanges
-        for (const auto &exchange: declared_exchanges) {
+        auto exchanges_to_restore = declared_exchanges;
+        declared_exchanges.clear();
+        for (const auto &exchange: exchanges_to_restore) {
             declareExchange(exchange.first, exchange.second);
         }
 
         // Recreate queues
         queue_name_mappings.clear();
+        auto queues_to_restore = declared_queues;
+        declared_queues.clear();
         for (const auto &queue: declared_queues) {
             declareQueue(queue.first, queue.second);
         }
 
         // Recreate bindings
-        std::remove_if(bound_queues.begin(), bound_queues.end(), [&](const auto &bnd) {
+        auto bindings_to_restore = bound_queues;
+        auto iter = std::remove_if(bindings_to_restore.begin(), bindings_to_restore.end(), [&](const auto &bnd) {
             return !declared_queues.contains(bnd.queue_name);
         });
-        for (const auto &binding: bound_queues) {
+        bindings_to_restore.erase(iter, bindings_to_restore.end());
+        bound_queues.clear();
+        for (const auto &binding: bindings_to_restore) {
             bindQueue(binding);
         }
 
         // Recreate subscriptions
-        for (auto &sub: subscriptions) {
+        auto subscriptions_to_restore = subscriptions;
+        subscriptions.clear();
+        for (auto &sub: subscriptions_to_restore) {
             subscribe(sub.first, sub.second.first);
         }
 
@@ -253,5 +282,11 @@ namespace assfire::util
     void AmqpConnection::replaceConnection(amqp_connection_state_t new_connection) {
         connection = new_connection;
         channels.replaceConnection(connection);
+    }
+
+    std::string AmqpConnection::resolveQueueName(const std::string &name) const {
+        auto iter = queue_name_mappings.find(name);
+        if (iter == queue_name_mappings.end()) return name;
+        return iter->second;
     }
 }

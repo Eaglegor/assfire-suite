@@ -79,7 +79,7 @@ namespace assfire::tsp {
         sendStatusSignal(task_id, WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED);
     }
 
-    bool RedisTaskProvider::isFinished(std::string &task_id) {
+    bool RedisTaskProvider::isFinished(const std::string &task_id) {
         auto fstate = client->get(statusKey(task_id));
         client->sync_commit();
 
@@ -88,7 +88,7 @@ namespace assfire::tsp {
         return state.is_string() && state.as_string() == WorkerTspStatusUpdate_Type_Name(WorkerTspStatusUpdate::WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED);
     }
 
-    bool RedisTaskProvider::isPaused(std::string &task_id) {
+    bool RedisTaskProvider::isPaused(const std::string &task_id) {
         auto fstate = client->get(statusKey(task_id));
         client->sync_commit();
 

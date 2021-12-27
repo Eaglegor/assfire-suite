@@ -50,6 +50,8 @@ namespace assfire::util
 
         amqp_connection_state_t createConnection() const;
 
+        std::string resolveQueueName(const std::string& name) const;
+
         void replaceConnection(amqp_connection_state_t new_connection);
 
         std::string subscribe(const std::string &consumer_id, const AmqpSubscriptionOpts &options);

@@ -32,15 +32,8 @@ namespace assfire::util
                     switch(reply.library_error) {
                         case AMQP_STATUS_TIMEOUT:
                             return {AmqpErrorType::TIMEOUT, amqp_error_string2(reply.library_error)};
-                        case AMQP_STATUS_SOCKET_ERROR:
-                        case AMQP_STATUS_TCP_ERROR:
-                        case AMQP_STATUS_SSL_ERROR:
-                        case AMQP_STATUS_CONNECTION_CLOSED:
-                        case AMQP_STATUS_SOCKET_CLOSED:
-                        case AMQP_STATUS_SSL_CONNECTION_FAILED:
-                            return {AmqpErrorType::CONNECTION_CLOSED, amqp_error_string2(reply.library_error)};
                         default:
-                            return {AmqpErrorType::UNKNOWN, amqp_error_string2(reply.library_error)};
+                            return {AmqpErrorType::CONNECTION_CLOSED, amqp_error_string2(reply.library_error)};
                     }
                 }
 

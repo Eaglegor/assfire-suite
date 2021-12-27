@@ -2,6 +2,7 @@
 #include <chrono>
 #include <spdlog/spdlog.h>
 #include <crossguid/guid.hpp>
+#include <utility>
 
 #if WIN32
 
@@ -15,6 +16,11 @@ using namespace std::literals::chrono_literals;
 
 namespace assfire::util
 {
+    AmqpChannel::AmqpChannel()
+            : connection(nullptr),
+              channel_id(-1) {
+    }
+
     AmqpChannel::AmqpChannel(amqp_connection_state_t connection, int channel_id)
             : connection(connection),
               channel_id(channel_id) {
@@ -56,6 +62,9 @@ namespace assfire::util
         auto rpl = amqp_get_rpc_reply(connection);
         if (rpl.reply_type != AMQP_RESPONSE_NORMAL) {
             throw amqp_exception(AmqpError::fromReply(rpl));
+        }
+        if (queue_opts.name.empty()) {
+            SPDLOG_INFO("<auto_name> is resolved to {}", static_cast<const char *>(result->queue.bytes));
         }
         return static_cast<const char *>(result->queue.bytes);
     }
@@ -127,6 +136,8 @@ namespace assfire::util
             throw amqp_exception(AmqpError::fromReply(rpl));
         }
 
+        SPDLOG_INFO("Successfully subscribed consumer {} to queue {} with consumer tag = {}", consumer_id, options.queue_name, static_cast<const char *>(result->consumer_tag.bytes));
+
         return {
                 static_cast<const char *>(result->consumer_tag.bytes),
                 result->consumer_tag.len
@@ -134,7 +145,7 @@ namespace assfire::util
     }
 
     void AmqpChannel::consumeMessage(AmqpChannel::MessageCallback callback) const {
-        consumeMessage(callback, 0ms);
+        consumeMessage(std::move(callback), 0ms);
     }
 
     void AmqpChannel::consumeMessage(AmqpChannel::MessageCallback callback, std::chrono::milliseconds timeout) const {

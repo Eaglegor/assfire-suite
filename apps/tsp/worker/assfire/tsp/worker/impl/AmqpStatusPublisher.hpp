@@ -15,17 +15,17 @@ namespace assfire::tsp {
 
         void release(const std::string &task_id) override;
 
-        void publishStarted(std::string &task_id) override;
+        void publishStarted(const std::string &task_id) override;
 
-        void publishPaused(std::string &task_id) override;
+        void publishPaused(const std::string &task_id) override;
 
-        void publishInterrupted(std::string &task_id) override;
+        void publishInterrupted(const std::string &task_id) override;
 
-        void publishError(std::string &task_id) override;
+        void publishError(const std::string &task_id) override;
 
-        void publishFinished(std::string &task_id) override;
+        void publishFinished(const std::string &task_id) override;
 
-        void publishNewSolution(std::string &task_id, const TspCost &cost, const TspValidationResult &validation_result) override;
+        void publishNewSolution(const std::string &task_id, const TspCost &cost, const TspValidationResult &validation_result) override;
 
     private:
         std::string name;

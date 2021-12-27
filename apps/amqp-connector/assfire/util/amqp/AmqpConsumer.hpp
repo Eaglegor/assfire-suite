@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <chrono>
+#include <utility>
 #include "AmqpConsumerOpts.hpp"
 #include "AmqpChannel.hpp"
 #include "AmqpConnection.hpp"
@@ -12,22 +13,25 @@ namespace assfire::util
     class AmqpConsumer
     {
     public:
-        AmqpConsumer(const std::string &name, const AmqpConsumerOpts &options, AmqpConnection &connection)
-                : name(name), options(options), connection(connection) {}
+        AmqpConsumer(std::string name, AmqpConsumerOpts options, AmqpConnection &connection)
+                : name(std::move(name)), options(std::move(options)), connection(connection) {}
 
         AmqpConsumer(const AmqpConsumer& rhs) = delete;
 
         void consumeMessage(AmqpChannel::MessageCallback process) {
             if (consumer_id.empty()) subscribe();
-            connection.consumeMessage(consumer_id, process);
+            SPDLOG_DEBUG("Waiting for the next message for consumer {}", name);
+            connection.consumeMessage(consumer_id, std::move(process));
         }
 
         void consumeMessage(AmqpChannel::MessageCallback process, std::chrono::milliseconds timeout) {
             if (consumer_id.empty()) subscribe();
-            connection.consumeMessage(consumer_id, process, timeout);
+            SPDLOG_DEBUG("Waiting for the next message for consumer {}", name);
+            connection.consumeMessage(consumer_id, std::move(process), timeout);
         }
 
         ~AmqpConsumer() {
+            SPDLOG_DEBUG("Consumer {} is being destroyed", name);
             if (!consumer_id.empty()) {
                 try {
                     unsubscribe();

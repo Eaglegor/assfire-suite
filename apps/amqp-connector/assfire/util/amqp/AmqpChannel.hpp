@@ -18,6 +18,8 @@ namespace assfire::util
     public:
         using MessageCallback = std::function<void(AmqpDelivery &)>;
 
+        AmqpChannel();
+
         AmqpChannel(amqp_connection_state_t connection, int channel_id);
 
         int getId() const;

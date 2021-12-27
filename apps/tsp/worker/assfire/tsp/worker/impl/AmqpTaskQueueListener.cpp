@@ -24,12 +24,14 @@ namespace assfire::tsp
         });
     }
 
-    std::string AmqpTaskQueueListener::nextTask() {
-        std::string result;
+    void AmqpTaskQueueListener::nextTask(NewTaskProcessor process) {
         consumer->consumeMessage([&](util::AmqpDelivery &delivery) {
-            result = delivery.parse<WorkerTask>(util::AmqpProtoParse<WorkerTask>()).task_id();
-            delivery.ack();
+            try {
+                process(delivery.parse<WorkerTask>(util::AmqpProtoParse<WorkerTask>()).task_id());
+                delivery.ack();
+            } catch (const std::exception &e) {
+                delivery.nack(true);
+            }
         });
-        return result;
     }
 }

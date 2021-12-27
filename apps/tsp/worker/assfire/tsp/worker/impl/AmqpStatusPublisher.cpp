@@ -20,14 +20,14 @@ namespace assfire::tsp
         }
     }
 
-    void AmqpStatusPublisher::publishStarted(std::string &task_id) {
+    void AmqpStatusPublisher::publishStarted(const std::string &task_id) {
         assfire::api::v1::tsp::WorkerTspStatusUpdate update;
         update.set_type(api::v1::tsp::WorkerTspStatusUpdate_Type_WORKER_TSP_STATUS_UPDATE_TYPE_STARTED);
         update.set_task_id(task_id);
         publish(getPublisher(task_id), update);
     }
 
-    void AmqpStatusPublisher::publishPaused(std::string &task_id) {
+    void AmqpStatusPublisher::publishPaused(const std::string &task_id) {
         assfire::api::v1::tsp::WorkerTspStatusUpdate update;
         update.set_type(api::v1::tsp::WorkerTspStatusUpdate_Type_WORKER_TSP_STATUS_UPDATE_TYPE_PAUSED);
         update.set_task_id(task_id);
@@ -35,7 +35,7 @@ namespace assfire::tsp
         releasePublisher(task_id);
     }
 
-    void AmqpStatusPublisher::publishInterrupted(std::string &task_id) {
+    void AmqpStatusPublisher::publishInterrupted(const std::string &task_id) {
         assfire::api::v1::tsp::WorkerTspStatusUpdate update;
         update.set_type(api::v1::tsp::WorkerTspStatusUpdate_Type_WORKER_TSP_STATUS_UPDATE_TYPE_INTERRUPTED);
         update.set_task_id(task_id);
@@ -43,7 +43,7 @@ namespace assfire::tsp
         releasePublisher(task_id);
     }
 
-    void AmqpStatusPublisher::publishError(std::string &task_id) {
+    void AmqpStatusPublisher::publishError(const std::string &task_id) {
         assfire::api::v1::tsp::WorkerTspStatusUpdate update;
         update.set_type(api::v1::tsp::WorkerTspStatusUpdate_Type_WORKER_TSP_STATUS_UPDATE_TYPE_ERROR);
         update.set_task_id(task_id);
@@ -51,7 +51,7 @@ namespace assfire::tsp
         releasePublisher(task_id);
     }
 
-    void AmqpStatusPublisher::publishFinished(std::string &task_id) {
+    void AmqpStatusPublisher::publishFinished(const std::string &task_id) {
         assfire::api::v1::tsp::WorkerTspStatusUpdate update;
         update.set_type(api::v1::tsp::WorkerTspStatusUpdate_Type_WORKER_TSP_STATUS_UPDATE_TYPE_FINISHED);
         update.set_task_id(task_id);
@@ -59,7 +59,7 @@ namespace assfire::tsp
         releasePublisher(task_id);
     }
 
-    void AmqpStatusPublisher::publishNewSolution(std::string &task_id, const TspCost &cost, const TspValidationResult &validation_result) {
+    void AmqpStatusPublisher::publishNewSolution(const std::string &task_id, const TspCost &cost, const TspValidationResult &validation_result) {
         assfire::api::v1::tsp::WorkerTspStatusUpdate update;
         update.set_type(api::v1::tsp::WorkerTspStatusUpdate_Type_WORKER_TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION);
         update.set_task_id(task_id);
