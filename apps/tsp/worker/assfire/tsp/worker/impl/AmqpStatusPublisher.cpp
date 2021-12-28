@@ -16,7 +16,11 @@ namespace assfire::tsp
     namespace
     {
         void publish(util::AmqpConnectionPool::PublisherRef &publisher, const WorkerStatusUpdate &update) {
-            publisher->publish<WorkerStatusUpdate>(update, util::AmqpProtoEncode<WorkerStatusUpdate>());
+            try {
+                publisher->publish<WorkerStatusUpdate>(update, util::AmqpProtoEncode<WorkerStatusUpdate>());
+            } catch (const util::amqp_exception &e) {
+                SPDLOG_ERROR("Failed to publish status {} to AMQP server for task {}: {}", update.type(), update.task_id(), e.what());
+            }
         }
     }
 

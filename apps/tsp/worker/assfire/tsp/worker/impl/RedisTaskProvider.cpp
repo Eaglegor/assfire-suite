@@ -9,7 +9,8 @@
 
 using namespace assfire::api::v1::tsp;
 
-namespace assfire::tsp {
+namespace assfire::tsp
+{
 
     RedisTaskProvider::RedisTaskProvider(std::unique_ptr<cpp_redis::client> client)
             : client(std::move(client)) {}
