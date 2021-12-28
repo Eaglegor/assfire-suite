@@ -18,21 +18,36 @@ namespace assfire::util
 
     void AmqpConnectionPool::declareExchange(const std::string &name, const AmqpExchangeOpts &exchange_opts) {
         auto connection = takeConnection();
-        connection->declareExchange(name, exchange_opts);
-        returnConnection(connection);
+        try {
+            connection->declareExchange(name, exchange_opts);
+            returnConnection(connection);
+        } catch (const amqp_exception &e) {
+            returnConnection(connection);
+            throw e;
+        }
     }
 
     std::string AmqpConnectionPool::declareQueue(const std::string &name, const AmqpQueueOpts &queue_opts) {
         auto connection = takeConnection();
-        std::string queue_name = connection->declareQueue(name, queue_opts);
-        returnConnection(connection);
-        return queue_name;
+        try {
+            std::string queue_name = connection->declareQueue(name, queue_opts);
+            returnConnection(connection);
+            return queue_name;
+        } catch (const amqp_exception &e) {
+            returnConnection(connection);
+            throw e;
+        }
     }
 
     void AmqpConnectionPool::bindQueue(const AmqpQueueBinding &queue_binding) {
         auto connection = takeConnection();
-        connection->bindQueue(queue_binding);
-        returnConnection(connection);
+        try {
+            connection->bindQueue(queue_binding);
+            returnConnection(connection);
+        } catch (const amqp_exception &e) {
+            returnConnection(connection);
+            throw e;
+        }
     }
 
     std::shared_ptr<AmqpConnection> AmqpConnectionPool::takeConnection() {
