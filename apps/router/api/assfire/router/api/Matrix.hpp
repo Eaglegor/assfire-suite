@@ -4,28 +4,36 @@
 #include <functional>
 #include <cstdint>
 
-namespace assfire::router {
+namespace assfire::router
+{
     template<typename T>
-    class Matrix {
+    class Matrix
+    {
     public:
         Matrix(std::size_t rows, std::size_t columns, std::function<T(int, int)> initial_value_supplier = [](int, int) { return T(); })
                 : rows(rows), columns(columns),
                   data(rows * columns) {
             for (int i = 0; i < rows; ++i) {
                 for (int j = 0; j < columns; ++j) {
-                    data.at(columns * i + j) = initial_value_supplier(i, j);
+                    data[columns * i + j] = initial_value_supplier(i, j);
                 }
             }
         }
 
         Matrix(const Matrix &rhs) = default;
 
+        Matrix(Matrix &&rhs) noexcept = default;
+
+        Matrix &operator=(const Matrix &rhs) = default;
+
+        Matrix &operator=(Matrix &&rhs) noexcept = default;
+
         const T &at(int i, int j) const {
-            return data.at(columns * i + j);
+            return data[columns * i + j];
         }
 
-        T &at(int i, int j) {
-            return data.at(columns * i + j);
+        void set(int i, int j, T value) {
+            data[columns * i + j] = std::move(value);
         }
 
         std::size_t getRowsCount() const {

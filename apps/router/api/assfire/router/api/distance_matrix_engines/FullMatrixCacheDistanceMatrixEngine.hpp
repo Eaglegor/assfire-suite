@@ -11,14 +11,16 @@
 #include <assfire/router/api/Matrix.hpp>
 #include <cassert>
 
-namespace assfire::router {
-    class FullMatrixCacheDistanceMatrixEngine : public DistanceMatrixEngine {
+namespace assfire::router
+{
+    class FullMatrixCacheDistanceMatrixEngine : public DistanceMatrixEngine
+    {
     public:
         FullMatrixCacheDistanceMatrixEngine(std::unique_ptr<RouteProviderEngine> engine, Tag tag, DistanceMatrixErrorPolicy error_policy = DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY)
-                :
-                matrix_tag(tag),
-                engine(std::move(engine)),
-                error_policy(error_policy) {
+                : matrix_tag(tag),
+                  engine(std::move(engine)),
+                  error_policy(error_policy),
+                  route_details_cache(0, 0) {
             assert(tag != IndexedLocation::INVALID_TAG);
         }
 
@@ -41,28 +43,34 @@ namespace assfire::router {
         TripDetails getTripDetails(const IndexedLocationsList &locations) const override;
 
     private:
-        using KnownLocationsMapping = std::unordered_map<std::string, int>;
+        using LocationKey = std::string;
+        using KnownLocationsMapping = std::unordered_map<LocationKey, int>;
 
         void initialize() const;
 
-        std::string encodeLocation(const Location &location) const;
+        static LocationKey encodeLocation(const Location &location);
 
         RouteInfo getCachedRouteInfo(int origin_id, int destination_id) const;
 
         RouteDetails getCachedRouteDetails(int origin_id, int destination_id) const;
 
-        TripInfo getCachedTripInfo(const std::vector<int>& ids) const;
-        TripDetails getCachedTripDetails(const std::vector<int>& ids) const;
+        TripInfo getCachedTripInfo(const std::vector<int> &ids) const;
 
-        RouteDetails processError(const Location& from, const Location& to, const std::exception& e) const;
-        TripInfo processTripInfoError(const LocationsList& locations, const std::exception& e) const;
-        TripDetails processTripDetailsError(const LocationsList& locations, const std::exception& e) const;
+        TripDetails getCachedTripDetails(const std::vector<int> &ids) const;
+
+        RouteDetails processError(const Location &from, const Location &to, const std::exception &e) const;
+
+        Matrix<RouteDetails> processBatchError(const LocationsList &from, const LocationsList &to, const std::exception &e) const;
+
+        TripInfo processTripInfoError(const LocationsList &locations, const std::exception &e) const;
+
+        TripDetails processTripDetailsError(const LocationsList &locations, const std::exception &e) const;
 
         mutable std::atomic_bool is_initialized = false;
         std::vector<Location> known_locations;
         KnownLocationsMapping known_locations_mapping;
         Tag matrix_tag;
-        mutable std::unique_ptr<Matrix<RouteDetails>> route_details_cache;
+        mutable Matrix<RouteDetails> route_details_cache;
         std::unique_ptr<RouteProviderEngine> engine;
         mutable std::mutex cache_update_lock;
         DistanceMatrixErrorPolicy error_policy;

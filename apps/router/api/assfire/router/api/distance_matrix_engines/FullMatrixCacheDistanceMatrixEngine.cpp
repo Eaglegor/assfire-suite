@@ -58,27 +58,60 @@ IndexedLocation FullMatrixCacheDistanceMatrixEngine::addLocation(const Location 
 void FullMatrixCacheDistanceMatrixEngine::initialize() const {
     std::lock_guard<std::mutex> guard(cache_update_lock);
     if (is_initialized) return;
-    std::unique_ptr<Matrix<RouteDetails>> new_cache = std::make_unique<Matrix<RouteDetails>>(known_locations.size(), known_locations.size(), [&](int i, int j) {
-        if (route_details_cache && route_details_cache->getRowsCount() > i && route_details_cache->getColumnsCount() > j) {
-            return route_details_cache->at(i, j);
-        } else {
-            if (i == j) {
-                return RouteDetails::zero(known_locations.at(i), known_locations.at(j));
-            } else {
-                try {
+    int known_origins_count = route_details_cache.getRowsCount();
+    int known_destinations_count = route_details_cache.getColumnsCount();
+    int new_origins_count = known_locations.size() - known_origins_count;
+    int new_destinations_count = known_locations.size() - known_destinations_count;
+
+    Matrix<RouteDetails> new_bottom_submatrix(0, 0);
+    Matrix<RouteDetails> new_right_submatrix(0, 0);
+    if (new_origins_count > 0) {
+        LocationsList new_origins;
+        new_origins.reserve(new_origins_count);
+        std::copy(known_locations.begin() + known_origins_count, known_locations.end(), std::back_inserter(new_origins));
+        try {
+            new_bottom_submatrix = engine->getRouteDetailsMatrix(new_origins, known_locations);
+        } catch (const std::exception &e) {
+            new_bottom_submatrix = processBatchError(new_origins, known_locations, e);
+        }
+    }
+    if (new_destinations_count > 0 && known_origins_count > 0) {
+        LocationsList new_destinations;
+        new_destinations.reserve(new_destinations_count);
+        std::copy(known_locations.begin() + known_origins_count, known_locations.end(), std::back_inserter(new_destinations));
+        LocationsList known_origins;
+        known_origins.reserve(known_origins_count);
+        std::copy(known_locations.begin(), known_locations.begin() + known_origins_count, std::back_inserter(known_origins));
+        try {
+            new_right_submatrix = engine->getRouteDetailsMatrix(known_origins, new_destinations);
+        } catch (const std::exception &e) {
+            new_right_submatrix = processBatchError(known_origins, new_destinations, e);
+        }
+    }
+
+    this->route_details_cache = Matrix<RouteDetails>(
+            known_locations.size(),
+            known_locations.size(),
+            [&](int i, int j) {
+                if (i < known_origins_count && j < known_destinations_count) { // Both locations are already in cache
+                    return route_details_cache.at(i, j);
+                } else if (i < known_origins_count && j >= known_destinations_count) { // New destination -> take from right submatrix
+                    return new_right_submatrix.at(i, j - known_destinations_count);
+                } else if (i >= known_origins_count && j < known_destinations_count) { // New origin -> take from bottom submatrix
+                    return new_bottom_submatrix.at(i - known_origins_count, j);
+                } else if (i >= known_origins_count && j >= known_destinations_count) { // New both origin and destination -> take from bottom submatrix
+                    return new_bottom_submatrix.at(i - known_origins_count, j - known_destinations_count);
+                } else {
+                    SPDLOG_WARN("Single route mode is used for route calculation for locations {}->{}", known_locations.at(i), known_locations.at(j));
                     return engine->getSingleRouteDetails(known_locations.at(i), known_locations.at(j));
-                } catch (const std::exception &e) {
-                    return processError(known_locations.at(i), known_locations.at(j), e);
                 }
             }
-        }
-    });
+    );
 
-    route_details_cache.swap(new_cache);
     is_initialized = true;
 }
 
-std::string FullMatrixCacheDistanceMatrixEngine::encodeLocation(const Location &location) const {
+FullMatrixCacheDistanceMatrixEngine::LocationKey FullMatrixCacheDistanceMatrixEngine::encodeLocation(const Location &location) {
     return std::to_string(location.getLatitude().encodedValue()) + std::to_string(location.getLongitude().encodedValue());
 }
 
@@ -88,7 +121,7 @@ RouteInfo FullMatrixCacheDistanceMatrixEngine::getCachedRouteInfo(int origin_id,
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::getCachedRouteDetails(int origin_id, int destination_id) const {
     if (!is_initialized) initialize();
-    return route_details_cache->at(origin_id, destination_id);
+    return route_details_cache.at(origin_id, destination_id);
 }
 
 RouteDetails FullMatrixCacheDistanceMatrixEngine::processError(const Location &from, const Location &to, const std::exception &e) const {
@@ -97,6 +130,25 @@ RouteDetails FullMatrixCacheDistanceMatrixEngine::processError(const Location &f
             SPDLOG_WARN("Error occurred when calculating route for {}->{}: {}. Route will be set to INFINITY",
                         from, to, e.what());
             return RouteDetails::infinity(from, to);
+        case DistanceMatrixErrorPolicy::ON_ERROR_THROW:
+        default:
+            throw e;
+    }
+}
+
+Matrix<RouteDetails> FullMatrixCacheDistanceMatrixEngine::processBatchError(const LocationsList &from, const LocationsList &to, const std::exception &e) const {
+    switch (error_policy) {
+        case DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY:
+            SPDLOG_WARN("Error occurred when calculating route details matrix for [{}:{}]->[{}:{}] (batch size: {}): {}. Route will be set to INFINITY",
+                        *from.begin(),
+                        *from.rbegin(),
+                        *to.begin(),
+                        *to.rbegin(),
+                        from.size() * to.size(),
+                        e.what());
+            return {from.size(), to.size(), [&](int i, int j) {
+                return RouteDetails::infinity(from[i], to[j]);
+            }};
         case DistanceMatrixErrorPolicy::ON_ERROR_THROW:
         default:
             throw e;
@@ -114,6 +166,7 @@ TripInfo FullMatrixCacheDistanceMatrixEngine::processTripInfoError(const Distanc
     }
 }
 
+
 TripDetails FullMatrixCacheDistanceMatrixEngine::processTripDetailsError(const DistanceMatrixEngine::LocationsList &locations, const std::exception &e) const {
     switch (error_policy) {
         case DistanceMatrixErrorPolicy::ON_ERROR_RETURN_INFINITY:
@@ -124,7 +177,6 @@ TripDetails FullMatrixCacheDistanceMatrixEngine::processTripDetailsError(const D
             throw e;
     }
 }
-
 
 TripInfo FullMatrixCacheDistanceMatrixEngine::getTripInfo(const DistanceMatrixEngine::LocationsList &locations) const {
     std::vector<int> found_locations;
