@@ -34,9 +34,9 @@ namespace assfire::util
 
 
     void RedisConnector::connect(const RedisRetryPolicy &retry_policy) {
-        for (int i = 0; !client.is_connected() && retry_policy.attemptAllowed(i); ++i) {
+        for (int i = 0; !redis_client.is_connected() && retry_policy.attemptAllowed(i); ++i) {
             try {
-                client.connect(options.host, options.port, [&](const std::string &host, std::size_t port, cpp_redis::client::connect_state status) {
+                redis_client.connect(options.host, options.port, [&](const std::string &host, std::size_t port, cpp_redis::client::connect_state status) {
                     std::string string_status;
                     switch (status) {
                         case cpp_redis::client::connect_state::dropped:

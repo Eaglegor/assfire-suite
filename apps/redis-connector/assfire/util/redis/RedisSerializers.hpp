@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 
 namespace assfire::util
 {
@@ -11,4 +12,6 @@ namespace assfire::util
             return value.SerializeAsString();
         }
     };
+
+    using RedisStringSerializer = std::identity;
 }

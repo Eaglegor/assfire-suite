@@ -3,6 +3,7 @@
 #include <memory>
 #include "assfire/tsp/worker/TaskProvider.hpp"
 #include "assfire/api/v1/tsp/worker.pb.h"
+#include "assfire/util/redis/RedisConnector.hpp"
 
 namespace cpp_redis {
     class client;
@@ -11,7 +12,7 @@ namespace cpp_redis {
 namespace assfire::tsp {
     class RedisTaskProvider : public TaskProvider {
     public:
-        RedisTaskProvider(std::unique_ptr<cpp_redis::client> client);
+        RedisTaskProvider(util::RedisConnector& redis_connector);
 
         std::optional<TspTask> retrieveTask(const std::string &task_id) override;
 
@@ -38,8 +39,8 @@ namespace assfire::tsp {
         int incAttempts(const std::string &task_id) override;
 
     private:
-        void sendStatusSignal(const std::string &task_id, api::v1::tsp::WorkerTspStatusUpdate_Type signal);
+        void sendStatusSignal(const std::string &task_id, api::v1::tsp::WorkerTspStatusUpdate_Type signal, bool sync);
 
-        std::unique_ptr<cpp_redis::client> client;
+        util::RedisConnector& redis_connector;
     };
 }

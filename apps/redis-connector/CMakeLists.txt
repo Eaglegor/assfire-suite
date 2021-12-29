@@ -3,8 +3,8 @@ set(HEADERS
         assfire/util/redis/RedisError.hpp
         assfire/util/redis/RedisConnectionOpts.hpp
         assfire/util/redis/RedisRetryPolicy.hpp
-        assfire/util/redis/RedisProtoParser.hpp
-        assfire/util/redis/RedisProtoSerializer.hpp
+        assfire/util/redis/RedisParsers.hpp
+        assfire/util/redis/RedisSerializers.hpp
         )
 
 set(SOURCES

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "assfire/tsp/worker/SavedStateManager.hpp"
+#include "assfire/util/redis/RedisConnector.hpp"
 
 namespace cpp_redis {
     class client;
@@ -10,9 +11,7 @@ namespace cpp_redis {
 namespace assfire::tsp {
     class RedisSavedStateManager : public SavedStateManager {
     public:
-        RedisSavedStateManager(std::unique_ptr<cpp_redis::client> redis_client);
-
-        virtual ~RedisSavedStateManager();
+        RedisSavedStateManager(util::RedisConnector& redis_connector);
 
         std::optional<State> loadState(const std::string &task_id) override;
 
@@ -21,6 +20,6 @@ namespace assfire::tsp {
         void clearState(const std::string &task_id) override;
 
     private:
-        std::unique_ptr<cpp_redis::client> client;
+        util::RedisConnector& redis_connector;
     };
 }

@@ -100,44 +100,17 @@ int main(int argc, char **argv) {
         assfire::util::RedisConnector redis_connector({redis_host, (int) redis_port});
         redis_connector.connect(assfire::util::RedisRetryPolicy::retryUntilSuccess(5s));
 
-        SPDLOG_INFO("Creating router client");
-        std::unique_ptr<assfire::router::RouterApi> router =
-                std::make_unique<assfire::router::RouterClient>(router_host, router_port, use_ssl_for_router);
-
-        SPDLOG_INFO("Creating redis client for solution publisher");
-        std::unique_ptr<cpp_redis::client> redis_client =
-                std::make_unique<cpp_redis::client>();
-
-        SPDLOG_INFO("Redis client connecting to {}:{}...", redis_host, redis_port);
-        redis_client->connect(redis_host, redis_port, RedisConnectionCallback("RedisSolutionPublisher"));
-
         SPDLOG_INFO("Creating solution publisher");
         std::unique_ptr<assfire::tsp::SolutionPublisher> solution_publisher =
-                std::make_unique<assfire::tsp::RedisSolutionPublisher>(std::move(redis_client));
-
-        SPDLOG_INFO("Creating TSP solver");
-        std::unique_ptr<assfire::tsp::TspSolverEngine> tsp_solver =
-                std::make_unique<assfire::tsp::TspSolverEngine>(std::move(router));
-
-        SPDLOG_INFO("Creating redis client for saved state manager");
-        redis_client = std::make_unique<cpp_redis::client>();
-
-        SPDLOG_INFO("Redis client connecting to {}:{}...", redis_host, redis_port);
-        redis_client->connect(redis_host, redis_port, RedisConnectionCallback("RedisSavedStateManager"));
+                std::make_unique<assfire::tsp::RedisSolutionPublisher>(redis_connector);
 
         SPDLOG_INFO("Creating TSP saved state manager");
         std::unique_ptr<assfire::tsp::SavedStateManager> saved_state_manager =
-                std::make_unique<assfire::tsp::RedisSavedStateManager>(std::move(redis_client));
-
-        SPDLOG_INFO("Creating redis client for TSP task provider");
-        redis_client = std::make_unique<cpp_redis::client>();
-
-        SPDLOG_INFO("Redis client connecting to {}:{}...", redis_host, redis_port);
-        redis_client->connect(redis_host, redis_port, RedisConnectionCallback("RedisTaskProvider"));
+                std::make_unique<assfire::tsp::RedisSavedStateManager>(redis_connector);
 
         SPDLOG_INFO("Creating TSP task provider");
         std::unique_ptr<assfire::tsp::TaskProvider> task_provider =
-                std::make_unique<assfire::tsp::RedisTaskProvider>(std::move(redis_client));
+                std::make_unique<assfire::tsp::RedisTaskProvider>(redis_connector);
 
         SPDLOG_INFO("Creating AMQP connection pool");
         std::unique_ptr<assfire::util::AmqpConnectionPool> amqp_connection_pool =
@@ -163,6 +136,14 @@ int main(int argc, char **argv) {
         SPDLOG_INFO("Creating interrupt listener");
         std::unique_ptr<assfire::tsp::InterruptListener> interrupt_listener =
                 std::make_unique<assfire::tsp::AmqpInterruptListener>("InterruptListener", *amqp_connection_pool);
+
+        SPDLOG_INFO("Creating router client");
+        std::unique_ptr<assfire::router::RouterApi> router =
+                std::make_unique<assfire::router::RouterClient>(router_host, router_port, use_ssl_for_router);
+
+        SPDLOG_INFO("Creating TSP solver");
+        std::unique_ptr<assfire::tsp::TspSolverEngine> tsp_solver =
+                std::make_unique<assfire::tsp::TspSolverEngine>(std::move(router));
 
         SPDLOG_INFO("Creating worker");
         std::unique_ptr<assfire::tsp::Worker> worker =

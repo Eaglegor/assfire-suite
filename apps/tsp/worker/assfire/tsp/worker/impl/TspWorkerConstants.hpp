@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 namespace assfire::tsp {
     constexpr const char *TSP_WORKER_REDIS_PREFIX = "assfire.tsp.";
 
@@ -13,7 +15,7 @@ namespace assfire::tsp {
 
     constexpr const char *TSP_WORKER_LOCK_VALUE = "1";
     constexpr const char *TSP_WORKER_KEEPALIVE_VALUE = "1";
-    constexpr int TSP_WORKER_KEEPALIVE_EXPIRY_SEC = 30;
+    constexpr std::chrono::seconds TSP_WORKER_KEEPALIVE_EXPIRY_SEC = std::chrono::seconds(30);
 
     constexpr const char *TSP_WORKER_AMQP_STATUS_EXCHANGE = "assfire.tsp.worker.status";
     constexpr const char *TSP_WORKER_AMQP_STATUS_EXCHANGE_TYPE = "fanout";

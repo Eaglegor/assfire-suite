@@ -2,55 +2,52 @@
 #include <cpp_redis/core/client.hpp>
 #include <spdlog/spdlog.h>
 #include "TspWorkerKeys.hpp"
+#include "assfire/util/redis/RedisParsers.hpp"
+#include "assfire/util/redis/RedisSerializers.hpp"
 
-namespace assfire::tsp {
-    RedisSavedStateManager::RedisSavedStateManager(std::unique_ptr<cpp_redis::client> redis_client)
-            : client(std::move(redis_client)) {}
+using namespace std::literals::chrono_literals;
 
-    RedisSavedStateManager::~RedisSavedStateManager() {
+namespace assfire::tsp
+{
+    RedisSavedStateManager::RedisSavedStateManager(util::RedisConnector &redis_connector)
+            : redis_connector(redis_connector) {}
 
-    }
 
     std::optional<SavedStateManager::State> RedisSavedStateManager::loadState(const std::string &task_id) {
-        auto fstate = client->get(stateKey(task_id));
-        client->sync_commit();
-
-        auto state = fstate.get();
-
-        if (state.is_error()) {
-            SPDLOG_ERROR("Failed to retrieve saved state for task {}: {}", task_id, state.error());
-            return std::nullopt;
+        try {
+            return redis_connector.get<SavedStateManager::State>(
+                    stateKey(task_id),
+                    util::RedisProtoParser<SavedStateManager::State>(),
+                    util::RedisRetryPolicy::retryFor(5, 5s)
+            ).get();
+        } catch (const util::redis_exception &e) {
+            SPDLOG_ERROR("Failed to retrieve saved state for task {}: {}", task_id, e.what());
+            throw e;
         }
-
-        if(state.is_null()) {
-            return std::nullopt;
-        }
-
-        SavedStateManager::State protoState;
-        protoState.ParseFromString(state.as_string());
-
-        return protoState;
     }
 
     void RedisSavedStateManager::saveState(const std::string &task_id, const SavedStateManager::State &state) {
-        auto freply = client->set(stateKey(task_id), state.SerializeAsString());
-        client->sync_commit();
-
-        auto reply = freply.get();
-
-        if (reply.is_error()) {
-            SPDLOG_ERROR("Failed to save state for task {}: {}", task_id, reply.error());
+        try {
+            redis_connector.set<SavedStateManager::State>(
+                    stateKey(task_id),
+                    state,
+                    util::RedisProtoSerializer<SavedStateManager::State>(),
+                    util::RedisRetryPolicy::retryFor(5, 5s),
+                    util::RedisConnector::WriteMode::SYNC,
+                    std::chrono::days(1)
+            );
+        } catch (const util::redis_exception &e) {
+            SPDLOG_ERROR("Failed to save state for task {}: {}", task_id, e.what());
+            throw e;
         }
     }
 
     void RedisSavedStateManager::clearState(const std::string &task_id) {
-        auto freply = client->del({stateKey(task_id)});
-        client->sync_commit();
-
-        auto reply = freply.get();
-
-        if (reply.is_error()) {
-            SPDLOG_ERROR("Failed to clear saved state for task {}: {}", task_id, reply.error());
+        try {
+            redis_connector.del(stateKey(task_id));
+        } catch (const util::redis_exception &e) {
+            SPDLOG_ERROR("Failed to clear saved state for task {}: {}", task_id, e.what());
+            throw e;
         }
     }
 

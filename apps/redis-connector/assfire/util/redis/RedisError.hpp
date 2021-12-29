@@ -20,11 +20,11 @@ namespace assfire::util
 
         }
 
-        const RedisErrorType &getType() {
+        const RedisErrorType &getType() const {
             return error_type;
         }
 
-        const std::string &getMessage() {
+        const std::string &getMessage() const {
             return message;
         }
 
@@ -47,6 +47,8 @@ namespace assfire::util
         redis_exception(RedisError error)
                 : std::runtime_error(error.getMessage()),
                   error(std::move(error)) {}
+
+        redis_exception(const redis_exception &e) noexcept = default;
 
         const RedisError &getError() const {
             return error;

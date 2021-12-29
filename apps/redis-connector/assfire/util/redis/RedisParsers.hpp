@@ -19,4 +19,15 @@ namespace assfire::util
             return result;
         }
     };
+
+    struct RedisStringParser
+    {
+        std::string operator()(const cpp_redis::reply &rpl) {
+            if (!rpl.is_string()) {
+                throw redis_exception(RedisError(RedisErrorType::INVALID_FORMAT, "couldn't parse reply - expected string"));
+            }
+
+            return rpl.as_string();
+        }
+    };
 }
