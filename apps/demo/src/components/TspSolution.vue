@@ -32,6 +32,12 @@ export default {
       currentTaskId: null
     }
   },
+  created() {
+    window.addEventListener(
+        "beforeunload",
+        this.stopTsp
+    )
+  },
   methods: {
     toJson: function (binArray) {
       var str = "";
@@ -40,13 +46,16 @@ export default {
       }
       return str.split("\n").map(c => c.trim()).filter(c => c !== "").map(c => JSON.parse(c))
     },
+    stopTsp() {
+      if (this.status === "IN PROGRESS" || this.status === "PENDING") {
+        axios.get('http://localhost:8082/v1/optimize/tsp/stop/' + this.currentTaskId)
+            .then(r => console.log("stopped" + this.currentTaskId + ": " + JSON.stringify(r)))
+            .catch(e => console.log(e))
+      }
+    },
     startTsp() {
       console.log(this.status)
-      if(this.status === "IN PROGRESS" || this.status === "PENDING") {
-        axios.get('http://localhost:8082/v1/optimize/tsp/stop/' + this.currentTaskId)
-        .then(r=>console.log("stopped" + this.currentTaskId + ": " + JSON.stringify(r)))
-        .catch(e=>console.log(e))
-      }
+      this.stopTsp()
 
       axios.post("http://localhost:8082/v1/optimize/tsp/start",
           this.task
@@ -60,28 +69,28 @@ export default {
           })
     },
     parseStatusUpdate(upd) {
-      if(upd === "TSP_STATUS_UPDATE_TYPE_PENDING") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_PENDING") {
         return "PENDING"
       }
-      if(upd === "TSP_STATUS_UPDATE_TYPE_STARTED") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_STARTED") {
         return "IN PROGRESS"
       }
-      if(upd === "TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_NEW_SOLUTION") {
         return "IN PROGRESS"
       }
-      if(upd === "TSP_STATUS_UPDATE_TYPE_ERROR") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_ERROR") {
         return "ERROR"
       }
-      if(upd === "TSP_STATUS_UPDATE_TYPE_PAUSED") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_PAUSED") {
         return "PAUSED"
       }
-      if(upd === "TSP_STATUS_UPDATE_TYPE_FINISHED") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_FINISHED") {
         return "FINISHED"
       }
-      if(upd === "TSP_STATUS_UPDATE_TYPE_INTERRUPTED") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_INTERRUPTED") {
         return "INTERRUPTED"
       }
-      if(upd === "TSP_STATUS_UPDATE_TYPE_IN_PROGRESS") {
+      if (upd === "TSP_STATUS_UPDATE_TYPE_IN_PROGRESS") {
         return "IN PROGRESS"
       }
       return upd
@@ -133,6 +142,9 @@ export default {
             console.log(err)
           })
     }
+  },
+  unmounted() {
+    this.stopTsp();
   }
 }
 </script>
