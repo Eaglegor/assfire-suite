@@ -1,4 +1,3 @@
-#include <assfire/api/v1/tsp/worker.pb.h>
 #include <assfire/tsp/engine/TspSolverEngine.hpp>
 #include <assfire/router/client/RouterClient.hpp>
 #include <memory>
@@ -7,7 +6,6 @@
 #include <assfire/log/spdlog.h>
 #include <assfire/tsp/worker/impl/StdoutSolutionPublisher.hpp>
 #include <assfire/tsp/worker/impl/RedisSolutionPublisher.hpp>
-#include <assfire/tsp/worker/impl/NopSavedStateManager.hpp>
 #include <assfire/tsp/worker/impl/AmqpInterruptListener.hpp>
 #include <assfire/tsp/worker/impl/AmqpStatusPublisher.hpp>
 #include <assfire/tsp/worker/impl/AmqpTaskQueueListener.hpp>
@@ -17,6 +15,7 @@
 #include "assfire/tsp/worker/impl/RedisConnectionCallback.hpp"
 #include "assfire/util/amqp/AmqpConnectionPool.hpp"
 #include "TspAmqpTopology.hpp"
+#include "assfire/util/redis/RedisConnector.hpp"
 
 #include <cpp_redis/core/client.hpp>
 #include <numeric>
@@ -28,6 +27,7 @@
 #endif
 
 using namespace assfire::tsp;
+using namespace std::literals::chrono_literals;
 
 int main(int argc, char **argv) {
 #ifdef _WIN32
@@ -96,6 +96,10 @@ int main(int argc, char **argv) {
     std::string amqp_password = options[AMQP_PASSWORD].as<std::string>();
 
     try {
+        SPDLOG_INFO("Creating redis connector");
+        assfire::util::RedisConnector redis_connector({redis_host, (int) redis_port});
+        redis_connector.connect(assfire::util::RedisRetryPolicy::retryUntilSuccess(5s));
+
         SPDLOG_INFO("Creating router client");
         std::unique_ptr<assfire::router::RouterApi> router =
                 std::make_unique<assfire::router::RouterClient>(router_host, router_port, use_ssl_for_router);

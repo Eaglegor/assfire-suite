@@ -43,7 +43,7 @@ find_cpp_redis_vcpkg()
 add_executable(assfire-tsp-worker ${SOURCES} ${HEADERS})
 
 
-target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis cxxopts::cxxopts crossguid assfire-amqp-connector)
+target_link_libraries(assfire-tsp-worker PRIVATE assfire-tsp-proto assfire-tsp-proto-cpp-translation assfire-tsp-engine assfire-router-client prometheus-cpp::pull cpp_redis::cpp_redis cxxopts::cxxopts crossguid assfire-amqp-connector assfire-redis-connector)
 
 install(TARGETS assfire-tsp-worker COMPONENT tsp-worker)
 if (ASSFIRE_RPM_ENABLED)
