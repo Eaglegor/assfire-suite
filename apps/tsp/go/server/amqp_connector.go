@@ -113,17 +113,24 @@ func createAmqpConnector(options AmqpConnectorOptions) (*AmqpConnector, error) {
 		writers: make(map[string]*AmqpWriter),
 	}
 
-	conn, err := createConnection(options)
+	var connection *amqp.Connection
+	for {
+		conn, err := createConnection(options)
+		if err != nil {
+			log.Infof("Failed to connect to %s:%d: %v. Will retry in 5s", options.amqpHost, options.amqpPort, err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		connection = conn
+		break
+	}
+
+	err := connector.replaceConnection(connection)
 	if err != nil {
 		return nil, err
 	}
 
-	err = connector.replaceConnection(conn)
-	if err != nil {
-		return nil, err
-	}
-
-	go connector.startReconnectLoop(conn, time.Second*5)
+	go connector.startReconnectLoop(connection, time.Second*5)
 
 	return connector, nil
 }

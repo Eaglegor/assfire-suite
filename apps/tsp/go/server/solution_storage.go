@@ -22,9 +22,17 @@ var (
 )
 
 func (storage *SolutionStorage) loadSolution(taskId string) (*tsp.TspSolution, error) {
-	result, err := storage.redisConnector.getStringWithReconnect(func(client *redis.Client) *redis.StringCmd {
-		return client.Get(context.Background(), storage.formatSolutionKey(taskId))
-	})
+	result, err := storage.redisConnector.GetAndParse(
+		context.Background(),
+		storage.formatSolutionKey(taskId),
+		func(val string) (interface{}, error) {
+			solution := &tsp.TspSolution{}
+			err := proto.Unmarshal([]byte(val), solution)
+			return solution, err
+		},
+		DefaultRedisRetryPolicy,
+	)
+
 	if err != nil {
 		if err == redis.Nil {
 			return nil, SolutionNotFound
@@ -33,12 +41,5 @@ func (storage *SolutionStorage) loadSolution(taskId string) (*tsp.TspSolution, e
 		}
 	}
 
-	var solution tsp.TspSolution
-
-	err = proto.Unmarshal([]byte(result), &solution)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse solution for %s: %v", taskId, err)
-	}
-
-	return &solution, nil
+	return result.(*tsp.TspSolution), nil
 }

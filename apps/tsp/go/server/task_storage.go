@@ -27,25 +27,32 @@ func (storage *TaskStorage) formatTaskKey(taskId string) string {
 func (storage *TaskStorage) persistTask(taskId string, task *tsp.TspTask) error {
 	serializedTask, err := proto.Marshal(task)
 	if err == nil {
-		return storage.redisConnector.performWithReconnect(func(client *redis.Client) *redis.StatusCmd {
-			return client.Set(context.Background(), storage.formatTaskKey(taskId), serializedTask, TaskStorageExpiryNs)
-		})
+		return storage.redisConnector.Set(
+			context.Background(),
+			storage.formatTaskKey(taskId),
+			serializedTask,
+			TaskStorageExpiryNs,
+			DefaultRedisRetryPolicy)
 	} else {
 		return err
 	}
 }
 
 func (storage *TaskStorage) removeTask(taskId string) error {
-	_, err := storage.redisConnector.getInt64WithReconnect(func(client *redis.Client) *redis.IntCmd {
-		return client.Del(context.Background(), taskKey(taskId))
-	})
-	return err
+	return storage.redisConnector.Del(
+		context.Background(),
+		taskKey(taskId),
+		DefaultRedisRetryPolicy,
+	)
 }
 
 func (storage *TaskStorage) getTaskStatus(taskId string) (*tsp.TspStatusUpdate, error) {
-	result, err := storage.redisConnector.getStringWithReconnect(func(client *redis.Client) *redis.StringCmd {
-		return client.Get(context.Background(), statusKey(taskId))
-	})
+	result, err := storage.redisConnector.Get(
+		context.Background(),
+		statusKey(taskId),
+		DefaultRedisRetryPolicy,
+	)
+
 	if err != nil {
 		return &tsp.TspStatusUpdate{
 			TaskId: taskId,
@@ -59,9 +66,7 @@ func (storage *TaskStorage) getTaskStatus(taskId string) (*tsp.TspStatusUpdate, 
 }
 
 func (storage *TaskStorage) setTaskStatus(taskId string, status tsp.WorkerTspStatusUpdate_Type) error {
-	return storage.redisConnector.performWithReconnect(func(client *redis.Client) *redis.StatusCmd {
-		return client.Set(context.Background(), statusKey(taskId), status.String(), 0)
-	})
+	return storage.redisConnector.Set(context.Background(), statusKey(taskId), status.String(), 0, DefaultRedisRetryPolicy)
 }
 
 var (
@@ -105,17 +110,24 @@ func (storage *TaskStorage) canBeResumed(taskId string) (bool, error) {
 }
 
 func (storage *TaskStorage) taskExists(taskId string) (bool, error) {
-	result, err := storage.redisConnector.getInt64WithReconnect(func(client *redis.Client) *redis.IntCmd {
-		return client.Exists(context.Background(), storage.formatTaskKey(taskId))
-	})
+	result, err := storage.redisConnector.Exists(
+		context.Background(),
+		storage.formatTaskKey(taskId),
+		DefaultRedisRetryPolicy,
+	)
+
 	if err != nil {
 		return false, fmt.Errorf("failed to find task %s in storage", taskId)
 	}
-	return result != 0, nil
+	return result, nil
 }
 
 func (storage *TaskStorage) forEachTaskKey(ctx context.Context, process func(string)) error {
-	return storage.redisConnector.scanAllWithReconnect(ctx, RedisPrefix+"*"+TaskSuffix, func(key string) {
-		process(key[len(RedisPrefix) : len(key)-len(TaskSuffix)])
-	})
+	return storage.redisConnector.Scan(
+		ctx,
+		RedisPrefix+"*"+TaskSuffix,
+		func(key string) {
+			process(key[len(RedisPrefix) : len(key)-len(TaskSuffix)])
+		},
+		DefaultRedisRetryPolicy)
 }
