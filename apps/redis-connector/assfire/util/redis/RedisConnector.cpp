@@ -1,6 +1,7 @@
 #include "RedisConnector.hpp"
 #include <spdlog/spdlog.h>
 #include <chrono>
+#include <thread>
 
 using namespace std::literals::chrono_literals;
 

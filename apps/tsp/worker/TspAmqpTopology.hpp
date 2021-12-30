@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <thread>
 #include "assfire/util/amqp/AmqpConnectionPool.hpp"
 #include "assfire/tsp/worker/impl/TspWorkerConstants.hpp"
 

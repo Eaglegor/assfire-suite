@@ -6,6 +6,7 @@
 #include <random>
 #include <spdlog/spdlog.h>
 #include "assfire/tsp/engine/EngineTspSolutionController.hpp"
+#include <thread>
 
 namespace assfire::tsp {
     using namespace std::chrono_literals;

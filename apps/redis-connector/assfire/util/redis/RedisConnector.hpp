@@ -5,6 +5,7 @@
 #include <atomic>
 #include <optional>
 #include <mutex>
+#include <thread>
 #include <condition_variable>
 #include <spdlog/spdlog.h>
 

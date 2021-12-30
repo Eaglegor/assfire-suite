@@ -5,6 +5,7 @@
 #include <fmt/ostream.h>
 #include <random>
 #include "assfire/tsp/api/io/Streams.hpp"
+#include <thread>
 
 using namespace std::literals::chrono_literals;
 
