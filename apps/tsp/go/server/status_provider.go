@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 )
 
 type StatusProvider struct {
@@ -38,35 +39,42 @@ func (provider *StatusProvider) createInvalidStatus(taskId string) *tsp.TspStatu
 	}
 }
 
-func (provider *StatusProvider) subscribeForStoredTaskStatus(ch chan *tsp.TspStatusUpdate, ctx context.Context, taskIds []string) error {
-	if len(taskIds) != 0 {
-		for _, taskId := range taskIds {
-			capturedId := taskId
-			go func() {
-				status, err := provider.getLatestStatus(capturedId)
-				if err == nil {
-					ch <- status
-				} else {
-					ch <- provider.createInvalidStatus(capturedId)
+func (provider *StatusProvider) subscribeForStoredTaskStatus(ch chan *tsp.TspStatusUpdate, ctx context.Context, taskIds []string) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if len(taskIds) != 0 {
+				for _, taskId := range taskIds {
+					capturedId := taskId
+					go func() {
+						status, err := provider.getLatestStatus(capturedId)
+						if err == nil {
+							ch <- status
+						} else {
+							ch <- provider.createInvalidStatus(capturedId)
+						}
+					}()
 				}
-			}()
-		}
-	} else {
-		go func() {
-			err := provider.taskStorage.forEachTaskKey(ctx, func(key string) {
-				status, err := provider.getLatestStatus(key)
-				if err == nil {
-					ch <- status
-				} else {
-					ch <- provider.createInvalidStatus(key)
-				}
-			})
-			if err != nil {
-				log.Printf("Error whil trying to iterate over all task keys: %v", err)
+			} else {
+				go func() {
+					err := provider.taskStorage.forEachTaskKey(ctx, func(key string) {
+						status, err := provider.getLatestStatus(key)
+						if err == nil {
+							ch <- status
+						} else {
+							ch <- provider.createInvalidStatus(key)
+						}
+					})
+					if err != nil {
+						log.Printf("Error while trying to iterate over all task keys: %v", err)
+					}
+				}()
 			}
-		}()
+			time.Sleep(1 * time.Second)
+		}
 	}
-	return nil
 }
 
 func (provider *StatusProvider) subscribeForWorkerStatusUpdates(ctx context.Context, ch chan<- *tsp.TspStatusUpdate, taskIds []string) error {
@@ -98,13 +106,10 @@ func (provider *StatusProvider) subscribeForWorkerStatusUpdates(ctx context.Cont
 func (provider *StatusProvider) subscribeForStatusUpdates(ctx context.Context, taskIds []string) (<-chan *tsp.TspStatusUpdate, error) {
 	taskStatusChannel := make(chan *tsp.TspStatusUpdate)
 
-	err := provider.subscribeForStoredTaskStatus(taskStatusChannel, ctx, taskIds)
-	if err != nil {
-		log.Printf("Failed to retrieve latest status from storage (task selector: %v: %v", taskIds, err)
-	}
+	go provider.subscribeForStoredTaskStatus(taskStatusChannel, ctx, taskIds)
 
 	workerUpdateChannel := make(chan *tsp.TspStatusUpdate)
-	err = provider.subscribeForWorkerStatusUpdates(ctx, workerUpdateChannel, taskIds)
+	err := provider.subscribeForWorkerStatusUpdates(ctx, workerUpdateChannel, taskIds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to subscribe to worker status updates channelController: %v", err)
 	}
