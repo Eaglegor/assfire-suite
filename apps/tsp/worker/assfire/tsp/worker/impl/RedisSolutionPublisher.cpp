@@ -9,6 +9,8 @@
 #include "RedisConnectionCallback.hpp"
 #include <future>
 #include "assfire/util/redis/RedisSerializers.hpp"
+#include "assfire/tsp/api/io/Streams.hpp"
+#include <fmt/ostream.h>
 
 using namespace std::literals::chrono_literals;
 
@@ -20,7 +22,7 @@ namespace assfire::tsp
             : redis_connector(redis_connector) {}
 
     void RedisSolutionPublisher::publish(const std::string &task_id, const TspTask &task, const TspSolution &solution) {
-        SPDLOG_DEBUG("Publishing {}tsp result (cost = {}) for task {} to Redis storage...", solution.isFinalSolution() ? "_final_ " : "", solution.getCost().getValue(), task_id);
+        SPDLOG_DEBUG("Publishing {}tsp result (cost = {}) for task {} to Redis storage...", solution.isFinalSolution() ? "_final_ " : "", solution.getCost(), task_id);
         redis_connector.set<assfire::api::v1::tsp::TspSolution>(
                 solutionKey(task_id),
                 api::v1::tsp::TspSolutionTranslator::toProto(solution),
@@ -29,5 +31,6 @@ namespace assfire::tsp
                 solution.isFinalSolution() ? util::RedisConnector::WriteMode::SYNC : util::RedisConnector::WriteMode::ASYNC,
                 SOLUTION_EXPIRY_PERIOD
         );
+        SPDLOG_DEBUG("Solution (cost = {}) published to Redis storage for task {}", solution.getCost(), task_id);
     }
 }
