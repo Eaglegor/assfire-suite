@@ -63,6 +63,8 @@ void FullMatrixCacheDistanceMatrixEngine::initialize() const {
     int new_origins_count = known_locations.size() - known_origins_count;
     int new_destinations_count = known_locations.size() - known_destinations_count;
 
+    SPDLOG_DEBUG("Distance matrix cache is out of date. Rebuilding for {} new origins and {} new destinations", new_origins_count, new_destinations_count);
+
     Matrix<RouteDetails> new_bottom_submatrix(0, 0);
     Matrix<RouteDetails> new_right_submatrix(0, 0);
     if (new_origins_count > 0) {
@@ -94,13 +96,17 @@ void FullMatrixCacheDistanceMatrixEngine::initialize() const {
             known_locations.size(),
             [&](int i, int j) {
                 if (i < known_origins_count && j < known_destinations_count) { // Both locations are already in cache
+                    SPDLOG_TRACE("Reusing cached value for locations {}, {}: {}", i, j, route_details_cache.at(i,j).getDistance().toMeters());
                     return route_details_cache.at(i, j);
                 } else if (i < known_origins_count && j >= known_destinations_count) { // New destination -> take from right submatrix
+                    SPDLOG_TRACE("Using right submatrix for {}, {}: {}", i, j, new_right_submatrix.at(i,j - known_destinations_count).getDistance().toMeters());
                     return new_right_submatrix.at(i, j - known_destinations_count);
                 } else if (i >= known_origins_count && j < known_destinations_count) { // New origin -> take from bottom submatrix
+                    SPDLOG_TRACE("Using bottom submatrix for {}, {}: {}", i, j, new_bottom_submatrix.at(i - known_origins_count, j).getDistance().toMeters());
                     return new_bottom_submatrix.at(i - known_origins_count, j);
                 } else if (i >= known_origins_count && j >= known_destinations_count) { // New both origin and destination -> take from bottom submatrix
-                    return new_bottom_submatrix.at(i - known_origins_count, j - known_destinations_count);
+                    SPDLOG_TRACE("Using bottom+ submatrix for {}, {}: {}", i, j, new_bottom_submatrix.at(i - known_origins_count, j).getDistance().toMeters());
+                    return new_bottom_submatrix.at(i - known_origins_count, j);
                 } else {
                     SPDLOG_WARN("Single route mode is used for route calculation for locations {}->{}", known_locations.at(i), known_locations.at(j));
                     return engine->getSingleRouteDetails(known_locations.at(i), known_locations.at(j));
