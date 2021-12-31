@@ -272,7 +272,7 @@ export default {
               loc: l
             }
           })
-          .sort((a, b) => indices[b.ind] - indices[a.ind])
+          .sort((a, b) => indices[a.ind] - indices[b.ind])
           .map(l => l.loc)
       this.locations.push(...sortedLocations)
     }
