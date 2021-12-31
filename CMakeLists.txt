@@ -39,6 +39,7 @@ option(ASSFIRE_IN_SOURCE_GO_ENABLED "Build non-generated go modules in source tr
 option(ASSFIRE_HELM_ENABLED "Build helm charts" ON)
 option(ASSFIRE_DOCKER_ENABLED "Build docker images" ON)
 option(ASSFIRE_GRPC_GATEWAYS_ENABLED "Build reverse HTTP proxy services for gRPC" ON)
+option(ASSFIRE_DEMO_APPS_ENABLED "Build demo apps" ON)
 option(ASSFIRE_RPM_ENABLED "Build RPM packages" ON)
 
 option(ASSFIRE_ROUTER_MAPTEST_ENABLED "Build Assfire Router Maptest module" OFF)

@@ -23,11 +23,11 @@ class Route {
   }
 
   asKey() {
-    return this.pts.map(p=>p.asKey()).reduce((a,b)=>a+b)
+    return this.pts.map(p => p.asKey()).reduce((a, b) => a + b)
   }
 
   toLatLngs() {
-    return this.pts.map(l=>l.toLatLng())
+    return this.pts.map(l => l.toLatLng())
   }
 }
 
@@ -70,17 +70,17 @@ export default {
     }
   },
   methods: {
-    updateLocationByMarker(location, event){
+    updateLocationByMarker(location, event) {
       this.$emit('updateLocation', {
         location: location,
         newPosition: event.target.getLatLng()
       })
     },
     sendNewLocationSignal(event) {
-      if(event.latlng == null) {
+      if (event.latlng == null) {
         return
       }
-      if(!event.originalEvent.ctrlKey) return
+      if (!event.originalEvent.ctrlKey) return
       this.$emit('newLocation', event.latlng)
     }
   },
