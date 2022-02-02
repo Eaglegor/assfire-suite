@@ -1,6 +1,8 @@
 #pragma once
 
-namespace assfire::osrm {
+#include <string>
+
+namespace assfire::router {
     enum class OsrmGeometry {
         UNSPECIFIED = 0,
         STRAIGHT_LINE = 1,
@@ -10,6 +12,10 @@ namespace assfire::osrm {
 
     class OsrmSettings {
     public:
+        enum class Region {
+            WORLD
+        };
+
         OsrmGeometry getGeometry() const {
             return geometry;
         }
@@ -18,7 +24,16 @@ namespace assfire::osrm {
             this->geometry = geometry;
         }
 
+        Region getPreferredRegion() const {
+            return preferred_region;
+        }
+
+        void setPreferredRegion(Region region) {
+            OsrmSettings::preferred_region = region;
+        }
+
     private:
         OsrmGeometry geometry = OsrmGeometry::STRAIGHT_LINE;
+        Region preferred_region = Region::WORLD;
     };
 }

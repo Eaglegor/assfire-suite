@@ -3,10 +3,10 @@
 #include <cxxopts.hpp>
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <assfire/log/spdlog.h>
+#include "assfire/log/spdlog.h"
 
 #ifdef _WIN32
-#include <assfire/win32/winsock_initializer.h>
+#include "assfire/win32/winsock_initializer.h"
 #endif
 
 using namespace assfire::router;
